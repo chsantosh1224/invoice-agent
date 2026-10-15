@@ -37,7 +37,13 @@ line-length = 100
 target-version = "py312"
 
 [tool.ruff.lint]
-select = ["E", "F", "I", "B", "UP", "SIM", "RUF"]
+select = ["E", "F", "I", "B", "UP", "SIM", "RUF", "D"]
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"  # every function documents purpose, Args, Returns, Raises
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["D"]  # tests carry a one-line purpose docstring; Args sections not required
 
 [tool.mypy]
 python_version = "3.12"

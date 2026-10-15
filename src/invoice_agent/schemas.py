@@ -15,6 +15,8 @@ from pydantic import BaseModel, ConfigDict, Field
 
 
 class _Strict(BaseModel):
+    """Base for LLM-facing models: rejects unknown keys (additionalProperties: false)."""
+
     model_config = ConfigDict(extra="forbid")
 
 
@@ -22,12 +24,16 @@ class _Strict(BaseModel):
 
 
 class RawParty(_Strict):
+    """A company on the invoice. Copy each value exactly as printed; use null if absent."""
+
     name: str | None = Field(description="Legal/trading name as printed")
     address: str | None = Field(description="Full address as printed, lines joined with ', '")
     tax_id: str | None = Field(description="GSTIN / VAT / EIN / TIN exactly as printed")
 
 
 class RawLineItem(_Strict):
+    """One row of the line-item table. Copy values exactly as printed; null if a cell is empty."""
+
     description: str | None
     quantity: str | None = Field(description="As printed, e.g. '2' or '1.5'")
     unit_price: str | None = Field(description="As printed, including separators")
@@ -35,6 +41,12 @@ class RawLineItem(_Strict):
 
 
 class RawInvoice(_Strict):
+    """The full invoice transcribed exactly as printed.
+
+    Do not calculate, convert or reformat anything: keep separators, symbols and date
+    formats as they appear. Use null for any field that is not on the document.
+    """
+
     document_type: Literal["invoice", "credit_note"]
     invoice_number: str | None
     invoice_date: str | None = Field(description="Exactly as printed, e.g. '03/04/2026'")
@@ -55,12 +67,16 @@ class RawInvoice(_Strict):
 
 
 class Party(BaseModel):
+    """A normalized vendor or buyer (whitespace cleaned, None where blank)."""
+
     name: str | None = None
     address: str | None = None
     tax_id: str | None = None
 
 
 class LineItem(BaseModel):
+    """A normalized line item; numbers are exact Decimals."""
+
     description: str | None = None
     quantity: Decimal | None = None
     unit_price: Decimal | None = None
@@ -68,6 +84,12 @@ class LineItem(BaseModel):
 
 
 class Invoice(BaseModel):
+    """The normalized invoice: Decimal money, real dates, ISO 4217 currency.
+
+    Produced from a RawInvoice by `normalize.to_invoice`; this is what validation,
+    matching and storage work with.
+    """
+
     document_type: Literal["invoice", "credit_note"] = "invoice"
     invoice_number: str | None = None
     invoice_date: date | None = None
@@ -90,6 +112,8 @@ Severity = Literal["error", "warning"]
 
 
 class ValidationIssue(BaseModel):
+    """One problem found by normalization or the validation gate."""
+
     field: str = Field(description="Dotted path, e.g. 'total' or 'line_items[2].amount'")
     code: str = Field(description="Machine-readable, e.g. 'math.total_mismatch'")
     message: str
@@ -101,6 +125,8 @@ Status = Literal["accepted", "needs_human_review"]
 
 
 class ExtractionResult(BaseModel):
+    """The final output of extraction for one document, including its audit trail."""
+
     status: Status
     route: Route
     invoice: Invoice

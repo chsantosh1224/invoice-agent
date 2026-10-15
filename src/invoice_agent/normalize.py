@@ -24,7 +24,28 @@ _CURRENCY_NOISE = re.compile(r"[^\d,.\-()]")
 
 
 def parse_amount(text: str) -> Decimal:
-    """'₹1,23,456.00' -> 123456.00, '1.234,56 €' -> 1234.56, '(500.00)' -> -500.00."""
+    """Convert a printed money or quantity string into an exact Decimal.
+
+    Handles the formats seen on real invoices: currency symbols and codes, Indian lakh
+    grouping, European decimal commas, thousands separators, and the accounting
+    conventions for negatives (parentheses, leading/trailing minus, 'CR'). The Indian
+    suffix '/-' ("only") is treated as decoration, not a minus sign.
+
+    Args:
+        text: The value exactly as printed on the invoice, e.g. '₹1,23,456.00',
+            '1.234,56 €', '(500.00)', 'Rs. 4,500/-'.
+
+    Returns:
+        The numeric value as a Decimal (never a float, so money stays exact).
+        Negative for credit/accounting-negative formats.
+
+    Raises:
+        ValueError: If the text contains no digits or cannot be read as a number.
+
+    Example:
+        >>> parse_amount("₹1,23,456.00")
+        Decimal('123456.00')
+    """
     s = text.strip()
     s = s.removesuffix("/-").strip()  # Indian 'Rs. 4,500/-' means "4,500 only", not negative
     negative = (
@@ -71,11 +92,33 @@ DAYFIRST_CURRENCIES = {"INR", "EUR", "GBP", "AUD", "NZD", "SGD", "AED", "ZAR"}
 
 
 class AmbiguousDateError(ValueError):
-    pass
+    """Raised when a numeric date could be DD/MM or MM/DD and no hint says which."""
 
 
 def parse_date(text: str, *, dayfirst: bool | None = None) -> date:
-    """Parse a printed date. Numeric dates where both parts are <= 12 need `dayfirst`."""
+    """Convert a printed date string into a `datetime.date`.
+
+    Supports ISO dates, numeric dates with '/', '-' or '.' separators, and text dates
+    such as '3 Apr 2026', 'April 3rd, 2026' or '03-Apr-2026'. A numeric date is only
+    resolved without a hint when it is unambiguous (one part > 12, or day == month).
+
+    Args:
+        text: The date exactly as printed on the invoice.
+        dayfirst: How to read an ambiguous numeric date such as '03/04/2026'.
+            True = DD/MM (India, Europe), False = MM/DD (US), None = no hint, in which
+            case an ambiguous date raises instead of being guessed.
+
+    Returns:
+        The parsed calendar date.
+
+    Raises:
+        AmbiguousDateError: If the date is ambiguous and `dayfirst` is None.
+        ValueError: If the text matches no supported date format.
+
+    Example:
+        >>> parse_date("03/04/2026", dayfirst=True)
+        datetime.date(2026, 4, 3)
+    """
     s = _ORDINAL.sub(r"\1", text.strip()).replace("Sept", "Sep")
     m = _NUMERIC_DATE.match(s)
     if m:
@@ -111,6 +154,24 @@ _ISO = re.compile(r"\b([A-Z]{3})\b")
 
 
 def parse_currency(text: str) -> str:
+    """Convert a printed currency symbol or code into an ISO 4217 code.
+
+    An explicit 3-letter code wins over a symbol, so 'CAD $' becomes CAD rather than USD.
+    A bare '$' defaults to USD.
+
+    Args:
+        text: The currency as printed, e.g. '₹', 'Rs.', 'INR', '€', 'usd', 'CAD $'.
+
+    Returns:
+        The uppercase ISO 4217 code, e.g. 'INR'.
+
+    Raises:
+        ValueError: If no known symbol or 3-letter code is found.
+
+    Example:
+        >>> parse_currency("Rs.")
+        'INR'
+    """
     s = text.strip().upper()
     if s in _SYMBOLS:
         return _SYMBOLS[s]
@@ -127,6 +188,15 @@ def parse_currency(text: str) -> str:
 
 
 def _clean(text: str | None) -> str | None:
+    """Collapse whitespace in a printed string and turn empty strings into None.
+
+    Args:
+        text: Any transcribed text value, or None.
+
+    Returns:
+        The text with runs of whitespace/newlines collapsed to single spaces, or None
+        if the input was None or contained only whitespace.
+    """
     if text is None:
         return None
     text = " ".join(text.split())
@@ -134,14 +204,45 @@ def _clean(text: str | None) -> str | None:
 
 
 def _party(raw: RawParty) -> Party:
+    """Convert a transcribed party (vendor or buyer) into the normalized Party model.
+
+    Args:
+        raw: The party as the LLM transcribed it.
+
+    Returns:
+        A Party with whitespace-cleaned name, address and tax ID (None where blank).
+    """
     return Party(name=_clean(raw.name), address=_clean(raw.address), tax_id=_clean(raw.tax_id))
 
 
 def to_invoice(raw: RawInvoice) -> tuple[Invoice, list[ValidationIssue]]:
-    """Normalize a transcription. Returns the invoice plus any normalization issues."""
+    """Normalize a full LLM transcription into a typed Invoice.
+
+    Converts every amount to Decimal, every date to `date` and the currency to ISO 4217.
+    The currency also decides how ambiguous dates are read (₹/€/£ -> day first,
+    $ -> month first). A value that fails to parse is set to None and reported as a
+    ValidationIssue; it is never guessed.
+
+    Args:
+        raw: The invoice transcribed exactly as printed (output of the LLM).
+
+    Returns:
+        A tuple of:
+        - the normalized Invoice (unparseable fields are None), and
+        - the list of normalization issues found (empty when everything parsed).
+    """
     issues: list[ValidationIssue] = []
 
     def amount(field: str, text: str | None) -> Decimal | None:
+        """Parse one amount, recording an issue instead of raising.
+
+        Args:
+            field: Dotted field path used in the issue, e.g. 'line_items[0].amount'.
+            text: The printed value, or None if the field was absent.
+
+        Returns:
+            The Decimal value, or None if the field was absent or unparseable.
+        """
         if not _clean(text):
             return None
         try:
@@ -164,6 +265,16 @@ def to_invoice(raw: RawInvoice) -> tuple[Invoice, list[ValidationIssue]]:
     dayfirst = None if currency is None else currency in DAYFIRST_CURRENCIES
 
     def when(field: str, text: str | None) -> date | None:
+        """Parse one date using the invoice's currency as the day/month hint.
+
+        Args:
+            field: Field name used in the issue, e.g. 'invoice_date'.
+            text: The printed date, or None if the field was absent.
+
+        Returns:
+            The parsed date, or None if absent, ambiguous or unrecognized (the last two
+            are recorded as issues).
+        """
         if not _clean(text):
             return None
         try:

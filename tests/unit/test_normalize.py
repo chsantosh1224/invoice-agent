@@ -31,11 +31,13 @@ from invoice_agent.schemas import RawInvoice, RawLineItem, RawParty
     ],
 )
 def test_parse_amount(text: str, expected: str) -> None:
+    """Each printed amount format (lakh, EU comma, negatives, '/-') parses exactly."""
     assert parse_amount(text) == Decimal(expected)
 
 
 @pytest.mark.parametrize("text", ["", "N/A", "--"])
 def test_parse_amount_rejects_non_numbers(text: str) -> None:
+    """Text with no digits raises ValueError instead of becoming 0."""
     with pytest.raises(ValueError):
         parse_amount(text)
 
@@ -56,10 +58,12 @@ def test_parse_amount_rejects_non_numbers(text: str) -> None:
     ],
 )
 def test_parse_date(text: str, dayfirst: bool | None, expected: date) -> None:
+    """Supported date formats parse correctly, using `dayfirst` only when the date is ambiguous."""
     assert parse_date(text, dayfirst=dayfirst) == expected
 
 
 def test_ambiguous_date_without_hint_is_an_error_not_a_guess() -> None:
+    """'03/04/2026' with no hint must raise, never silently pick DD/MM or MM/DD."""
     with pytest.raises(AmbiguousDateError):
         parse_date("03/04/2026")
 
@@ -69,10 +73,19 @@ def test_ambiguous_date_without_hint_is_an_error_not_a_guess() -> None:
     [("₹", "INR"), ("Rs.", "INR"), ("INR", "INR"), ("€", "EUR"), ("usd", "USD"), ("CAD $", "CAD")],
 )
 def test_parse_currency(text: str, expected: str) -> None:
+    """Symbols and codes map to ISO 4217; an explicit code beats a symbol ('CAD $' -> CAD)."""
     assert parse_currency(text) == expected
 
 
 def _raw(**overrides: object) -> RawInvoice:
+    """Build a valid RawInvoice for tests.
+
+    Args:
+        **overrides: Field values to replace in the default invoice.
+
+    Returns:
+        A RawInvoice with the defaults below, updated with `overrides`.
+    """
     party = RawParty(name=None, address=None, tax_id=None)
     base: dict[str, object] = dict(
         document_type="invoice",
@@ -97,6 +110,7 @@ def _raw(**overrides: object) -> RawInvoice:
 
 
 def test_to_invoice_uses_currency_to_resolve_date_order() -> None:
+    """₹ means day-first, so '03/04/2026' becomes 3 April; amounts become Decimals."""
     invoice, issues = to_invoice(_raw())
     assert issues == []
     assert invoice.currency == "INR"
@@ -106,6 +120,7 @@ def test_to_invoice_uses_currency_to_resolve_date_order() -> None:
 
 
 def test_to_invoice_reports_issues_instead_of_guessing() -> None:
+    """Unparseable values become None plus a ValidationIssue, never a guess."""
     invoice, issues = to_invoice(_raw(currency=None, total="TBD"))
     codes = {(i.field, i.code) for i in issues}
     assert ("invoice_date", "normalize.date_ambiguous") in codes

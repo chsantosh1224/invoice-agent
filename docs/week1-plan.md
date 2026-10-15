@@ -8,6 +8,7 @@ This is the flagship portfolio project for AI Automation / AI Engineer roles: an
 2. **Keep the layout.** Never send plain OCR text. Ingestion produces layout-aware Markdown (tables, reading order, key-value proximity) plus word bounding boxes, and the model also gets the page image when it supports vision.
 3. **Probabilistic step, deterministic control.** The LLM is the only non-deterministic part. Code verifies its output (arithmetic, schema, values grounded in the OCR text); determinism controls reduce variance; low confidence goes to a human.
 4. **Models chosen by measurement, set per role.** `EXTRACTOR_MODEL`, `AGENT_MODEL` and `JUDGE_MODEL` are configured via OpenRouter, and a bake-off picks them.
+5. **Free models by default.** The defaults are `google/gemma-4-31b-it:free` (extractor), `nvidia/nemotron-3-super-120b-a12b:free` (agent) and `nvidia/nemotron-3-ultra-550b-a55b:free` (judge). Every call goes through `structured.invoke_structured`: the best output mode the model supports, then Pydantic validation, then a repair loop. Responses are cached on disk to save free-tier quota. `ALLOW_PROMPT_LOGGING=true` is for synthetic data only. Switching a role to a paid model is a one-line change, and the README will report the accuracy difference.
 
 ### Architecture
 ```
