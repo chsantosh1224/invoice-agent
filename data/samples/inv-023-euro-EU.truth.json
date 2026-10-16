@@ -1,0 +1,205 @@
+{
+  "id": "inv-023-euro-EU",
+  "file": "inv-023-euro-EU.pdf",
+  "kind": "digital",
+  "split": "test",
+  "template": "euro",
+  "country": "EU",
+  "pages": 2,
+  "edge_cases": [
+    "multi_page"
+  ],
+  "invoice": {
+    "document_type": "invoice",
+    "invoice_number": "R562852",
+    "invoice_date": "2026-08-17",
+    "due_date": "2026-09-01",
+    "po_number": "PO-7805",
+    "currency": "EUR",
+    "vendor": {
+      "name": "Rosemann GmbH & Co. KGaA",
+      "address": "Leyla-Neureuther-Allee 3/3, 40125 Böblingen",
+      "tax_id": "DE742294401"
+    },
+    "buyer": {
+      "name": "Haase KG",
+      "address": "Misichergasse 21, 05276 Cloppenburg",
+      "tax_id": "NL589012979"
+    },
+    "line_items": [
+      {
+        "description": "Wireless keyboard and mouse set",
+        "quantity": "1",
+        "unit_price": "29.03",
+        "amount": "29.03"
+      },
+      {
+        "description": "Cat6 network cable, 305m",
+        "quantity": "1",
+        "unit_price": "101.10",
+        "amount": "101.10"
+      },
+      {
+        "description": "Corrugated shipping boxes",
+        "quantity": "5",
+        "unit_price": "0.71",
+        "amount": "3.55"
+      },
+      {
+        "description": "On-site support engineer",
+        "quantity": "19",
+        "unit_price": "38.30",
+        "amount": "727.70"
+      },
+      {
+        "description": "Stainless steel sheet 2mm",
+        "quantity": "10.5",
+        "unit_price": "3.46",
+        "amount": "36.33"
+      },
+      {
+        "description": "Laptop, 14in, 16GB RAM",
+        "quantity": "5",
+        "unit_price": "1192.18",
+        "amount": "5960.90"
+      },
+      {
+        "description": "Ergonomic office chair",
+        "quantity": "10",
+        "unit_price": "214.49",
+        "amount": "2144.90"
+      },
+      {
+        "description": "Safety gloves (pair)",
+        "quantity": "2",
+        "unit_price": "2.97",
+        "amount": "5.94"
+      },
+      {
+        "description": "Cat6 network cable, 305m",
+        "quantity": "1",
+        "unit_price": "67.32",
+        "amount": "67.32"
+      },
+      {
+        "description": "Laptop, 14in, 16GB RAM",
+        "quantity": "5",
+        "unit_price": "1071.84",
+        "amount": "5359.20"
+      },
+      {
+        "description": "Cloud hosting - monthly plan",
+        "quantity": "2",
+        "unit_price": "92.82",
+        "amount": "185.64"
+      },
+      {
+        "description": "Corrugated shipping boxes",
+        "quantity": "1",
+        "unit_price": "0.32",
+        "amount": "0.32"
+      },
+      {
+        "description": "Training workshop, half day",
+        "quantity": "1",
+        "unit_price": "157.70",
+        "amount": "157.70"
+      },
+      {
+        "description": "Cat6 network cable, 305m",
+        "quantity": "10",
+        "unit_price": "52.88",
+        "amount": "528.80"
+      },
+      {
+        "description": "Cat6 network cable, 305m",
+        "quantity": "2",
+        "unit_price": "106.31",
+        "amount": "212.62"
+      },
+      {
+        "description": "Cloud hosting - monthly plan",
+        "quantity": "1",
+        "unit_price": "61.47",
+        "amount": "61.47"
+      },
+      {
+        "description": "Toner cartridge, black",
+        "quantity": "2",
+        "unit_price": "57.94",
+        "amount": "115.88"
+      },
+      {
+        "description": "Toner cartridge, black",
+        "quantity": "1",
+        "unit_price": "48.38",
+        "amount": "48.38"
+      },
+      {
+        "description": "Implementation consulting",
+        "quantity": "17.5",
+        "unit_price": "31.38",
+        "amount": "549.15"
+      },
+      {
+        "description": "Training workshop, half day",
+        "quantity": "2",
+        "unit_price": "291.02",
+        "amount": "582.04"
+      },
+      {
+        "description": "Laptop, 14in, 16GB RAM",
+        "quantity": "1",
+        "unit_price": "978.51",
+        "amount": "978.51"
+      },
+      {
+        "description": "A4 copier paper (box of 5 reams)",
+        "quantity": "10",
+        "unit_price": "9.14",
+        "amount": "91.40"
+      },
+      {
+        "description": "Corrugated shipping boxes",
+        "quantity": "10",
+        "unit_price": "0.87",
+        "amount": "8.70"
+      },
+      {
+        "description": "Laptop, 14in, 16GB RAM",
+        "quantity": "2",
+        "unit_price": "788.77",
+        "amount": "1577.54"
+      },
+      {
+        "description": "Cat6 network cable, 305m",
+        "quantity": "2",
+        "unit_price": "68.29",
+        "amount": "136.58"
+      },
+      {
+        "description": "A4 copier paper (box of 5 reams)",
+        "quantity": "5",
+        "unit_price": "5.36",
+        "amount": "26.80"
+      },
+      {
+        "description": "Toner cartridge, black",
+        "quantity": "10",
+        "unit_price": "75.51",
+        "amount": "755.10"
+      },
+      {
+        "description": "27in IPS monitor",
+        "quantity": "5",
+        "unit_price": "145.62",
+        "amount": "728.10"
+      }
+    ],
+    "subtotal": "21180.70",
+    "discount": null,
+    "tax": "4024.33",
+    "total": "25205.03",
+    "payment_terms": "Payable within 15 days"
+  }
+}

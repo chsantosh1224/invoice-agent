@@ -3,13 +3,16 @@
 import json
 import time
 from pathlib import Path
-from typing import Annotated
+from typing import TYPE_CHECKING, Annotated
 
 import httpx
 import typer
 
 from invoice_agent.config import get_settings
 from invoice_agent.models_catalog import CANDIDATES, ModelInfo, load_catalog
+
+if TYPE_CHECKING:
+    from invoice_agent.evals.ingestion_report import Ingestor
 
 app = typer.Typer(no_args_is_help=True, add_completion=False)
 
@@ -169,8 +172,8 @@ def smoke(
 @app.command()
 def synth(
     out: Annotated[Path, typer.Option(help="Output folder")] = Path("data/samples"),
-    digital: Annotated[int, typer.Option(help="Number of digital invoices")] = 30,
-    scanned: Annotated[int, typer.Option(help="How many also get a scanned copy")] = 20,
+    digital: Annotated[int, typer.Option(help="Number of digital invoices")] = 36,
+    scanned: Annotated[int, typer.Option(help="How many also get a scanned copy")] = 24,
     seed: Annotated[int, typer.Option(help="Same seed -> identical dataset")] = 42,
     test_fraction: Annotated[float, typer.Option(help="Share held out for testing")] = 0.4,
     channel: Annotated[
@@ -219,6 +222,91 @@ def synth(
         "out": str(out),
     }
     typer.echo(json.dumps(summary, indent=2))
+
+
+def _engine(name: str) -> "Ingestor":
+    """Create an ingestion engine by name.
+
+    Args:
+        name: 'light', 'docling' (keeps page headers/footers) or 'docling-default'
+            (Docling's stock output, which drops them).
+
+    Returns:
+        A ready-to-use engine instance.
+
+    Raises:
+        typer.BadParameter: For an unknown engine name.
+        ImportError: For 'docling' when the optional extra is not installed.
+    """
+    if name == "light":
+        from invoice_agent.ingest.light import LightIngestor
+
+        return LightIngestor()
+    if name in ("docling", "docling-default"):
+        from invoice_agent.ingest.docling_engine import DoclingIngestor
+
+        return DoclingIngestor(keep_furniture=name == "docling")
+    raise typer.BadParameter(f"unknown engine {name!r}; use light, docling or docling-default")
+
+
+@app.command()
+def ingest(
+    file: Annotated[Path, typer.Argument(help="PDF or image to ingest", exists=True)],
+    engine: Annotated[str, typer.Option(help="'light' or 'docling'")] = "light",
+) -> None:
+    """Show exactly what an ingestion engine extracts from one document.
+
+    Usage: `invoice-agent ingest data/samples/inv-002-gst_india-IN-scan.pdf --engine docling`.
+
+    Args:
+        file: The document to ingest.
+        engine: Which engine to use.
+
+    Returns:
+        None. Prints a one-line summary (kind, pages, spans, OCR confidence, seconds)
+        followed by the layout text an LLM would receive.
+    """
+    started = time.perf_counter()
+    doc = _engine(engine).ingest(file)
+    spans = sum(len(p.spans) for p in doc.pages)
+    typer.echo(
+        f"# engine={doc.engine} kind={doc.kind} pages={len(doc.pages)} spans={spans} "
+        f"ocr_conf={doc.ocr_confidence:.3f} seconds={time.perf_counter() - started:.2f}\n"
+    )
+    typer.echo(doc.text)
+
+
+@app.command("ingest-eval")
+def ingest_eval(
+    engines: Annotated[str, typer.Option(help="Comma-separated engines")] = "light,docling",
+    data: Annotated[Path, typer.Option(help="Dataset folder")] = Path("data/samples"),
+    split: Annotated[str, typer.Option(help="'dev', 'test' or 'all'")] = "dev",
+    report: Annotated[Path, typer.Option(help="Report path")] = Path(
+        "reports/ingestion_comparison.md"
+    ),
+) -> None:
+    """Compare ingestion engines on the synthetic dataset (no LLM, no cost).
+
+    Scores value recall and line-item row integrity per engine, digital vs scanned,
+    plus speed and memory, and writes a Markdown report. Each engine's text per
+    document is saved under reports/raw/ingestion/<engine>/ for inspection.
+
+    Args:
+        engines: Engines to compare, e.g. 'light,docling'.
+        data: Dataset folder with manifest.json.
+        split: Which split to evaluate; decisions should be made on 'dev'.
+        report: Where to write the Markdown report.
+
+    Returns:
+        None. Prints headline numbers as JSON and writes the report.
+    """
+    from invoice_agent.evals.ingestion_report import run_engines, summary_json, write_report
+
+    instances = [_engine(name.strip()) for name in engines.split(",")]
+    runs, peak = run_engines(instances, data, split=split, out_dir=Path("reports/raw/ingestion"))
+    write_report(runs, peak, report, split)
+    typer.echo(json.dumps({"summary": summary_json(runs), "peak_rss_mb": peak}, indent=2))
+    typer.echo(f"report: {report}")
 
 
 if __name__ == "__main__":

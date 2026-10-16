@@ -1,0 +1,83 @@
+{
+  "id": "inv-013-classic-US",
+  "file": "inv-013-classic-US.pdf",
+  "kind": "digital",
+  "split": "test",
+  "template": "classic",
+  "country": "US",
+  "pages": 1,
+  "edge_cases": [],
+  "invoice": {
+    "document_type": "invoice",
+    "invoice_number": "INV-09685",
+    "invoice_date": "2026-01-12",
+    "due_date": "2026-01-27",
+    "po_number": "PO/2026/404",
+    "currency": "USD",
+    "vendor": {
+      "name": "Black, Walls and Suarez",
+      "address": "49757 Cody Ridges, New Georgeville, FM 76404",
+      "tax_id": "97-5701908"
+    },
+    "buyer": {
+      "name": "Thomas, Brown and Patrick",
+      "address": "PSC 2098, Box 3796, APO AP 24841",
+      "tax_id": "21-9887820"
+    },
+    "line_items": [
+      {
+        "description": "Cat6 network cable, 305m",
+        "quantity": "1",
+        "unit_price": "98.62",
+        "amount": "98.62"
+      },
+      {
+        "description": "Industrial lubricant",
+        "quantity": "6",
+        "unit_price": "6.99",
+        "amount": "41.94"
+      },
+      {
+        "description": "Corrugated shipping boxes",
+        "quantity": "2",
+        "unit_price": "1.58",
+        "amount": "3.16"
+      },
+      {
+        "description": "Corrugated shipping boxes",
+        "quantity": "10",
+        "unit_price": "1.28",
+        "amount": "12.80"
+      },
+      {
+        "description": "Training workshop, half day",
+        "quantity": "2",
+        "unit_price": "148.68",
+        "amount": "297.36"
+      },
+      {
+        "description": "Software licence, annual, per seat",
+        "quantity": "2",
+        "unit_price": "45.22",
+        "amount": "90.44"
+      },
+      {
+        "description": "Software licence, annual, per seat",
+        "quantity": "5",
+        "unit_price": "217.99",
+        "amount": "1089.95"
+      },
+      {
+        "description": "Wireless keyboard and mouse set",
+        "quantity": "2",
+        "unit_price": "34.39",
+        "amount": "68.78"
+      }
+    ],
+    "subtotal": "1703.05",
+    "discount": null,
+    "tax": "123.47",
+    "total": "1826.52",
+    "payment_terms": "Payable within 15 days"
+  }
+}

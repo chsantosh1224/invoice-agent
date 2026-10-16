@@ -1,0 +1,81 @@
+{
+  "id": "inv-032-gst_india-IN-scan",
+  "file": "inv-032-gst_india-IN-scan.png",
+  "kind": "scanned",
+  "split": "dev",
+  "template": "gst_india",
+  "country": "IN",
+  "pages": 1,
+  "edge_cases": [
+    "buyer_without_tax_id",
+    "discount",
+    "missing_po"
+  ],
+  "invoice": {
+    "document_type": "invoice",
+    "invoice_number": "INV-2026-4395",
+    "invoice_date": "2026-08-07",
+    "due_date": "2026-10-06",
+    "po_number": null,
+    "currency": "INR",
+    "vendor": {
+      "name": "Kant-Badami",
+      "address": "39/12, Bajwa Road, Kalyan-Dombivli-162834",
+      "tax_id": "36YFRGU4530B3Z5"
+    },
+    "buyer": {
+      "name": "Samra, Gade and Chada",
+      "address": "965, Loke Ganj, Tenali-625629",
+      "tax_id": null
+    },
+    "line_items": [
+      {
+        "description": "Ergonomic office chair",
+        "quantity": "2",
+        "unit_price": "14571.74",
+        "amount": "29143.48"
+      },
+      {
+        "description": "27in IPS monitor",
+        "quantity": "10",
+        "unit_price": "23180.75",
+        "amount": "231807.50"
+      },
+      {
+        "description": "On-site support engineer",
+        "quantity": "3.5",
+        "unit_price": "2059.75",
+        "amount": "7209.13"
+      },
+      {
+        "description": "Safety gloves (pair)",
+        "quantity": "10",
+        "unit_price": "267.49",
+        "amount": "2674.90"
+      },
+      {
+        "description": "Wireless keyboard and mouse set",
+        "quantity": "5",
+        "unit_price": "1157.43",
+        "amount": "5787.15"
+      },
+      {
+        "description": "Industrial lubricant",
+        "quantity": "2.5",
+        "unit_price": "348.04",
+        "amount": "870.10"
+      },
+      {
+        "description": "Corrugated shipping boxes",
+        "quantity": "10",
+        "unit_price": "136.49",
+        "amount": "1364.90"
+      }
+    ],
+    "subtotal": "278857.16",
+    "discount": "13942.86",
+    "tax": "13245.72",
+    "total": "278160.02",
+    "payment_terms": "Payable within 60 days"
+  }
+}

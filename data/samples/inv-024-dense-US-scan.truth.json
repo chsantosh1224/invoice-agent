@@ -1,0 +1,65 @@
+{
+  "id": "inv-024-dense-US-scan",
+  "file": "inv-024-dense-US-scan.pdf",
+  "kind": "scanned",
+  "split": "dev",
+  "template": "dense",
+  "country": "US",
+  "pages": 1,
+  "edge_cases": [],
+  "invoice": {
+    "document_type": "invoice",
+    "invoice_number": "A-5675",
+    "invoice_date": "2026-04-09",
+    "due_date": "2026-04-23",
+    "po_number": "PO-4621",
+    "currency": "USD",
+    "vendor": {
+      "name": "Foster-Roberts",
+      "address": "0072 Snyder Courts, Robertborough, CT 21218",
+      "tax_id": "50-0728571"
+    },
+    "buyer": {
+      "name": "Bean, Parker and Duarte",
+      "address": "4286 Rhonda Spur Apt. 532, North Katherine, MI 99843",
+      "tax_id": "56-9312664"
+    },
+    "line_items": [
+      {
+        "description": "Wireless keyboard and mouse set",
+        "quantity": "2",
+        "unit_price": "24.01",
+        "amount": "48.02"
+      },
+      {
+        "description": "Ergonomic office chair",
+        "quantity": "10",
+        "unit_price": "161.42",
+        "amount": "1614.20"
+      },
+      {
+        "description": "Implementation consulting",
+        "quantity": "1.5",
+        "unit_price": "52.27",
+        "amount": "78.41"
+      },
+      {
+        "description": "Cat6 network cable, 305m",
+        "quantity": "1",
+        "unit_price": "63.76",
+        "amount": "63.76"
+      },
+      {
+        "description": "Safety gloves (pair)",
+        "quantity": "10",
+        "unit_price": "1.90",
+        "amount": "19.00"
+      }
+    ],
+    "subtotal": "1823.39",
+    "discount": null,
+    "tax": null,
+    "total": "1823.39",
+    "payment_terms": "Payable within 14 days"
+  }
+}

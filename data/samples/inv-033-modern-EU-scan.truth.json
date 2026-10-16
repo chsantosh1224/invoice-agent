@@ -1,0 +1,71 @@
+{
+  "id": "inv-033-modern-EU-scan",
+  "file": "inv-033-modern-EU-scan.pdf",
+  "kind": "scanned",
+  "split": "dev",
+  "template": "modern",
+  "country": "EU",
+  "pages": 1,
+  "edge_cases": [],
+  "invoice": {
+    "document_type": "invoice",
+    "invoice_number": "RE-2026-2858",
+    "invoice_date": "2026-01-13",
+    "due_date": "2026-02-12",
+    "po_number": "PO/2026/530",
+    "currency": "EUR",
+    "vendor": {
+      "name": "Rädel",
+      "address": "Rosa-Maria-Kabus-Gasse 15-53, 87355 Amberg",
+      "tax_id": "FR507530428"
+    },
+    "buyer": {
+      "name": "Juncken",
+      "address": "Daria-Kobelt-Straße 578, 13439 Eckernförde",
+      "tax_id": "FR355108185"
+    },
+    "line_items": [
+      {
+        "description": "Ergonomic office chair",
+        "quantity": "1",
+        "unit_price": "140.54",
+        "amount": "140.54"
+      },
+      {
+        "description": "Toner cartridge, black",
+        "quantity": "10",
+        "unit_price": "51.52",
+        "amount": "515.20"
+      },
+      {
+        "description": "Ergonomic office chair",
+        "quantity": "5",
+        "unit_price": "198.21",
+        "amount": "991.05"
+      },
+      {
+        "description": "Stainless steel sheet 2mm",
+        "quantity": "8",
+        "unit_price": "2.52",
+        "amount": "20.16"
+      },
+      {
+        "description": "Software licence, annual, per seat",
+        "quantity": "5",
+        "unit_price": "92.96",
+        "amount": "464.80"
+      },
+      {
+        "description": "A4 copier paper (box of 5 reams)",
+        "quantity": "5",
+        "unit_price": "10.32",
+        "amount": "51.60"
+      }
+    ],
+    "subtotal": "2183.35",
+    "discount": null,
+    "tax": "436.67",
+    "total": "2620.02",
+    "payment_terms": "Payable within 30 days"
+  }
+}

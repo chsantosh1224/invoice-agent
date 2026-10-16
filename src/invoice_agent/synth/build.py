@@ -100,6 +100,43 @@ _IN_STATES = ["27", "29", "07", "33", "36", "24", "09"]  # MH, KA, DL, TN, TS, G
 _EU_VAT = {"DE": Decimal(19), "FR": Decimal(20), "NL": Decimal(21)}  # standard VAT rates
 
 
+_SERVICE_UNITS = {"hrs", "month", "seat", "session"}
+
+
+def _section(unit: str) -> str:
+    """Group heading a line item is printed under on dense invoices.
+
+    Args:
+        unit: The item's unit of measure.
+
+    Returns:
+        'Services', 'Other charges' (freight) or 'Goods'.
+    """
+    if unit in _SERVICE_UNITS:
+        return "Services"
+    return "Other charges" if unit == "lot" else "Goods"
+
+
+def _detail(unit: str, hsn: str, invoice_date: date) -> str:
+    """Second description line printed under an item on dense invoices.
+
+    Deliberately contains extra numbers (codes, references) next to the real amounts,
+    the way real invoices do, so extractors must tell them apart.
+
+    Args:
+        unit: The item's unit of measure.
+        hsn: The item's HSN/SAC code.
+        invoice_date: The invoice date (services show a billing period).
+
+    Returns:
+        e.g. 'Item code 9405390 - delivery note DN-05390' or
+        'Service period Apr 2026 - ref SR-940539'.
+    """
+    if unit in _SERVICE_UNITS:
+        return f"Service period {invoice_date:%b %Y} - ref SR-{hsn[:6]}"
+    return f"Item code {hsn} - delivery note DN-{hsn[-5:]}"
+
+
 @dataclass
 class InvoiceSpec:
     """One generated invoice.
@@ -365,6 +402,8 @@ def build_invoice(
                 "qty": format_quantity(qty, style),
                 "unit_price": format_number(price, style),
                 "amount": format_number(amount, style),
+                "section": _section(unit),
+                "detail": _detail(unit, hsn, invoice_date),
             }
             for i, (desc, qty, price, amount, unit, hsn) in enumerate(rows)
         ],

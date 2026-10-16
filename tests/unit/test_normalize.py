@@ -21,6 +21,7 @@ from invoice_agent.schemas import RawInvoice, RawLineItem, RawParty, RawTaxLine
         ("$ 12,862.00", "12862.00"),
         ("1.234,56 €", "1234.56"),  # EU
         ("1.234.567", "1234567"),
+        ("10.476.38", "10476.38"),  # OCR misread comma as dot (seen on a real scan)
         ("1 234,56", "1234.56"),
         ("12,5", "12.5"),
         ("(500.00)", "-500.00"),  # accounting negative

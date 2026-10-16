@@ -1,0 +1,238 @@
+{
+  "id": "inv-020-gst_india-IN",
+  "file": "inv-020-gst_india-IN.pdf",
+  "kind": "digital",
+  "split": "dev",
+  "template": "gst_india",
+  "country": "IN",
+  "pages": 2,
+  "edge_cases": [
+    "credit_note",
+    "buyer_without_tax_id",
+    "multi_page",
+    "discount"
+  ],
+  "invoice": {
+    "document_type": "credit_note",
+    "invoice_number": "CN-2026-5526",
+    "invoice_date": "2026-03-18",
+    "due_date": "2026-04-17",
+    "po_number": "PO/2026/867",
+    "currency": "INR",
+    "vendor": {
+      "name": "Rai, Amble and Dey",
+      "address": "82, Verma Street, Gurgaon 281739",
+      "tax_id": "29DOVGT9602H3ZG"
+    },
+    "buyer": {
+      "name": "Oza-Narain",
+      "address": "52/37, Comar Circle, Bally 185593",
+      "tax_id": null
+    },
+    "line_items": [
+      {
+        "description": "On-site support engineer",
+        "quantity": "1.5",
+        "unit_price": "2993.52",
+        "amount": "4490.28"
+      },
+      {
+        "description": "Laptop, 14in, 16GB RAM",
+        "quantity": "10",
+        "unit_price": "88446.29",
+        "amount": "884462.90"
+      },
+      {
+        "description": "Cloud hosting - monthly plan",
+        "quantity": "10",
+        "unit_price": "1848.40",
+        "amount": "18484.00"
+      },
+      {
+        "description": "Toner cartridge, black",
+        "quantity": "2",
+        "unit_price": "4858.98",
+        "amount": "9717.96"
+      },
+      {
+        "description": "Training workshop, half day",
+        "quantity": "1",
+        "unit_price": "15786.25",
+        "amount": "15786.25"
+      },
+      {
+        "description": "Wireless keyboard and mouse set",
+        "quantity": "1",
+        "unit_price": "2057.31",
+        "amount": "2057.31"
+      },
+      {
+        "description": "Wireless keyboard and mouse set",
+        "quantity": "5",
+        "unit_price": "1489.80",
+        "amount": "7449.00"
+      },
+      {
+        "description": "Corrugated shipping boxes",
+        "quantity": "1",
+        "unit_price": "78.83",
+        "amount": "78.83"
+      },
+      {
+        "description": "Stainless steel sheet 2mm",
+        "quantity": "11.5",
+        "unit_price": "352.03",
+        "amount": "4048.35"
+      },
+      {
+        "description": "Ergonomic office chair",
+        "quantity": "5",
+        "unit_price": "18678.78",
+        "amount": "93393.90"
+      },
+      {
+        "description": "Implementation consulting",
+        "quantity": "9",
+        "unit_price": "2309.97",
+        "amount": "20789.73"
+      },
+      {
+        "description": "Training workshop, half day",
+        "quantity": "2",
+        "unit_price": "10427.78",
+        "amount": "20855.56"
+      },
+      {
+        "description": "Cloud hosting - monthly plan",
+        "quantity": "10",
+        "unit_price": "10280.81",
+        "amount": "102808.10"
+      },
+      {
+        "description": "Ergonomic office chair",
+        "quantity": "2",
+        "unit_price": "13382.63",
+        "amount": "26765.26"
+      },
+      {
+        "description": "Cloud hosting - monthly plan",
+        "quantity": "1",
+        "unit_price": "11508.28",
+        "amount": "11508.28"
+      },
+      {
+        "description": "Cat6 network cable, 305m",
+        "quantity": "5",
+        "unit_price": "9491.56",
+        "amount": "47457.80"
+      },
+      {
+        "description": "Industrial lubricant",
+        "quantity": "16",
+        "unit_price": "711.23",
+        "amount": "11379.68"
+      },
+      {
+        "description": "Cat6 network cable, 305m",
+        "quantity": "2",
+        "unit_price": "5757.69",
+        "amount": "11515.38"
+      },
+      {
+        "description": "Laptop, 14in, 16GB RAM",
+        "quantity": "2",
+        "unit_price": "95937.19",
+        "amount": "191874.38"
+      },
+      {
+        "description": "Training workshop, half day",
+        "quantity": "10",
+        "unit_price": "17386.99",
+        "amount": "173869.90"
+      },
+      {
+        "description": "Stainless steel sheet 2mm",
+        "quantity": "19",
+        "unit_price": "285.41",
+        "amount": "5422.79"
+      },
+      {
+        "description": "Wireless keyboard and mouse set",
+        "quantity": "10",
+        "unit_price": "1250.59",
+        "amount": "12505.90"
+      },
+      {
+        "description": "Stainless steel sheet 2mm",
+        "quantity": "3.5",
+        "unit_price": "261.97",
+        "amount": "916.90"
+      },
+      {
+        "description": "Wireless keyboard and mouse set",
+        "quantity": "1",
+        "unit_price": "2618.02",
+        "amount": "2618.02"
+      },
+      {
+        "description": "On-site support engineer",
+        "quantity": "5",
+        "unit_price": "3980.13",
+        "amount": "19900.65"
+      },
+      {
+        "description": "27in IPS monitor",
+        "quantity": "1",
+        "unit_price": "24071.07",
+        "amount": "24071.07"
+      },
+      {
+        "description": "Ergonomic office chair",
+        "quantity": "10",
+        "unit_price": "18745.11",
+        "amount": "187451.10"
+      },
+      {
+        "description": "Corrugated shipping boxes",
+        "quantity": "2",
+        "unit_price": "126.30",
+        "amount": "252.60"
+      },
+      {
+        "description": "Stainless steel sheet 2mm",
+        "quantity": "9.5",
+        "unit_price": "418.97",
+        "amount": "3980.22"
+      },
+      {
+        "description": "Ergonomic office chair",
+        "quantity": "1",
+        "unit_price": "18885.79",
+        "amount": "18885.79"
+      },
+      {
+        "description": "Ergonomic office chair",
+        "quantity": "5",
+        "unit_price": "15627.01",
+        "amount": "78135.05"
+      },
+      {
+        "description": "Industrial lubricant",
+        "quantity": "13",
+        "unit_price": "403.94",
+        "amount": "5251.22"
+      },
+      {
+        "description": "Implementation consulting",
+        "quantity": "7",
+        "unit_price": "4574.31",
+        "amount": "32020.17"
+      }
+    ],
+    "subtotal": "2050204.33",
+    "discount": "102510.22",
+    "tax": "545354.36",
+    "total": "2493048.47",
+    "payment_terms": "Net 30"
+  }
+}

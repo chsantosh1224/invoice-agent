@@ -1,0 +1,87 @@
+{
+  "id": "inv-010-minimal-US",
+  "file": "inv-010-minimal-US.pdf",
+  "kind": "digital",
+  "split": "dev",
+  "template": "minimal",
+  "country": "US",
+  "pages": 1,
+  "edge_cases": [
+    "buyer_without_tax_id",
+    "discount",
+    "missing_po"
+  ],
+  "invoice": {
+    "document_type": "invoice",
+    "invoice_number": "INV-07945",
+    "invoice_date": "2026-03-19",
+    "due_date": "2026-04-03",
+    "po_number": null,
+    "currency": "USD",
+    "vendor": {
+      "name": "Patterson-Morton",
+      "address": "295 Jackson Causeway, Michellefurt, AK 06370",
+      "tax_id": "92-9552094"
+    },
+    "buyer": {
+      "name": "Jordan-Newton",
+      "address": "325 Matthews Springs Suite 729, North Kathleen, GA 47705",
+      "tax_id": null
+    },
+    "line_items": [
+      {
+        "description": "Cat6 network cable, 305m",
+        "quantity": "2",
+        "unit_price": "67.05",
+        "amount": "134.10"
+      },
+      {
+        "description": "27in IPS monitor",
+        "quantity": "10",
+        "unit_price": "153.65",
+        "amount": "1536.50"
+      },
+      {
+        "description": "27in IPS monitor",
+        "quantity": "2",
+        "unit_price": "187.28",
+        "amount": "374.56"
+      },
+      {
+        "description": "Safety gloves (pair)",
+        "quantity": "5",
+        "unit_price": "2.52",
+        "amount": "12.60"
+      },
+      {
+        "description": "On-site support engineer",
+        "quantity": "6.5",
+        "unit_price": "24.19",
+        "amount": "157.24"
+      },
+      {
+        "description": "Laptop, 14in, 16GB RAM",
+        "quantity": "5",
+        "unit_price": "738.88",
+        "amount": "3694.40"
+      },
+      {
+        "description": "Ergonomic office chair",
+        "quantity": "2",
+        "unit_price": "194.06",
+        "amount": "388.12"
+      },
+      {
+        "description": "Laptop, 14in, 16GB RAM",
+        "quantity": "5",
+        "unit_price": "1063.76",
+        "amount": "5318.80"
+      }
+    ],
+    "subtotal": "11616.32",
+    "discount": "1161.63",
+    "tax": "757.97",
+    "total": "11212.66",
+    "payment_terms": "Net 15"
+  }
+}

@@ -1,0 +1,255 @@
+{
+  "id": "inv-016-minimal-US-scan",
+  "file": "inv-016-minimal-US-scan.pdf",
+  "kind": "scanned",
+  "split": "test",
+  "template": "minimal",
+  "country": "US",
+  "pages": 2,
+  "edge_cases": [
+    "buyer_without_tax_id",
+    "multi_page",
+    "freight_line"
+  ],
+  "invoice": {
+    "document_type": "invoice",
+    "invoice_number": "A-3440",
+    "invoice_date": "2026-03-05",
+    "due_date": "2026-03-20",
+    "po_number": "4500032772",
+    "currency": "USD",
+    "vendor": {
+      "name": "Brown-Huang",
+      "address": "93473 Adam Square Apt. 484, Catherinemouth, MN 77492",
+      "tax_id": "34-7310734"
+    },
+    "buyer": {
+      "name": "Lopez-Moss",
+      "address": "69828 Smith Skyway Suite 451, Kellyfurt, UT 33070",
+      "tax_id": null
+    },
+    "line_items": [
+      {
+        "description": "Implementation consulting",
+        "quantity": "20",
+        "unit_price": "71.73",
+        "amount": "1434.60"
+      },
+      {
+        "description": "Safety gloves (pair)",
+        "quantity": "2",
+        "unit_price": "3.60",
+        "amount": "7.20"
+      },
+      {
+        "description": "Laptop, 14in, 16GB RAM",
+        "quantity": "2",
+        "unit_price": "760.75",
+        "amount": "1521.50"
+      },
+      {
+        "description": "Industrial lubricant",
+        "quantity": "1",
+        "unit_price": "8.88",
+        "amount": "8.88"
+      },
+      {
+        "description": "Industrial lubricant",
+        "quantity": "15.5",
+        "unit_price": "6.85",
+        "amount": "106.18"
+      },
+      {
+        "description": "A4 copier paper (box of 5 reams)",
+        "quantity": "1",
+        "unit_price": "10.88",
+        "amount": "10.88"
+      },
+      {
+        "description": "Ergonomic office chair",
+        "quantity": "10",
+        "unit_price": "190.16",
+        "amount": "1901.60"
+      },
+      {
+        "description": "Software licence, annual, per seat",
+        "quantity": "1",
+        "unit_price": "189.97",
+        "amount": "189.97"
+      },
+      {
+        "description": "Toner cartridge, black",
+        "quantity": "5",
+        "unit_price": "62.13",
+        "amount": "310.65"
+      },
+      {
+        "description": "Wireless keyboard and mouse set",
+        "quantity": "5",
+        "unit_price": "30.95",
+        "amount": "154.75"
+      },
+      {
+        "description": "On-site support engineer",
+        "quantity": "19.5",
+        "unit_price": "32.24",
+        "amount": "628.68"
+      },
+      {
+        "description": "Ergonomic office chair",
+        "quantity": "1",
+        "unit_price": "91.77",
+        "amount": "91.77"
+      },
+      {
+        "description": "Software licence, annual, per seat",
+        "quantity": "2",
+        "unit_price": "217.32",
+        "amount": "434.64"
+      },
+      {
+        "description": "Software licence, annual, per seat",
+        "quantity": "2",
+        "unit_price": "53.28",
+        "amount": "106.56"
+      },
+      {
+        "description": "On-site support engineer",
+        "quantity": "15.5",
+        "unit_price": "24.82",
+        "amount": "384.71"
+      },
+      {
+        "description": "Corrugated shipping boxes",
+        "quantity": "5",
+        "unit_price": "0.64",
+        "amount": "3.20"
+      },
+      {
+        "description": "On-site support engineer",
+        "quantity": "13",
+        "unit_price": "22.86",
+        "amount": "297.18"
+      },
+      {
+        "description": "Corrugated shipping boxes",
+        "quantity": "2",
+        "unit_price": "1.72",
+        "amount": "3.44"
+      },
+      {
+        "description": "Safety gloves (pair)",
+        "quantity": "2",
+        "unit_price": "2.27",
+        "amount": "4.54"
+      },
+      {
+        "description": "Toner cartridge, black",
+        "quantity": "1",
+        "unit_price": "57.90",
+        "amount": "57.90"
+      },
+      {
+        "description": "Implementation consulting",
+        "quantity": "8.5",
+        "unit_price": "46.80",
+        "amount": "397.80"
+      },
+      {
+        "description": "Industrial lubricant",
+        "quantity": "1.5",
+        "unit_price": "5.76",
+        "amount": "8.64"
+      },
+      {
+        "description": "Corrugated shipping boxes",
+        "quantity": "10",
+        "unit_price": "1.21",
+        "amount": "12.10"
+      },
+      {
+        "description": "Laptop, 14in, 16GB RAM",
+        "quantity": "1",
+        "unit_price": "1128.76",
+        "amount": "1128.76"
+      },
+      {
+        "description": "On-site support engineer",
+        "quantity": "9",
+        "unit_price": "27.50",
+        "amount": "247.50"
+      },
+      {
+        "description": "Wireless keyboard and mouse set",
+        "quantity": "1",
+        "unit_price": "12.36",
+        "amount": "12.36"
+      },
+      {
+        "description": "Wireless keyboard and mouse set",
+        "quantity": "2",
+        "unit_price": "31.59",
+        "amount": "63.18"
+      },
+      {
+        "description": "Cat6 network cable, 305m",
+        "quantity": "2",
+        "unit_price": "112.38",
+        "amount": "224.76"
+      },
+      {
+        "description": "Stainless steel sheet 2mm",
+        "quantity": "11.5",
+        "unit_price": "5.20",
+        "amount": "59.80"
+      },
+      {
+        "description": "Ergonomic office chair",
+        "quantity": "1",
+        "unit_price": "118.43",
+        "amount": "118.43"
+      },
+      {
+        "description": "Safety gloves (pair)",
+        "quantity": "5",
+        "unit_price": "1.65",
+        "amount": "8.25"
+      },
+      {
+        "description": "Stainless steel sheet 2mm",
+        "quantity": "7.5",
+        "unit_price": "2.77",
+        "amount": "20.78"
+      },
+      {
+        "description": "Implementation consulting",
+        "quantity": "2",
+        "unit_price": "61.50",
+        "amount": "123.00"
+      },
+      {
+        "description": "Wireless keyboard and mouse set",
+        "quantity": "10",
+        "unit_price": "35.52",
+        "amount": "355.20"
+      },
+      {
+        "description": "Training workshop, half day",
+        "quantity": "1",
+        "unit_price": "209.07",
+        "amount": "209.07"
+      },
+      {
+        "description": "Freight & handling",
+        "quantity": "1",
+        "unit_price": "21.43",
+        "amount": "21.43"
+      }
+    ],
+    "subtotal": "10669.89",
+    "discount": null,
+    "tax": "666.87",
+    "total": "11336.76",
+    "payment_terms": "Net 15"
+  }
+}

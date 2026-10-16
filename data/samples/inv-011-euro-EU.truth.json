@@ -1,0 +1,73 @@
+{
+  "id": "inv-011-euro-EU",
+  "file": "inv-011-euro-EU.pdf",
+  "kind": "digital",
+  "split": "test",
+  "template": "euro",
+  "country": "EU",
+  "pages": 1,
+  "edge_cases": [
+    "missing_po"
+  ],
+  "invoice": {
+    "document_type": "invoice",
+    "invoice_number": "R727983",
+    "invoice_date": "2026-08-03",
+    "due_date": "2026-08-18",
+    "po_number": null,
+    "currency": "EUR",
+    "vendor": {
+      "name": "Tschentscher Stiftung & Co. KG",
+      "address": "Langestraße 4/3, 39858 Zossen",
+      "tax_id": "NL432639858"
+    },
+    "buyer": {
+      "name": "Lindner",
+      "address": "Eckhardt-Jähn-Gasse 6590, 39025 Norden",
+      "tax_id": "FR421314978"
+    },
+    "line_items": [
+      {
+        "description": "Ergonomic office chair",
+        "quantity": "1",
+        "unit_price": "228.46",
+        "amount": "228.46"
+      },
+      {
+        "description": "Stainless steel sheet 2mm",
+        "quantity": "1",
+        "unit_price": "3.49",
+        "amount": "3.49"
+      },
+      {
+        "description": "Toner cartridge, black",
+        "quantity": "5",
+        "unit_price": "73.83",
+        "amount": "369.15"
+      },
+      {
+        "description": "Laptop, 14in, 16GB RAM",
+        "quantity": "5",
+        "unit_price": "627.92",
+        "amount": "3139.60"
+      },
+      {
+        "description": "Industrial lubricant",
+        "quantity": "8.5",
+        "unit_price": "6.45",
+        "amount": "54.83"
+      },
+      {
+        "description": "Training workshop, half day",
+        "quantity": "1",
+        "unit_price": "281.10",
+        "amount": "281.10"
+      }
+    ],
+    "subtotal": "4076.63",
+    "discount": null,
+    "tax": "856.09",
+    "total": "4932.72",
+    "payment_terms": "Payable within 15 days"
+  }
+}

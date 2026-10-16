@@ -1,0 +1,86 @@
+{
+  "id": "inv-006-dense-US",
+  "file": "inv-006-dense-US.pdf",
+  "kind": "digital",
+  "split": "dev",
+  "template": "dense",
+  "country": "US",
+  "pages": 1,
+  "edge_cases": [
+    "buyer_without_tax_id",
+    "missing_po"
+  ],
+  "invoice": {
+    "document_type": "invoice",
+    "invoice_number": "INV-09892",
+    "invoice_date": "2026-03-15",
+    "due_date": "2026-04-29",
+    "po_number": null,
+    "currency": "USD",
+    "vendor": {
+      "name": "Martin-Tucker",
+      "address": "761 Owens Parkway Suite 346, Danielburgh, MA 18611",
+      "tax_id": "76-1671863"
+    },
+    "buyer": {
+      "name": "Marsh, Stuart and Mason",
+      "address": "18634 Douglas Burg Suite 306, Lopezville, HI 04431",
+      "tax_id": null
+    },
+    "line_items": [
+      {
+        "description": "Implementation consulting",
+        "quantity": "10",
+        "unit_price": "35.50",
+        "amount": "355.00"
+      },
+      {
+        "description": "On-site support engineer",
+        "quantity": "15",
+        "unit_price": "15.01",
+        "amount": "225.15"
+      },
+      {
+        "description": "Implementation consulting",
+        "quantity": "11.5",
+        "unit_price": "73.97",
+        "amount": "850.66"
+      },
+      {
+        "description": "Cloud hosting - monthly plan",
+        "quantity": "5",
+        "unit_price": "138.13",
+        "amount": "690.65"
+      },
+      {
+        "description": "Cloud hosting - monthly plan",
+        "quantity": "10",
+        "unit_price": "149.47",
+        "amount": "1494.70"
+      },
+      {
+        "description": "A4 copier paper (box of 5 reams)",
+        "quantity": "2",
+        "unit_price": "5.76",
+        "amount": "11.52"
+      },
+      {
+        "description": "Stainless steel sheet 2mm",
+        "quantity": "8.5",
+        "unit_price": "3.28",
+        "amount": "27.88"
+      },
+      {
+        "description": "Ergonomic office chair",
+        "quantity": "10",
+        "unit_price": "223.16",
+        "amount": "2231.60"
+      }
+    ],
+    "subtotal": "5887.16",
+    "discount": null,
+    "tax": "367.95",
+    "total": "6255.11",
+    "payment_terms": "Payable within 45 days"
+  }
+}

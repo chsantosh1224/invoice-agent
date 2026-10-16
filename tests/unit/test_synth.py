@@ -174,11 +174,11 @@ def test_every_template_renders_every_value(template: str) -> None:
 
 def test_dataset_plan_is_reproducible_and_balanced() -> None:
     """Same seed -> same plan; all templates used; split and scan counts as requested."""
-    a = plan_documents(30, 20, seed=42, test_fraction=0.4)
-    assert a == plan_documents(30, 20, seed=42, test_fraction=0.4)
+    a = plan_documents(36, 24, seed=42, test_fraction=0.4)
+    assert a == plan_documents(36, 24, seed=42, test_fraction=0.4)
     assert {p["template"] for p in a} == set(TEMPLATES)
-    assert sum(p["split"] == "test" for p in a) == 12
-    assert sum(p["scan"] is not None for p in a) == 20
+    assert sum(p["split"] == "test" for p in a) == 14
+    assert sum(p["scan"] is not None for p in a) == 24
     assert not any(p["scan"] == "png" and p["multi_page"] for p in a)
 
 

@@ -8,7 +8,7 @@ from jinja2 import Environment, FileSystemLoader, StrictUndefined, select_autoes
 from playwright.sync_api import Browser, Playwright, sync_playwright
 
 TEMPLATE_DIR = Path(__file__).parent / "templates"
-TEMPLATES = ("classic", "gst_india", "modern", "minimal", "euro")
+TEMPLATES = ("classic", "gst_india", "modern", "minimal", "euro", "dense")
 
 _env = Environment(
     loader=FileSystemLoader(TEMPLATE_DIR),

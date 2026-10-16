@@ -1,0 +1,53 @@
+{
+  "id": "inv-034-minimal-US",
+  "file": "inv-034-minimal-US.pdf",
+  "kind": "digital",
+  "split": "dev",
+  "template": "minimal",
+  "country": "US",
+  "pages": 1,
+  "edge_cases": [],
+  "invoice": {
+    "document_type": "invoice",
+    "invoice_number": "INV-04928",
+    "invoice_date": "2026-06-08",
+    "due_date": "2026-06-23",
+    "po_number": "4500085186",
+    "currency": "USD",
+    "vendor": {
+      "name": "Harris, Case and Howard",
+      "address": "22403 Jonathan Divide, North Gracefort, HI 94473",
+      "tax_id": "22-4031462"
+    },
+    "buyer": {
+      "name": "Crawford Inc",
+      "address": "584 Gray Garden, New Jorge, DE 79497",
+      "tax_id": "80-1772835"
+    },
+    "line_items": [
+      {
+        "description": "Toner cartridge, black",
+        "quantity": "1",
+        "unit_price": "75.01",
+        "amount": "75.01"
+      },
+      {
+        "description": "Industrial lubricant",
+        "quantity": "19",
+        "unit_price": "8.53",
+        "amount": "162.07"
+      },
+      {
+        "description": "Ergonomic office chair",
+        "quantity": "10",
+        "unit_price": "206.30",
+        "amount": "2063.00"
+      }
+    ],
+    "subtotal": "2300.08",
+    "discount": null,
+    "tax": "204.13",
+    "total": "2504.21",
+    "payment_terms": "Payable within 15 days"
+  }
+}

@@ -29,6 +29,7 @@ TEMPLATE_COUNTRIES: dict[str, tuple[Country, ...]] = {
     "modern": ("US", "EU", "UK", "IN"),
     "minimal": ("IN", "US"),
     "euro": ("EU", "UK"),
+    "dense": ("IN", "US", "EU", "UK"),  # borderless, wrapped, distractor numbers
 }
 
 
@@ -112,8 +113,8 @@ def _truth_record(
 def generate_dataset(
     out_dir: Path,
     *,
-    n_digital: int = 30,
-    n_scanned: int = 20,
+    n_digital: int = 36,
+    n_scanned: int = 24,
     seed: int = 42,
     test_fraction: float = 0.4,
     channel: str | None = None,

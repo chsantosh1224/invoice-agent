@@ -1,0 +1,74 @@
+{
+  "id": "inv-025-classic-IN-scan",
+  "file": "inv-025-classic-IN-scan.pdf",
+  "kind": "scanned",
+  "split": "dev",
+  "template": "classic",
+  "country": "IN",
+  "pages": 1,
+  "edge_cases": [
+    "freight_line",
+    "missing_po"
+  ],
+  "invoice": {
+    "document_type": "invoice",
+    "invoice_number": "2026-27/03983",
+    "invoice_date": "2026-06-12",
+    "due_date": "2026-06-26",
+    "po_number": null,
+    "currency": "INR",
+    "vendor": {
+      "name": "Mukhopadhyay, Patil and Guha",
+      "address": "H.No. 249, Gopal Road, Aizawl-670487",
+      "tax_id": "33MOBIR7848L3ZE"
+    },
+    "buyer": {
+      "name": "Dave-Buch",
+      "address": "H.No. 38, Sha Path, Gudivada-126583",
+      "tax_id": "33XUEAP8890U1ZN"
+    },
+    "line_items": [
+      {
+        "description": "Industrial lubricant",
+        "quantity": "15.5",
+        "unit_price": "466.09",
+        "amount": "7224.40"
+      },
+      {
+        "description": "Safety gloves (pair)",
+        "quantity": "2",
+        "unit_price": "253.78",
+        "amount": "507.56"
+      },
+      {
+        "description": "Industrial lubricant",
+        "quantity": "14.5",
+        "unit_price": "345.64",
+        "amount": "5011.78"
+      },
+      {
+        "description": "Safety gloves (pair)",
+        "quantity": "2",
+        "unit_price": "301.48",
+        "amount": "602.96"
+      },
+      {
+        "description": "27in IPS monitor",
+        "quantity": "1",
+        "unit_price": "13702.87",
+        "amount": "13702.87"
+      },
+      {
+        "description": "Freight & handling",
+        "quantity": "1",
+        "unit_price": "1207.00",
+        "amount": "1207.00"
+      }
+    ],
+    "subtotal": "28256.57",
+    "discount": null,
+    "tax": "1412.82",
+    "total": "29669.39",
+    "payment_terms": "Net 14"
+  }
+}

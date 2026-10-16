@@ -1,0 +1,55 @@
+{
+  "id": "inv-014-gst_india-IN-scan",
+  "file": "inv-014-gst_india-IN-scan.png",
+  "kind": "scanned",
+  "split": "dev",
+  "template": "gst_india",
+  "country": "IN",
+  "pages": 1,
+  "edge_cases": [
+    "missing_po"
+  ],
+  "invoice": {
+    "document_type": "invoice",
+    "invoice_number": "GST/2426/26-27",
+    "invoice_date": "2026-02-17",
+    "due_date": "2026-03-19",
+    "po_number": null,
+    "currency": "INR",
+    "vendor": {
+      "name": "Raju, Sinha and Kata",
+      "address": "H.No. 88, Hayre Zila, Nagaon 166180",
+      "tax_id": "24XDVNM1808M2ZJ"
+    },
+    "buyer": {
+      "name": "Palla-Singhal",
+      "address": "H.No. 55, Devan Nagar, Udupi 742016",
+      "tax_id": "27NWAEL4748G3ZO"
+    },
+    "line_items": [
+      {
+        "description": "Cat6 network cable, 305m",
+        "quantity": "5",
+        "unit_price": "8175.40",
+        "amount": "40877.00"
+      },
+      {
+        "description": "Corrugated shipping boxes",
+        "quantity": "1",
+        "unit_price": "82.17",
+        "amount": "82.17"
+      },
+      {
+        "description": "Ergonomic office chair",
+        "quantity": "10",
+        "unit_price": "13545.65",
+        "amount": "135456.50"
+      }
+    ],
+    "subtotal": "176415.67",
+    "discount": null,
+    "tax": "8820.78",
+    "total": "185236.45",
+    "payment_terms": "Payable within 30 days"
+  }
+}

@@ -1,0 +1,85 @@
+{
+  "id": "inv-022-minimal-US",
+  "file": "inv-022-minimal-US.pdf",
+  "kind": "digital",
+  "split": "dev",
+  "template": "minimal",
+  "country": "US",
+  "pages": 1,
+  "edge_cases": [
+    "buyer_without_tax_id"
+  ],
+  "invoice": {
+    "document_type": "invoice",
+    "invoice_number": "667735",
+    "invoice_date": "2026-07-31",
+    "due_date": "2026-08-15",
+    "po_number": "PO-2323",
+    "currency": "USD",
+    "vendor": {
+      "name": "Wilson Ltd",
+      "address": "099 Amy Estates, West Tracy, WV 22223",
+      "tax_id": "99-0823478"
+    },
+    "buyer": {
+      "name": "Stone-Cook",
+      "address": "8756 Diane Shores, North Josephshire, SD 28251",
+      "tax_id": null
+    },
+    "line_items": [
+      {
+        "description": "Laptop, 14in, 16GB RAM",
+        "quantity": "5",
+        "unit_price": "1122.14",
+        "amount": "5610.70"
+      },
+      {
+        "description": "Cloud hosting - monthly plan",
+        "quantity": "2",
+        "unit_price": "44.16",
+        "amount": "88.32"
+      },
+      {
+        "description": "Stainless steel sheet 2mm",
+        "quantity": "15.5",
+        "unit_price": "3.79",
+        "amount": "58.75"
+      },
+      {
+        "description": "Cloud hosting - monthly plan",
+        "quantity": "10",
+        "unit_price": "80.47",
+        "amount": "804.70"
+      },
+      {
+        "description": "Cloud hosting - monthly plan",
+        "quantity": "5",
+        "unit_price": "141.58",
+        "amount": "707.90"
+      },
+      {
+        "description": "Implementation consulting",
+        "quantity": "13",
+        "unit_price": "35.93",
+        "amount": "467.09"
+      },
+      {
+        "description": "Stainless steel sheet 2mm",
+        "quantity": "4",
+        "unit_price": "2.58",
+        "amount": "10.32"
+      },
+      {
+        "description": "Cloud hosting - monthly plan",
+        "quantity": "2",
+        "unit_price": "134.41",
+        "amount": "268.82"
+      }
+    ],
+    "subtotal": "8016.60",
+    "discount": null,
+    "tax": "581.20",
+    "total": "8597.80",
+    "payment_terms": "Net 15"
+  }
+}

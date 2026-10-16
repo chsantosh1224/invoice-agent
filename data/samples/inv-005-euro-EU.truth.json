@@ -2,7 +2,7 @@
   "id": "inv-005-euro-EU",
   "file": "inv-005-euro-EU.pdf",
   "kind": "digital",
-  "split": "dev",
+  "split": "test",
   "template": "euro",
   "country": "EU",
   "pages": 2,

@@ -1,0 +1,91 @@
+{
+  "id": "inv-009-modern-IN",
+  "file": "inv-009-modern-IN.pdf",
+  "kind": "digital",
+  "split": "dev",
+  "template": "modern",
+  "country": "IN",
+  "pages": 1,
+  "edge_cases": [
+    "freight_line"
+  ],
+  "invoice": {
+    "document_type": "invoice",
+    "invoice_number": "GST/9976/26-27",
+    "invoice_date": "2026-01-08",
+    "due_date": "2026-01-22",
+    "po_number": "PO-4667",
+    "currency": "INR",
+    "vendor": {
+      "name": "Agate-Raj",
+      "address": "12, Peri Path, Bijapur-165022",
+      "tax_id": "24UDNLA2240Y2ZQ"
+    },
+    "buyer": {
+      "name": "Varughese LLC",
+      "address": "H.No. 13, Gole Ganj, Aurangabad-372158",
+      "tax_id": "24SOXZJ4324C2ZY"
+    },
+    "line_items": [
+      {
+        "description": "Ergonomic office chair",
+        "quantity": "10",
+        "unit_price": "10480.57",
+        "amount": "104805.70"
+      },
+      {
+        "description": "Ergonomic office chair",
+        "quantity": "5",
+        "unit_price": "8247.46",
+        "amount": "41237.30"
+      },
+      {
+        "description": "Industrial lubricant",
+        "quantity": "17.5",
+        "unit_price": "717.06",
+        "amount": "12548.55"
+      },
+      {
+        "description": "27in IPS monitor",
+        "quantity": "5",
+        "unit_price": "21835.70",
+        "amount": "109178.50"
+      },
+      {
+        "description": "Ergonomic office chair",
+        "quantity": "2",
+        "unit_price": "7106.60",
+        "amount": "14213.20"
+      },
+      {
+        "description": "Implementation consulting",
+        "quantity": "18",
+        "unit_price": "2012.75",
+        "amount": "36229.50"
+      },
+      {
+        "description": "Training workshop, half day",
+        "quantity": "1",
+        "unit_price": "20576.86",
+        "amount": "20576.86"
+      },
+      {
+        "description": "Corrugated shipping boxes",
+        "quantity": "5",
+        "unit_price": "58.08",
+        "amount": "290.40"
+      },
+      {
+        "description": "Freight & handling",
+        "quantity": "1",
+        "unit_price": "2333.00",
+        "amount": "2333.00"
+      }
+    ],
+    "subtotal": "341413.01",
+    "discount": null,
+    "tax": "61454.34",
+    "total": "402867.35",
+    "payment_terms": "Payable within 14 days"
+  }
+}

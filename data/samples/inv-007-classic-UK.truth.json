@@ -1,0 +1,249 @@
+{
+  "id": "inv-007-classic-UK",
+  "file": "inv-007-classic-UK.pdf",
+  "kind": "digital",
+  "split": "test",
+  "template": "classic",
+  "country": "UK",
+  "pages": 2,
+  "edge_cases": [
+    "buyer_without_tax_id",
+    "multi_page",
+    "discount"
+  ],
+  "invoice": {
+    "document_type": "invoice",
+    "invoice_number": "SI-03721",
+    "invoice_date": "2026-09-25",
+    "due_date": "2026-10-25",
+    "po_number": "PO/2026/141",
+    "currency": "GBP",
+    "vendor": {
+      "name": "Stone-Carter",
+      "address": "254 Abdul Glen, West Shane, DL3B 5SS",
+      "tax_id": "GB414499253"
+    },
+    "buyer": {
+      "name": "Harris, Bailey and Turner",
+      "address": "2 Catherine Divide, Ballstad, B0 6NB",
+      "tax_id": null
+    },
+    "line_items": [
+      {
+        "description": "Industrial lubricant",
+        "quantity": "8",
+        "unit_price": "9.50",
+        "amount": "76.00"
+      },
+      {
+        "description": "Ergonomic office chair",
+        "quantity": "5",
+        "unit_price": "160.97",
+        "amount": "804.85"
+      },
+      {
+        "description": "Cat6 network cable, 305m",
+        "quantity": "10",
+        "unit_price": "82.17",
+        "amount": "821.70"
+      },
+      {
+        "description": "Corrugated shipping boxes",
+        "quantity": "5",
+        "unit_price": "0.70",
+        "amount": "3.50"
+      },
+      {
+        "description": "Corrugated shipping boxes",
+        "quantity": "1",
+        "unit_price": "1.00",
+        "amount": "1.00"
+      },
+      {
+        "description": "Cloud hosting - monthly plan",
+        "quantity": "2",
+        "unit_price": "111.21",
+        "amount": "222.42"
+      },
+      {
+        "description": "Corrugated shipping boxes",
+        "quantity": "1",
+        "unit_price": "1.32",
+        "amount": "1.32"
+      },
+      {
+        "description": "Safety gloves (pair)",
+        "quantity": "5",
+        "unit_price": "2.42",
+        "amount": "12.10"
+      },
+      {
+        "description": "On-site support engineer",
+        "quantity": "8",
+        "unit_price": "33.95",
+        "amount": "271.60"
+      },
+      {
+        "description": "Software licence, annual, per seat",
+        "quantity": "1",
+        "unit_price": "31.97",
+        "amount": "31.97"
+      },
+      {
+        "description": "Ergonomic office chair",
+        "quantity": "2",
+        "unit_price": "209.77",
+        "amount": "419.54"
+      },
+      {
+        "description": "Safety gloves (pair)",
+        "quantity": "10",
+        "unit_price": "2.93",
+        "amount": "29.30"
+      },
+      {
+        "description": "27in IPS monitor",
+        "quantity": "1",
+        "unit_price": "226.69",
+        "amount": "226.69"
+      },
+      {
+        "description": "Industrial lubricant",
+        "quantity": "9.5",
+        "unit_price": "3.04",
+        "amount": "28.88"
+      },
+      {
+        "description": "Toner cartridge, black",
+        "quantity": "1",
+        "unit_price": "80.91",
+        "amount": "80.91"
+      },
+      {
+        "description": "Cloud hosting - monthly plan",
+        "quantity": "10",
+        "unit_price": "70.03",
+        "amount": "700.30"
+      },
+      {
+        "description": "On-site support engineer",
+        "quantity": "12.5",
+        "unit_price": "33.26",
+        "amount": "415.75"
+      },
+      {
+        "description": "Cloud hosting - monthly plan",
+        "quantity": "1",
+        "unit_price": "142.03",
+        "amount": "142.03"
+      },
+      {
+        "description": "Training workshop, half day",
+        "quantity": "2",
+        "unit_price": "127.40",
+        "amount": "254.80"
+      },
+      {
+        "description": "Training workshop, half day",
+        "quantity": "2",
+        "unit_price": "201.67",
+        "amount": "403.34"
+      },
+      {
+        "description": "Corrugated shipping boxes",
+        "quantity": "1",
+        "unit_price": "1.67",
+        "amount": "1.67"
+      },
+      {
+        "description": "A4 copier paper (box of 5 reams)",
+        "quantity": "2",
+        "unit_price": "4.83",
+        "amount": "9.66"
+      },
+      {
+        "description": "Cat6 network cable, 305m",
+        "quantity": "10",
+        "unit_price": "96.34",
+        "amount": "963.40"
+      },
+      {
+        "description": "Wireless keyboard and mouse set",
+        "quantity": "5",
+        "unit_price": "19.06",
+        "amount": "95.30"
+      },
+      {
+        "description": "Corrugated shipping boxes",
+        "quantity": "5",
+        "unit_price": "1.66",
+        "amount": "8.30"
+      },
+      {
+        "description": "A4 copier paper (box of 5 reams)",
+        "quantity": "1",
+        "unit_price": "7.41",
+        "amount": "7.41"
+      },
+      {
+        "description": "Wireless keyboard and mouse set",
+        "quantity": "5",
+        "unit_price": "28.64",
+        "amount": "143.20"
+      },
+      {
+        "description": "A4 copier paper (box of 5 reams)",
+        "quantity": "2",
+        "unit_price": "6.11",
+        "amount": "12.22"
+      },
+      {
+        "description": "Training workshop, half day",
+        "quantity": "1",
+        "unit_price": "161.97",
+        "amount": "161.97"
+      },
+      {
+        "description": "Toner cartridge, black",
+        "quantity": "1",
+        "unit_price": "38.08",
+        "amount": "38.08"
+      },
+      {
+        "description": "Cat6 network cable, 305m",
+        "quantity": "2",
+        "unit_price": "72.79",
+        "amount": "145.58"
+      },
+      {
+        "description": "Cloud hosting - monthly plan",
+        "quantity": "10",
+        "unit_price": "119.25",
+        "amount": "1192.50"
+      },
+      {
+        "description": "Software licence, annual, per seat",
+        "quantity": "10",
+        "unit_price": "126.62",
+        "amount": "1266.20"
+      },
+      {
+        "description": "Cloud hosting - monthly plan",
+        "quantity": "5",
+        "unit_price": "72.97",
+        "amount": "364.85"
+      },
+      {
+        "description": "Training workshop, half day",
+        "quantity": "1",
+        "unit_price": "220.42",
+        "amount": "220.42"
+      }
+    ],
+    "subtotal": "9578.76",
+    "discount": "957.88",
+    "tax": "1724.18",
+    "total": "10345.06",
+    "payment_terms": "Net 30"
+  }
+}

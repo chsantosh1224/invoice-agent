@@ -1,0 +1,55 @@
+{
+  "id": "inv-035-euro-EU",
+  "file": "inv-035-euro-EU.pdf",
+  "kind": "digital",
+  "split": "test",
+  "template": "euro",
+  "country": "EU",
+  "pages": 1,
+  "edge_cases": [
+    "freight_line"
+  ],
+  "invoice": {
+    "document_type": "invoice",
+    "invoice_number": "R743655",
+    "invoice_date": "2026-01-26",
+    "due_date": "2026-02-02",
+    "po_number": "4500025654",
+    "currency": "EUR",
+    "vendor": {
+      "name": "Dobes Stiftung & Co. KGaA",
+      "address": "Brunhild-Ditschlerin-Allee 2/5, 40263 Oberviechtach",
+      "tax_id": "NL181419424"
+    },
+    "buyer": {
+      "name": "Lorch Wilmsen GmbH",
+      "address": "Ruppertgasse 60, 38294 Schwarzenberg",
+      "tax_id": "NL026318315"
+    },
+    "line_items": [
+      {
+        "description": "Implementation consulting",
+        "quantity": "18",
+        "unit_price": "79.96",
+        "amount": "1439.28"
+      },
+      {
+        "description": "27in IPS monitor",
+        "quantity": "2",
+        "unit_price": "261.56",
+        "amount": "523.12"
+      },
+      {
+        "description": "Freight & handling",
+        "quantity": "1",
+        "unit_price": "29.93",
+        "amount": "29.93"
+      }
+    ],
+    "subtotal": "1992.33",
+    "discount": null,
+    "tax": "418.39",
+    "total": "2410.72",
+    "payment_terms": "Payable within 7 days"
+  }
+}

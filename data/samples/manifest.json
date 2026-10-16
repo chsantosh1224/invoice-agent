@@ -71,20 +71,10 @@
     "edge_cases": []
   },
   {
-    "id": "inv-004-minimal-IN-scan",
-    "file": "inv-004-minimal-IN-scan.pdf",
-    "kind": "scanned",
-    "split": "dev",
-    "template": "minimal",
-    "country": "IN",
-    "pages": 1,
-    "edge_cases": []
-  },
-  {
     "id": "inv-005-euro-EU",
     "file": "inv-005-euro-EU.pdf",
     "kind": "digital",
-    "split": "dev",
+    "split": "test",
     "template": "euro",
     "country": "EU",
     "pages": 2,
@@ -95,312 +85,341 @@
     ]
   },
   {
-    "id": "inv-006-classic-IN",
-    "file": "inv-006-classic-IN.pdf",
-    "kind": "digital",
-    "split": "test",
-    "template": "classic",
-    "country": "IN",
-    "pages": 1,
-    "edge_cases": []
-  },
-  {
-    "id": "inv-006-classic-IN-scan",
-    "file": "inv-006-classic-IN-scan.png",
+    "id": "inv-005-euro-EU-scan",
+    "file": "inv-005-euro-EU-scan.pdf",
     "kind": "scanned",
     "split": "test",
-    "template": "classic",
-    "country": "IN",
-    "pages": 1,
-    "edge_cases": []
-  },
-  {
-    "id": "inv-007-gst_india-IN",
-    "file": "inv-007-gst_india-IN.pdf",
-    "kind": "digital",
-    "split": "dev",
-    "template": "gst_india",
-    "country": "IN",
-    "pages": 1,
-    "edge_cases": [
-      "buyer_without_tax_id",
-      "discount"
-    ]
-  },
-  {
-    "id": "inv-007-gst_india-IN-scan",
-    "file": "inv-007-gst_india-IN-scan.pdf",
-    "kind": "scanned",
-    "split": "dev",
-    "template": "gst_india",
-    "country": "IN",
-    "pages": 1,
-    "edge_cases": [
-      "buyer_without_tax_id",
-      "discount"
-    ]
-  },
-  {
-    "id": "inv-008-modern-IN",
-    "file": "inv-008-modern-IN.pdf",
-    "kind": "digital",
-    "split": "test",
-    "template": "modern",
-    "country": "IN",
-    "pages": 1,
-    "edge_cases": [
-      "buyer_without_tax_id",
-      "discount"
-    ]
-  },
-  {
-    "id": "inv-008-modern-IN-scan",
-    "file": "inv-008-modern-IN-scan.pdf",
-    "kind": "scanned",
-    "split": "test",
-    "template": "modern",
-    "country": "IN",
-    "pages": 1,
-    "edge_cases": [
-      "buyer_without_tax_id",
-      "discount"
-    ]
-  },
-  {
-    "id": "inv-009-minimal-US",
-    "file": "inv-009-minimal-US.pdf",
-    "kind": "digital",
-    "split": "test",
-    "template": "minimal",
-    "country": "US",
-    "pages": 1,
-    "edge_cases": [
-      "due_on_receipt"
-    ]
-  },
-  {
-    "id": "inv-009-minimal-US-scan",
-    "file": "inv-009-minimal-US-scan.png",
-    "kind": "scanned",
-    "split": "test",
-    "template": "minimal",
-    "country": "US",
-    "pages": 1,
-    "edge_cases": [
-      "due_on_receipt"
-    ]
-  },
-  {
-    "id": "inv-010-euro-EU",
-    "file": "inv-010-euro-EU.pdf",
-    "kind": "digital",
-    "split": "dev",
     "template": "euro",
     "country": "EU",
-    "pages": 1,
-    "edge_cases": [
-      "buyer_without_tax_id"
-    ]
-  },
-  {
-    "id": "inv-010-euro-EU-scan",
-    "file": "inv-010-euro-EU-scan.png",
-    "kind": "scanned",
-    "split": "dev",
-    "template": "euro",
-    "country": "EU",
-    "pages": 1,
-    "edge_cases": [
-      "buyer_without_tax_id"
-    ]
-  },
-  {
-    "id": "inv-011-classic-IN",
-    "file": "inv-011-classic-IN.pdf",
-    "kind": "digital",
-    "split": "dev",
-    "template": "classic",
-    "country": "IN",
-    "pages": 1,
-    "edge_cases": []
-  },
-  {
-    "id": "inv-011-classic-IN-scan",
-    "file": "inv-011-classic-IN-scan.png",
-    "kind": "scanned",
-    "split": "dev",
-    "template": "classic",
-    "country": "IN",
-    "pages": 1,
-    "edge_cases": []
-  },
-  {
-    "id": "inv-012-gst_india-IN",
-    "file": "inv-012-gst_india-IN.pdf",
-    "kind": "digital",
-    "split": "dev",
-    "template": "gst_india",
-    "country": "IN",
-    "pages": 1,
-    "edge_cases": []
-  },
-  {
-    "id": "inv-012-gst_india-IN-scan",
-    "file": "inv-012-gst_india-IN-scan.png",
-    "kind": "scanned",
-    "split": "dev",
-    "template": "gst_india",
-    "country": "IN",
-    "pages": 1,
-    "edge_cases": []
-  },
-  {
-    "id": "inv-013-modern-EU",
-    "file": "inv-013-modern-EU.pdf",
-    "kind": "digital",
-    "split": "test",
-    "template": "modern",
-    "country": "EU",
-    "pages": 1,
-    "edge_cases": [
-      "due_on_receipt",
-      "missing_po"
-    ]
-  },
-  {
-    "id": "inv-013-modern-EU-scan",
-    "file": "inv-013-modern-EU-scan.pdf",
-    "kind": "scanned",
-    "split": "test",
-    "template": "modern",
-    "country": "EU",
-    "pages": 1,
-    "edge_cases": [
-      "due_on_receipt",
-      "missing_po"
-    ]
-  },
-  {
-    "id": "inv-014-minimal-US",
-    "file": "inv-014-minimal-US.pdf",
-    "kind": "digital",
-    "split": "dev",
-    "template": "minimal",
-    "country": "US",
     "pages": 2,
-    "edge_cases": [
-      "buyer_without_tax_id",
-      "multi_page"
-    ]
-  },
-  {
-    "id": "inv-015-euro-UK",
-    "file": "inv-015-euro-UK.pdf",
-    "kind": "digital",
-    "split": "test",
-    "template": "euro",
-    "country": "UK",
-    "pages": 2,
-    "edge_cases": [
-      "multi_page"
-    ]
-  },
-  {
-    "id": "inv-015-euro-UK-scan",
-    "file": "inv-015-euro-UK-scan.pdf",
-    "kind": "scanned",
-    "split": "test",
-    "template": "euro",
-    "country": "UK",
-    "pages": 2,
-    "edge_cases": [
-      "multi_page"
-    ]
-  },
-  {
-    "id": "inv-016-classic-US",
-    "file": "inv-016-classic-US.pdf",
-    "kind": "digital",
-    "split": "dev",
-    "template": "classic",
-    "country": "US",
-    "pages": 1,
-    "edge_cases": [
-      "buyer_without_tax_id",
-      "missing_po"
-    ]
-  },
-  {
-    "id": "inv-017-gst_india-IN",
-    "file": "inv-017-gst_india-IN.pdf",
-    "kind": "digital",
-    "split": "dev",
-    "template": "gst_india",
-    "country": "IN",
-    "pages": 1,
-    "edge_cases": [
-      "freight_line"
-    ]
-  },
-  {
-    "id": "inv-018-modern-US",
-    "file": "inv-018-modern-US.pdf",
-    "kind": "digital",
-    "split": "test",
-    "template": "modern",
-    "country": "US",
-    "pages": 1,
-    "edge_cases": [
-      "buyer_without_tax_id",
-      "freight_line"
-    ]
-  },
-  {
-    "id": "inv-018-modern-US-scan",
-    "file": "inv-018-modern-US-scan.pdf",
-    "kind": "scanned",
-    "split": "test",
-    "template": "modern",
-    "country": "US",
-    "pages": 1,
-    "edge_cases": [
-      "buyer_without_tax_id",
-      "freight_line"
-    ]
-  },
-  {
-    "id": "inv-019-minimal-US",
-    "file": "inv-019-minimal-US.pdf",
-    "kind": "digital",
-    "split": "dev",
-    "template": "minimal",
-    "country": "US",
-    "pages": 2,
-    "edge_cases": [
-      "multi_page",
-      "missing_po"
-    ]
-  },
-  {
-    "id": "inv-020-euro-UK",
-    "file": "inv-020-euro-UK.pdf",
-    "kind": "digital",
-    "split": "test",
-    "template": "euro",
-    "country": "UK",
-    "pages": 1,
     "edge_cases": [
       "credit_note",
+      "multi_page",
+      "discount"
+    ]
+  },
+  {
+    "id": "inv-006-dense-US",
+    "file": "inv-006-dense-US.pdf",
+    "kind": "digital",
+    "split": "dev",
+    "template": "dense",
+    "country": "US",
+    "pages": 1,
+    "edge_cases": [
+      "buyer_without_tax_id",
+      "missing_po"
+    ]
+  },
+  {
+    "id": "inv-007-classic-UK",
+    "file": "inv-007-classic-UK.pdf",
+    "kind": "digital",
+    "split": "test",
+    "template": "classic",
+    "country": "UK",
+    "pages": 2,
+    "edge_cases": [
+      "buyer_without_tax_id",
+      "multi_page",
+      "discount"
+    ]
+  },
+  {
+    "id": "inv-008-gst_india-IN",
+    "file": "inv-008-gst_india-IN.pdf",
+    "kind": "digital",
+    "split": "dev",
+    "template": "gst_india",
+    "country": "IN",
+    "pages": 1,
+    "edge_cases": [
+      "buyer_without_tax_id",
+      "discount"
+    ]
+  },
+  {
+    "id": "inv-008-gst_india-IN-scan",
+    "file": "inv-008-gst_india-IN-scan.pdf",
+    "kind": "scanned",
+    "split": "dev",
+    "template": "gst_india",
+    "country": "IN",
+    "pages": 1,
+    "edge_cases": [
+      "buyer_without_tax_id",
+      "discount"
+    ]
+  },
+  {
+    "id": "inv-009-modern-IN",
+    "file": "inv-009-modern-IN.pdf",
+    "kind": "digital",
+    "split": "dev",
+    "template": "modern",
+    "country": "IN",
+    "pages": 1,
+    "edge_cases": [
+      "freight_line"
+    ]
+  },
+  {
+    "id": "inv-009-modern-IN-scan",
+    "file": "inv-009-modern-IN-scan.png",
+    "kind": "scanned",
+    "split": "dev",
+    "template": "modern",
+    "country": "IN",
+    "pages": 1,
+    "edge_cases": [
+      "freight_line"
+    ]
+  },
+  {
+    "id": "inv-010-minimal-US",
+    "file": "inv-010-minimal-US.pdf",
+    "kind": "digital",
+    "split": "dev",
+    "template": "minimal",
+    "country": "US",
+    "pages": 1,
+    "edge_cases": [
+      "buyer_without_tax_id",
+      "discount",
+      "missing_po"
+    ]
+  },
+  {
+    "id": "inv-010-minimal-US-scan",
+    "file": "inv-010-minimal-US-scan.pdf",
+    "kind": "scanned",
+    "split": "dev",
+    "template": "minimal",
+    "country": "US",
+    "pages": 1,
+    "edge_cases": [
+      "buyer_without_tax_id",
+      "discount",
+      "missing_po"
+    ]
+  },
+  {
+    "id": "inv-011-euro-EU",
+    "file": "inv-011-euro-EU.pdf",
+    "kind": "digital",
+    "split": "test",
+    "template": "euro",
+    "country": "EU",
+    "pages": 1,
+    "edge_cases": [
+      "missing_po"
+    ]
+  },
+  {
+    "id": "inv-012-dense-US",
+    "file": "inv-012-dense-US.pdf",
+    "kind": "digital",
+    "split": "dev",
+    "template": "dense",
+    "country": "US",
+    "pages": 1,
+    "edge_cases": [
+      "discount"
+    ]
+  },
+  {
+    "id": "inv-012-dense-US-scan",
+    "file": "inv-012-dense-US-scan.pdf",
+    "kind": "scanned",
+    "split": "dev",
+    "template": "dense",
+    "country": "US",
+    "pages": 1,
+    "edge_cases": [
+      "discount"
+    ]
+  },
+  {
+    "id": "inv-013-classic-US",
+    "file": "inv-013-classic-US.pdf",
+    "kind": "digital",
+    "split": "test",
+    "template": "classic",
+    "country": "US",
+    "pages": 1,
+    "edge_cases": []
+  },
+  {
+    "id": "inv-013-classic-US-scan",
+    "file": "inv-013-classic-US-scan.pdf",
+    "kind": "scanned",
+    "split": "test",
+    "template": "classic",
+    "country": "US",
+    "pages": 1,
+    "edge_cases": []
+  },
+  {
+    "id": "inv-014-gst_india-IN",
+    "file": "inv-014-gst_india-IN.pdf",
+    "kind": "digital",
+    "split": "dev",
+    "template": "gst_india",
+    "country": "IN",
+    "pages": 1,
+    "edge_cases": [
+      "missing_po"
+    ]
+  },
+  {
+    "id": "inv-014-gst_india-IN-scan",
+    "file": "inv-014-gst_india-IN-scan.png",
+    "kind": "scanned",
+    "split": "dev",
+    "template": "gst_india",
+    "country": "IN",
+    "pages": 1,
+    "edge_cases": [
+      "missing_po"
+    ]
+  },
+  {
+    "id": "inv-015-modern-UK",
+    "file": "inv-015-modern-UK.pdf",
+    "kind": "digital",
+    "split": "dev",
+    "template": "modern",
+    "country": "UK",
+    "pages": 2,
+    "edge_cases": [
+      "multi_page"
+    ]
+  },
+  {
+    "id": "inv-016-minimal-US",
+    "file": "inv-016-minimal-US.pdf",
+    "kind": "digital",
+    "split": "test",
+    "template": "minimal",
+    "country": "US",
+    "pages": 2,
+    "edge_cases": [
+      "buyer_without_tax_id",
+      "multi_page",
+      "freight_line"
+    ]
+  },
+  {
+    "id": "inv-016-minimal-US-scan",
+    "file": "inv-016-minimal-US-scan.pdf",
+    "kind": "scanned",
+    "split": "test",
+    "template": "minimal",
+    "country": "US",
+    "pages": 2,
+    "edge_cases": [
+      "buyer_without_tax_id",
+      "multi_page",
+      "freight_line"
+    ]
+  },
+  {
+    "id": "inv-017-euro-UK",
+    "file": "inv-017-euro-UK.pdf",
+    "kind": "digital",
+    "split": "dev",
+    "template": "euro",
+    "country": "UK",
+    "pages": 1,
+    "edge_cases": [
+      "buyer_without_tax_id",
       "freight_line",
-      "due_on_receipt"
+      "due_on_receipt",
+      "missing_po"
     ]
   },
   {
-    "id": "inv-021-classic-UK",
-    "file": "inv-021-classic-UK.pdf",
+    "id": "inv-017-euro-UK-scan",
+    "file": "inv-017-euro-UK-scan.pdf",
+    "kind": "scanned",
+    "split": "dev",
+    "template": "euro",
+    "country": "UK",
+    "pages": 1,
+    "edge_cases": [
+      "buyer_without_tax_id",
+      "freight_line",
+      "due_on_receipt",
+      "missing_po"
+    ]
+  },
+  {
+    "id": "inv-018-dense-IN",
+    "file": "inv-018-dense-IN.pdf",
+    "kind": "digital",
+    "split": "test",
+    "template": "dense",
+    "country": "IN",
+    "pages": 1,
+    "edge_cases": []
+  },
+  {
+    "id": "inv-018-dense-IN-scan",
+    "file": "inv-018-dense-IN-scan.pdf",
+    "kind": "scanned",
+    "split": "test",
+    "template": "dense",
+    "country": "IN",
+    "pages": 1,
+    "edge_cases": []
+  },
+  {
+    "id": "inv-019-classic-UK",
+    "file": "inv-019-classic-UK.pdf",
     "kind": "digital",
     "split": "test",
     "template": "classic",
+    "country": "UK",
+    "pages": 2,
+    "edge_cases": [
+      "multi_page",
+      "missing_po"
+    ]
+  },
+  {
+    "id": "inv-019-classic-UK-scan",
+    "file": "inv-019-classic-UK-scan.pdf",
+    "kind": "scanned",
+    "split": "test",
+    "template": "classic",
+    "country": "UK",
+    "pages": 2,
+    "edge_cases": [
+      "multi_page",
+      "missing_po"
+    ]
+  },
+  {
+    "id": "inv-020-gst_india-IN",
+    "file": "inv-020-gst_india-IN.pdf",
+    "kind": "digital",
+    "split": "dev",
+    "template": "gst_india",
+    "country": "IN",
+    "pages": 2,
+    "edge_cases": [
+      "credit_note",
+      "buyer_without_tax_id",
+      "multi_page",
+      "discount"
+    ]
+  },
+  {
+    "id": "inv-021-modern-UK",
+    "file": "inv-021-modern-UK.pdf",
+    "kind": "digital",
+    "split": "test",
+    "template": "modern",
     "country": "UK",
     "pages": 1,
     "edge_cases": [
@@ -408,183 +427,305 @@
     ]
   },
   {
-    "id": "inv-021-classic-UK-scan",
-    "file": "inv-021-classic-UK-scan.pdf",
-    "kind": "scanned",
-    "split": "test",
-    "template": "classic",
-    "country": "UK",
+    "id": "inv-022-minimal-US",
+    "file": "inv-022-minimal-US.pdf",
+    "kind": "digital",
+    "split": "dev",
+    "template": "minimal",
+    "country": "US",
     "pages": 1,
     "edge_cases": [
       "buyer_without_tax_id"
     ]
   },
   {
-    "id": "inv-022-gst_india-IN",
-    "file": "inv-022-gst_india-IN.pdf",
-    "kind": "digital",
-    "split": "test",
-    "template": "gst_india",
-    "country": "IN",
-    "pages": 1,
-    "edge_cases": []
-  },
-  {
-    "id": "inv-022-gst_india-IN-scan",
-    "file": "inv-022-gst_india-IN-scan.pdf",
-    "kind": "scanned",
-    "split": "test",
-    "template": "gst_india",
-    "country": "IN",
-    "pages": 1,
-    "edge_cases": []
-  },
-  {
-    "id": "inv-023-modern-US",
-    "file": "inv-023-modern-US.pdf",
-    "kind": "digital",
-    "split": "dev",
-    "template": "modern",
-    "country": "US",
-    "pages": 2,
-    "edge_cases": [
-      "multi_page",
-      "freight_line"
-    ]
-  },
-  {
-    "id": "inv-023-modern-US-scan",
-    "file": "inv-023-modern-US-scan.pdf",
-    "kind": "scanned",
-    "split": "dev",
-    "template": "modern",
-    "country": "US",
-    "pages": 2,
-    "edge_cases": [
-      "multi_page",
-      "freight_line"
-    ]
-  },
-  {
-    "id": "inv-024-minimal-IN",
-    "file": "inv-024-minimal-IN.pdf",
-    "kind": "digital",
-    "split": "dev",
-    "template": "minimal",
-    "country": "IN",
-    "pages": 1,
-    "edge_cases": [
-      "due_on_receipt"
-    ]
-  },
-  {
-    "id": "inv-024-minimal-IN-scan",
-    "file": "inv-024-minimal-IN-scan.pdf",
-    "kind": "scanned",
-    "split": "dev",
-    "template": "minimal",
-    "country": "IN",
-    "pages": 1,
-    "edge_cases": [
-      "due_on_receipt"
-    ]
-  },
-  {
-    "id": "inv-025-euro-EU",
-    "file": "inv-025-euro-EU.pdf",
+    "id": "inv-023-euro-EU",
+    "file": "inv-023-euro-EU.pdf",
     "kind": "digital",
     "split": "test",
     "template": "euro",
+    "country": "EU",
+    "pages": 2,
+    "edge_cases": [
+      "multi_page"
+    ]
+  },
+  {
+    "id": "inv-024-dense-US",
+    "file": "inv-024-dense-US.pdf",
+    "kind": "digital",
+    "split": "dev",
+    "template": "dense",
+    "country": "US",
+    "pages": 1,
+    "edge_cases": []
+  },
+  {
+    "id": "inv-024-dense-US-scan",
+    "file": "inv-024-dense-US-scan.pdf",
+    "kind": "scanned",
+    "split": "dev",
+    "template": "dense",
+    "country": "US",
+    "pages": 1,
+    "edge_cases": []
+  },
+  {
+    "id": "inv-025-classic-IN",
+    "file": "inv-025-classic-IN.pdf",
+    "kind": "digital",
+    "split": "dev",
+    "template": "classic",
+    "country": "IN",
+    "pages": 1,
+    "edge_cases": [
+      "freight_line",
+      "missing_po"
+    ]
+  },
+  {
+    "id": "inv-025-classic-IN-scan",
+    "file": "inv-025-classic-IN-scan.pdf",
+    "kind": "scanned",
+    "split": "dev",
+    "template": "classic",
+    "country": "IN",
+    "pages": 1,
+    "edge_cases": [
+      "freight_line",
+      "missing_po"
+    ]
+  },
+  {
+    "id": "inv-026-gst_india-IN",
+    "file": "inv-026-gst_india-IN.pdf",
+    "kind": "digital",
+    "split": "test",
+    "template": "gst_india",
+    "country": "IN",
+    "pages": 1,
+    "edge_cases": []
+  },
+  {
+    "id": "inv-026-gst_india-IN-scan",
+    "file": "inv-026-gst_india-IN-scan.pdf",
+    "kind": "scanned",
+    "split": "test",
+    "template": "gst_india",
+    "country": "IN",
+    "pages": 1,
+    "edge_cases": []
+  },
+  {
+    "id": "inv-027-modern-IN",
+    "file": "inv-027-modern-IN.pdf",
+    "kind": "digital",
+    "split": "dev",
+    "template": "modern",
+    "country": "IN",
+    "pages": 1,
+    "edge_cases": [
+      "discount"
+    ]
+  },
+  {
+    "id": "inv-027-modern-IN-scan",
+    "file": "inv-027-modern-IN-scan.pdf",
+    "kind": "scanned",
+    "split": "dev",
+    "template": "modern",
+    "country": "IN",
+    "pages": 1,
+    "edge_cases": [
+      "discount"
+    ]
+  },
+  {
+    "id": "inv-028-minimal-US",
+    "file": "inv-028-minimal-US.pdf",
+    "kind": "digital",
+    "split": "dev",
+    "template": "minimal",
+    "country": "US",
+    "pages": 1,
+    "edge_cases": [
+      "discount"
+    ]
+  },
+  {
+    "id": "inv-029-euro-UK",
+    "file": "inv-029-euro-UK.pdf",
+    "kind": "digital",
+    "split": "dev",
+    "template": "euro",
+    "country": "UK",
+    "pages": 1,
+    "edge_cases": [
+      "buyer_without_tax_id"
+    ]
+  },
+  {
+    "id": "inv-029-euro-UK-scan",
+    "file": "inv-029-euro-UK-scan.pdf",
+    "kind": "scanned",
+    "split": "dev",
+    "template": "euro",
+    "country": "UK",
+    "pages": 1,
+    "edge_cases": [
+      "buyer_without_tax_id"
+    ]
+  },
+  {
+    "id": "inv-030-dense-EU",
+    "file": "inv-030-dense-EU.pdf",
+    "kind": "digital",
+    "split": "test",
+    "template": "dense",
+    "country": "EU",
+    "pages": 1,
+    "edge_cases": [
+      "missing_po"
+    ]
+  },
+  {
+    "id": "inv-030-dense-EU-scan",
+    "file": "inv-030-dense-EU-scan.pdf",
+    "kind": "scanned",
+    "split": "test",
+    "template": "dense",
+    "country": "EU",
+    "pages": 1,
+    "edge_cases": [
+      "missing_po"
+    ]
+  },
+  {
+    "id": "inv-031-classic-UK",
+    "file": "inv-031-classic-UK.pdf",
+    "kind": "digital",
+    "split": "test",
+    "template": "classic",
+    "country": "UK",
+    "pages": 1,
+    "edge_cases": [
+      "buyer_without_tax_id"
+    ]
+  },
+  {
+    "id": "inv-031-classic-UK-scan",
+    "file": "inv-031-classic-UK-scan.pdf",
+    "kind": "scanned",
+    "split": "test",
+    "template": "classic",
+    "country": "UK",
+    "pages": 1,
+    "edge_cases": [
+      "buyer_without_tax_id"
+    ]
+  },
+  {
+    "id": "inv-032-gst_india-IN",
+    "file": "inv-032-gst_india-IN.pdf",
+    "kind": "digital",
+    "split": "dev",
+    "template": "gst_india",
+    "country": "IN",
+    "pages": 1,
+    "edge_cases": [
+      "buyer_without_tax_id",
+      "discount",
+      "missing_po"
+    ]
+  },
+  {
+    "id": "inv-032-gst_india-IN-scan",
+    "file": "inv-032-gst_india-IN-scan.png",
+    "kind": "scanned",
+    "split": "dev",
+    "template": "gst_india",
+    "country": "IN",
+    "pages": 1,
+    "edge_cases": [
+      "buyer_without_tax_id",
+      "discount",
+      "missing_po"
+    ]
+  },
+  {
+    "id": "inv-033-modern-EU",
+    "file": "inv-033-modern-EU.pdf",
+    "kind": "digital",
+    "split": "dev",
+    "template": "modern",
     "country": "EU",
     "pages": 1,
     "edge_cases": []
   },
   {
-    "id": "inv-026-classic-IN",
-    "file": "inv-026-classic-IN.pdf",
-    "kind": "digital",
+    "id": "inv-033-modern-EU-scan",
+    "file": "inv-033-modern-EU-scan.pdf",
+    "kind": "scanned",
     "split": "dev",
-    "template": "classic",
-    "country": "IN",
+    "template": "modern",
+    "country": "EU",
     "pages": 1,
     "edge_cases": []
   },
   {
-    "id": "inv-026-classic-IN-scan",
-    "file": "inv-026-classic-IN-scan.pdf",
-    "kind": "scanned",
-    "split": "dev",
-    "template": "classic",
-    "country": "IN",
-    "pages": 1,
-    "edge_cases": []
-  },
-  {
-    "id": "inv-027-gst_india-IN",
-    "file": "inv-027-gst_india-IN.pdf",
+    "id": "inv-034-minimal-US",
+    "file": "inv-034-minimal-US.pdf",
     "kind": "digital",
     "split": "dev",
-    "template": "gst_india",
-    "country": "IN",
-    "pages": 1,
-    "edge_cases": [
-      "discount"
-    ]
-  },
-  {
-    "id": "inv-028-modern-UK",
-    "file": "inv-028-modern-UK.pdf",
-    "kind": "digital",
-    "split": "dev",
-    "template": "modern",
-    "country": "UK",
-    "pages": 1,
-    "edge_cases": [
-      "discount"
-    ]
-  },
-  {
-    "id": "inv-028-modern-UK-scan",
-    "file": "inv-028-modern-UK-scan.pdf",
-    "kind": "scanned",
-    "split": "dev",
-    "template": "modern",
-    "country": "UK",
-    "pages": 1,
-    "edge_cases": [
-      "discount"
-    ]
-  },
-  {
-    "id": "inv-029-minimal-US",
-    "file": "inv-029-minimal-US.pdf",
-    "kind": "digital",
-    "split": "test",
     "template": "minimal",
     "country": "US",
     "pages": 1,
+    "edge_cases": []
+  },
+  {
+    "id": "inv-034-minimal-US-scan",
+    "file": "inv-034-minimal-US-scan.pdf",
+    "kind": "scanned",
+    "split": "dev",
+    "template": "minimal",
+    "country": "US",
+    "pages": 1,
+    "edge_cases": []
+  },
+  {
+    "id": "inv-035-euro-EU",
+    "file": "inv-035-euro-EU.pdf",
+    "kind": "digital",
+    "split": "test",
+    "template": "euro",
+    "country": "EU",
+    "pages": 1,
     "edge_cases": [
-      "buyer_without_tax_id"
+      "freight_line"
     ]
   },
   {
-    "id": "inv-030-euro-UK",
-    "file": "inv-030-euro-UK.pdf",
+    "id": "inv-036-dense-IN",
+    "file": "inv-036-dense-IN.pdf",
     "kind": "digital",
     "split": "dev",
-    "template": "euro",
-    "country": "UK",
+    "template": "dense",
+    "country": "IN",
     "pages": 1,
-    "edge_cases": []
+    "edge_cases": [
+      "discount"
+    ]
   },
   {
-    "id": "inv-030-euro-UK-scan",
-    "file": "inv-030-euro-UK-scan.pdf",
+    "id": "inv-036-dense-IN-scan",
+    "file": "inv-036-dense-IN-scan.pdf",
     "kind": "scanned",
     "split": "dev",
-    "template": "euro",
-    "country": "UK",
+    "template": "dense",
+    "country": "IN",
     "pages": 1,
-    "edge_cases": []
+    "edge_cases": [
+      "discount"
+    ]
   }
 ]

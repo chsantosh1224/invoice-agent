@@ -1,0 +1,67 @@
+{
+  "id": "inv-031-classic-UK-scan",
+  "file": "inv-031-classic-UK-scan.pdf",
+  "kind": "scanned",
+  "split": "test",
+  "template": "classic",
+  "country": "UK",
+  "pages": 1,
+  "edge_cases": [
+    "buyer_without_tax_id"
+  ],
+  "invoice": {
+    "document_type": "invoice",
+    "invoice_number": "INV004530",
+    "invoice_date": "2026-06-26",
+    "due_date": "2026-07-03",
+    "po_number": "4500013048",
+    "currency": "GBP",
+    "vendor": {
+      "name": "Robinson, Metcalfe and Smith",
+      "address": "0 Cheryl Causeway, Robinsonfort, W4E 4FR",
+      "tax_id": "GB092086799"
+    },
+    "buyer": {
+      "name": "Preston-White",
+      "address": "Studio 08, Martin Valleys, New Yvonneside",
+      "tax_id": null
+    },
+    "line_items": [
+      {
+        "description": "Training workshop, half day",
+        "quantity": "10",
+        "unit_price": "237.58",
+        "amount": "2375.80"
+      },
+      {
+        "description": "Industrial lubricant",
+        "quantity": "10",
+        "unit_price": "7.43",
+        "amount": "74.30"
+      },
+      {
+        "description": "Laptop, 14in, 16GB RAM",
+        "quantity": "1",
+        "unit_price": "1205.39",
+        "amount": "1205.39"
+      },
+      {
+        "description": "On-site support engineer",
+        "quantity": "7.5",
+        "unit_price": "43.44",
+        "amount": "325.80"
+      },
+      {
+        "description": "Training workshop, half day",
+        "quantity": "1",
+        "unit_price": "312.33",
+        "amount": "312.33"
+      }
+    ],
+    "subtotal": "4293.62",
+    "discount": null,
+    "tax": "858.72",
+    "total": "5152.34",
+    "payment_terms": "Payable within 7 days"
+  }
+}

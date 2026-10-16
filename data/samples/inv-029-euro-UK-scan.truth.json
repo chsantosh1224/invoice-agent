@@ -1,0 +1,73 @@
+{
+  "id": "inv-029-euro-UK-scan",
+  "file": "inv-029-euro-UK-scan.pdf",
+  "kind": "scanned",
+  "split": "dev",
+  "template": "euro",
+  "country": "UK",
+  "pages": 1,
+  "edge_cases": [
+    "buyer_without_tax_id"
+  ],
+  "invoice": {
+    "document_type": "invoice",
+    "invoice_number": "INV002537",
+    "invoice_date": "2026-06-05",
+    "due_date": "2026-06-20",
+    "po_number": "4500068544",
+    "currency": "GBP",
+    "vendor": {
+      "name": "Brown-Davis",
+      "address": "193 Campbell Expressway, South Carlyview, S24 6GS",
+      "tax_id": "GB362880743"
+    },
+    "buyer": {
+      "name": "Johnson and Sons",
+      "address": "Flat 0, Albert Hollow, Mitchellside",
+      "tax_id": null
+    },
+    "line_items": [
+      {
+        "description": "Implementation consulting",
+        "quantity": "4",
+        "unit_price": "49.40",
+        "amount": "197.60"
+      },
+      {
+        "description": "Ergonomic office chair",
+        "quantity": "1",
+        "unit_price": "161.20",
+        "amount": "161.20"
+      },
+      {
+        "description": "27in IPS monitor",
+        "quantity": "1",
+        "unit_price": "320.06",
+        "amount": "320.06"
+      },
+      {
+        "description": "Ergonomic office chair",
+        "quantity": "5",
+        "unit_price": "169.22",
+        "amount": "846.10"
+      },
+      {
+        "description": "27in IPS monitor",
+        "quantity": "5",
+        "unit_price": "264.65",
+        "amount": "1323.25"
+      },
+      {
+        "description": "Cloud hosting - monthly plan",
+        "quantity": "1",
+        "unit_price": "124.76",
+        "amount": "124.76"
+      }
+    ],
+    "subtotal": "2972.97",
+    "discount": null,
+    "tax": "594.59",
+    "total": "3567.56",
+    "payment_terms": "Payable within 15 days"
+  }
+}

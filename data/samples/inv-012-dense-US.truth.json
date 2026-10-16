@@ -1,0 +1,49 @@
+{
+  "id": "inv-012-dense-US",
+  "file": "inv-012-dense-US.pdf",
+  "kind": "digital",
+  "split": "dev",
+  "template": "dense",
+  "country": "US",
+  "pages": 1,
+  "edge_cases": [
+    "discount"
+  ],
+  "invoice": {
+    "document_type": "invoice",
+    "invoice_number": "349339",
+    "invoice_date": "2026-02-22",
+    "due_date": "2026-03-24",
+    "po_number": "4500070298",
+    "currency": "USD",
+    "vendor": {
+      "name": "Mays-Harrell",
+      "address": "04115 Myers Manors Suite 833, Walkerbury, ID 40572",
+      "tax_id": "04-1158466"
+    },
+    "buyer": {
+      "name": "Charles Ltd",
+      "address": "6633 Cassandra Parkway, Lake Cynthia, WI 77107",
+      "tax_id": "68-3373633"
+    },
+    "line_items": [
+      {
+        "description": "Implementation consulting",
+        "quantity": "14",
+        "unit_price": "49.42",
+        "amount": "691.88"
+      },
+      {
+        "description": "27in IPS monitor",
+        "quantity": "5",
+        "unit_price": "279.92",
+        "amount": "1399.60"
+      }
+    ],
+    "subtotal": "2091.48",
+    "discount": "104.57",
+    "tax": "144.05",
+    "total": "2130.96",
+    "payment_terms": "Payable within 30 days"
+  }
+}

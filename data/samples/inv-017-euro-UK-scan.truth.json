@@ -1,0 +1,58 @@
+{
+  "id": "inv-017-euro-UK-scan",
+  "file": "inv-017-euro-UK-scan.pdf",
+  "kind": "scanned",
+  "split": "dev",
+  "template": "euro",
+  "country": "UK",
+  "pages": 1,
+  "edge_cases": [
+    "buyer_without_tax_id",
+    "freight_line",
+    "due_on_receipt",
+    "missing_po"
+  ],
+  "invoice": {
+    "document_type": "invoice",
+    "invoice_number": "INV001351",
+    "invoice_date": "2026-09-27",
+    "due_date": null,
+    "po_number": null,
+    "currency": "GBP",
+    "vendor": {
+      "name": "Adams-Burrows",
+      "address": "14 Mohammed Trail, New David, ZE7 1AY",
+      "tax_id": "GB402290571"
+    },
+    "buyer": {
+      "name": "Jackson, Yates and Davidson",
+      "address": "162 Kerry Corners, Valerieport, RH2 6DD",
+      "tax_id": null
+    },
+    "line_items": [
+      {
+        "description": "Software licence, annual, per seat",
+        "quantity": "1",
+        "unit_price": "102.20",
+        "amount": "102.20"
+      },
+      {
+        "description": "27in IPS monitor",
+        "quantity": "5",
+        "unit_price": "270.44",
+        "amount": "1352.20"
+      },
+      {
+        "description": "Freight & handling",
+        "quantity": "1",
+        "unit_price": "6.93",
+        "amount": "6.93"
+      }
+    ],
+    "subtotal": "1461.33",
+    "discount": null,
+    "tax": "292.27",
+    "total": "1753.60",
+    "payment_terms": "Due on receipt"
+  }
+}

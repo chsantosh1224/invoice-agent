@@ -1,0 +1,61 @@
+{
+  "id": "inv-036-dense-IN-scan",
+  "file": "inv-036-dense-IN-scan.pdf",
+  "kind": "scanned",
+  "split": "dev",
+  "template": "dense",
+  "country": "IN",
+  "pages": 1,
+  "edge_cases": [
+    "discount"
+  ],
+  "invoice": {
+    "document_type": "invoice",
+    "invoice_number": "2026-27/09182",
+    "invoice_date": "2026-09-16",
+    "due_date": "2026-10-16",
+    "po_number": "PO/2026/524",
+    "currency": "INR",
+    "vendor": {
+      "name": "Brahmbhatt-Palla",
+      "address": "20/666, Dash Road, Satna 818469",
+      "tax_id": "27ZKIRD8469O3ZI"
+    },
+    "buyer": {
+      "name": "Ahluwalia and Sons",
+      "address": "389, Shan Road, Ongole-843065",
+      "tax_id": "27TMPVC1789A2Z7"
+    },
+    "line_items": [
+      {
+        "description": "Implementation consulting",
+        "quantity": "9.5",
+        "unit_price": "4773.24",
+        "amount": "45345.78"
+      },
+      {
+        "description": "27in IPS monitor",
+        "quantity": "2",
+        "unit_price": "20574.37",
+        "amount": "41148.74"
+      },
+      {
+        "description": "27in IPS monitor",
+        "quantity": "5",
+        "unit_price": "19416.52",
+        "amount": "97082.60"
+      },
+      {
+        "description": "27in IPS monitor",
+        "quantity": "10",
+        "unit_price": "11415.02",
+        "amount": "114150.20"
+      }
+    ],
+    "subtotal": "297727.32",
+    "discount": "14886.37",
+    "tax": "79195.46",
+    "total": "362036.41",
+    "payment_terms": "Payable within 30 days"
+  }
+}

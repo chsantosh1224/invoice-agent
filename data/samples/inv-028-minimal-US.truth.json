@@ -1,0 +1,61 @@
+{
+  "id": "inv-028-minimal-US",
+  "file": "inv-028-minimal-US.pdf",
+  "kind": "digital",
+  "split": "dev",
+  "template": "minimal",
+  "country": "US",
+  "pages": 1,
+  "edge_cases": [
+    "discount"
+  ],
+  "invoice": {
+    "document_type": "invoice",
+    "invoice_number": "243897",
+    "invoice_date": "2026-08-16",
+    "due_date": "2026-09-15",
+    "po_number": "PO-6048",
+    "currency": "USD",
+    "vendor": {
+      "name": "Ray-Brown",
+      "address": "716 Kelly Lodge, Samanthaland, OH 09345",
+      "tax_id": "71-6550647"
+    },
+    "buyer": {
+      "name": "Kelly PLC",
+      "address": "3297 James Mission, West Nicholasville, MA 72973",
+      "tax_id": "18-1795041"
+    },
+    "line_items": [
+      {
+        "description": "27in IPS monitor",
+        "quantity": "2",
+        "unit_price": "309.45",
+        "amount": "618.90"
+      },
+      {
+        "description": "Cat6 network cable, 305m",
+        "quantity": "10",
+        "unit_price": "74.09",
+        "amount": "740.90"
+      },
+      {
+        "description": "Cat6 network cable, 305m",
+        "quantity": "10",
+        "unit_price": "59.76",
+        "amount": "597.60"
+      },
+      {
+        "description": "Cat6 network cable, 305m",
+        "quantity": "2",
+        "unit_price": "68.55",
+        "amount": "137.10"
+      }
+    ],
+    "subtotal": "2094.50",
+    "discount": "104.73",
+    "tax": "124.36",
+    "total": "2114.13",
+    "payment_terms": "Net 30"
+  }
+}

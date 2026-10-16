@@ -1,0 +1,67 @@
+{
+  "id": "inv-027-modern-IN-scan",
+  "file": "inv-027-modern-IN-scan.pdf",
+  "kind": "scanned",
+  "split": "dev",
+  "template": "modern",
+  "country": "IN",
+  "pages": 1,
+  "edge_cases": [
+    "discount"
+  ],
+  "invoice": {
+    "document_type": "invoice",
+    "invoice_number": "2026-27/08888",
+    "invoice_date": "2026-08-15",
+    "due_date": "2026-08-29",
+    "po_number": "4500053833",
+    "currency": "INR",
+    "vendor": {
+      "name": "Ramachandran-Issac",
+      "address": "67/401, Bava Chowk, Bhopal-403963",
+      "tax_id": "36WUAAI0396Z1ZY"
+    },
+    "buyer": {
+      "name": "Master-Ahuja",
+      "address": "H.No. 53, D’Alia Street, Jodhpur 179465",
+      "tax_id": "09CVPKB6108R3Z4"
+    },
+    "line_items": [
+      {
+        "description": "Wireless keyboard and mouse set",
+        "quantity": "2",
+        "unit_price": "1113.75",
+        "amount": "2227.50"
+      },
+      {
+        "description": "Wireless keyboard and mouse set",
+        "quantity": "5",
+        "unit_price": "2204.77",
+        "amount": "11023.85"
+      },
+      {
+        "description": "Ergonomic office chair",
+        "quantity": "10",
+        "unit_price": "13881.98",
+        "amount": "138819.80"
+      },
+      {
+        "description": "Corrugated shipping boxes",
+        "quantity": "10",
+        "unit_price": "26.04",
+        "amount": "260.40"
+      },
+      {
+        "description": "Toner cartridge, black",
+        "quantity": "5",
+        "unit_price": "2618.15",
+        "amount": "13090.75"
+      }
+    ],
+    "subtotal": "165422.30",
+    "discount": "16542.23",
+    "tax": "26798.41",
+    "total": "175678.48",
+    "payment_terms": "Payable within 14 days"
+  }
+}

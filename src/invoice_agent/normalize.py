@@ -70,7 +70,10 @@ def parse_amount(text: str) -> Decimal:
         # A single comma followed by 1-2 digits is a decimal comma ('12,5' / '1234,56').
         s = f"{head}.{tail}" if s.count(",") == 1 and len(tail) in (1, 2) else s.replace(",", "")
     elif s.count(".") > 1:
-        s = s.replace(".", "")  # '1.234.567' thousands dots
+        head, _, tail = s.rpartition(".")
+        # '1.234.567' = thousands dots. But '10.476.38' (OCR read a comma as a dot) ends in
+        # 2 digits, which only a decimal part does, so the last dot is the decimal point.
+        s = f"{head.replace('.', '')}.{tail}" if len(tail) == 2 else s.replace(".", "")
 
     try:
         value = Decimal(s)

@@ -1,0 +1,77 @@
+{
+  "id": "inv-018-dense-IN-scan",
+  "file": "inv-018-dense-IN-scan.pdf",
+  "kind": "scanned",
+  "split": "test",
+  "template": "dense",
+  "country": "IN",
+  "pages": 1,
+  "edge_cases": [],
+  "invoice": {
+    "document_type": "invoice",
+    "invoice_number": "GST/1329/26-27",
+    "invoice_date": "2026-07-30",
+    "due_date": "2026-08-29",
+    "po_number": "PO/2026/902",
+    "currency": "INR",
+    "vendor": {
+      "name": "Venkataraman LLC",
+      "address": "H.No. 881, Ahluwalia Road, Guna-708203",
+      "tax_id": "33OBWQF0338K1Z3"
+    },
+    "buyer": {
+      "name": "Kuruvilla-Bakshi",
+      "address": "86/788, Divan Nagar, Uluberia 131404",
+      "tax_id": "33OLNAO3534A3ZU"
+    },
+    "line_items": [
+      {
+        "description": "Cloud hosting - monthly plan",
+        "quantity": "1",
+        "unit_price": "5837.03",
+        "amount": "5837.03"
+      },
+      {
+        "description": "Safety gloves (pair)",
+        "quantity": "5",
+        "unit_price": "66.28",
+        "amount": "331.40"
+      },
+      {
+        "description": "Software licence, annual, per seat",
+        "quantity": "5",
+        "unit_price": "17715.81",
+        "amount": "88579.05"
+      },
+      {
+        "description": "A4 copier paper (box of 5 reams)",
+        "quantity": "5",
+        "unit_price": "366.28",
+        "amount": "1831.40"
+      },
+      {
+        "description": "A4 copier paper (box of 5 reams)",
+        "quantity": "10",
+        "unit_price": "711.83",
+        "amount": "7118.30"
+      },
+      {
+        "description": "Implementation consulting",
+        "quantity": "2.5",
+        "unit_price": "3579.22",
+        "amount": "8948.05"
+      },
+      {
+        "description": "Ergonomic office chair",
+        "quantity": "10",
+        "unit_price": "18465.14",
+        "amount": "184651.40"
+      }
+    ],
+    "subtotal": "297296.63",
+    "discount": null,
+    "tax": "35675.60",
+    "total": "332972.23",
+    "payment_terms": "Payable within 30 days"
+  }
+}
