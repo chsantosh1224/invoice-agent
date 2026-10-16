@@ -35,3 +35,13 @@ Every error made by the top configs was the same: on GST invoices printing `GSTI
 ## D4 (Day 3, open): The agent model needs re-evaluation
 
 Text-only Nemotron Super reads invoices poorly (68.7%). It mostly returns null for totals, currency and terms on the totals block or on page 2. Day 5 will compare vision-capable tool-calling models (nemotron-omni, dots-3) against it on tool-calling reliability before choosing `AGENT_MODEL`.
+
+## D5 (Day 4): Validation gate design and threshold 0.8
+
+**Checks** (`extraction/validate.py`): required fields; arithmetic (line math ±0.01, lines = subtotal, subtotal − discount + tax = total); grounding of every value in the document text (an error on digital PDFs, a confidence-lowering warning on scans because OCR may be the side that's wrong); label proximity (a same-row label beats one above); GSTIN checksum; due date not before invoice date; vendor ≠ buyer; vendor not found only under a Bill-To label. The LLM's self-reported confidence is never used.
+
+**Evidence:**
+- [Mutation test](../reports/gate_mutation.md) (no LLM, 37 dev truths, 11 error types, 333 injected errors): 0 false alarms; 95% caught. 10 of 11 types caught 100%. A full vendor/buyer swap is caught 57%.
+- [Live calibration](../reports/gate_calibration.md) (real dots-3 output, 37 dev invoices): 35 fully correct, all auto-accepted; 2 wrong (missing currency, one misread GSTIN character), both caught. **0 silent errors.** Thresholds from 0.5 to 0.95 behave the same; 0.99 would reject correct scans. 0.8 keeps that margin.
+
+**Known gap:** a full party swap on layouts with no buyer label. Fix in Week 2: match the vendor against the ERP vendor master (name + tax ID).

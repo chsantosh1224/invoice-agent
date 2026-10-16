@@ -10,60 +10,16 @@ Matching is done on normalized values (amounts parsed to Decimal, dates tried in
 known print format), so engines are not penalized for spacing or symbol differences.
 """
 
-import re
 from dataclasses import dataclass, field
 from datetime import date
 from decimal import Decimal
 from typing import Any
 
-from invoice_agent.normalize import parse_amount
-from invoice_agent.synth.formatting import DATE_FORMATS
+from invoice_agent.textmatch import compact as _compact
+from invoice_agent.textmatch import date_present as _date_present
+from invoice_agent.textmatch import numbers_in
 
-_NUMBER = re.compile(r"\d[\d.,]*\d|\d")
-_SPACES = re.compile(r"\s+")
-
-
-def numbers_in(text: str) -> set[Decimal]:
-    """Find every number-like token in a text and parse it as an amount.
-
-    Args:
-        text: Any text (a whole document or a single line).
-
-    Returns:
-        The absolute values of every token that parses (unparseable tokens are skipped).
-    """
-    found = set()
-    for token in _NUMBER.findall(text):
-        try:
-            found.add(abs(parse_amount(token)))
-        except ValueError:
-            continue
-    return found
-
-
-def _compact(text: str) -> str:
-    """Lowercase and remove all whitespace, for spacing-insensitive containment checks.
-
-    Args:
-        text: Any text.
-
-    Returns:
-        The text lowercased with all whitespace removed.
-    """
-    return _SPACES.sub("", text).lower()
-
-
-def _date_present(value: date, text: str) -> bool:
-    """Check whether a date appears in the text in any supported print format.
-
-    Args:
-        value: The truth date.
-        text: Compacted document text (see `_compact`).
-
-    Returns:
-        True if any format of the date (e.g. '03/04/2026', '3 Apr 2026') is present.
-    """
-    return any(_compact(fmt(value)) in text for fmt in DATE_FORMATS.values())
+__all__ = ["DocScore", "numbers_in", "score_document"]
 
 
 @dataclass

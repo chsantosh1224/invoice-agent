@@ -347,5 +347,108 @@ def bakeoff(
     typer.echo(write_report(records, report))
 
 
+@app.command()
+def extract(
+    file: Annotated[Path, typer.Argument(help="PDF or image invoice", exists=True)],
+    as_json: Annotated[bool, typer.Option("--json", help="Print the full result as JSON")] = False,
+    no_cache: Annotated[bool, typer.Option("--no-cache", help="Always call the API")] = False,
+) -> None:
+    """Extract one invoice with the fast path: ingest, LLM, validation gate.
+
+    Usage: `invoice-agent extract data/samples/inv-002-gst_india-IN-scan.pdf`.
+
+    Args:
+        file: The invoice to process.
+        as_json: Print the complete ExtractionResult (invoice, issues, confidences) as JSON.
+        no_cache: Skip the response cache and call the model again.
+
+    Returns:
+        None. Prints the verdict (accepted / needs_human_review), score, model, issues and
+        the extracted invoice.
+
+    Raises:
+        typer.Exit: With code 1 if the invoice needs human review (useful in scripts).
+    """
+    from invoice_agent.extraction.fast_path import extract_document
+    from invoice_agent.llm_cache import ResponseCache
+    from invoice_agent.log import configure_logging
+
+    settings = get_settings()
+    configure_logging(settings.log_level, json=False)
+    cache = None if no_cache else ResponseCache(settings.cache_dir / "llm.sqlite")
+    try:
+        result, seconds = extract_document(file, settings, cache=cache)
+    finally:
+        if cache is not None:
+            cache.close()
+    if as_json:
+        typer.echo(result.model_dump_json(indent=2))
+    else:
+        typer.echo(
+            f"\n{result.status.upper()}  score={result.score:.2f}  model={result.model}  "
+            f"{seconds:.1f}s  run_id={result.run_id}"
+        )
+        for issue in result.issues:
+            typer.echo(f"  [{issue.severity}] {issue.field}: {issue.code} - {issue.message}")
+        typer.echo(result.invoice.model_dump_json(indent=2, exclude_none=True))
+    if result.status != "accepted":
+        raise typer.Exit(1)
+
+
+@app.command("gate-eval")
+def gate_eval(
+    data: Annotated[Path, typer.Option(help="Dataset folder")] = Path("data/samples"),
+    split: Annotated[str, typer.Option(help="'dev', 'test' or 'all'")] = "dev",
+    report: Annotated[Path, typer.Option(help="Report path")] = Path("reports/gate_mutation.md"),
+) -> None:
+    """Measure the validation gate by injecting realistic errors into truth invoices.
+
+    No LLM calls: runs in about a minute. Reports how often correct invoices pass and how
+    often each kind of injected error (swapped dates, misread digits, invented discount,
+    copied tax ID, ...) is caught.
+
+    Args:
+        data: Dataset folder.
+        split: Which split's invoices to use.
+        report: Where to write the Markdown report.
+
+    Returns:
+        None. Prints the report.
+    """
+    from invoice_agent.evals.gate_mutation import run_mutation_test
+    from invoice_agent.evals.gate_mutation import write_report as write_gate_report
+
+    typer.echo(write_gate_report(run_mutation_test(data, split=split), report))
+
+
+@app.command("gate-calibrate")
+def gate_calibrate(
+    data: Annotated[Path, typer.Option(help="Dataset folder")] = Path("data/samples"),
+    split: Annotated[str, typer.Option(help="'dev', 'test' or 'all'")] = "dev",
+    report: Annotated[Path, typer.Option(help="Report path")] = Path("reports/gate_calibration.md"),
+) -> None:
+    """Calibrate the gate threshold on real extractions (calls the LLM; answers cached).
+
+    Runs the fast path on every document of the split, compares with the truth, and
+    reports auto-accept rate, silent error rate and catch rate for a range of thresholds.
+
+    Args:
+        data: Dataset folder.
+        split: Which split; calibrate on 'dev', never on 'test'.
+        report: Where to write the Markdown report.
+
+    Returns:
+        None. Prints the report.
+    """
+    from invoice_agent.evals.gate_live import run_live
+    from invoice_agent.evals.gate_live import write_report as write_live_report
+    from invoice_agent.log import configure_logging
+
+    settings = get_settings().model_copy(update={"llm_max_retries": 2})
+    configure_logging(settings.log_level, json=False)
+    trials = run_live(data, settings, split=split)
+    typer.echo(write_live_report(trials, report, chosen=settings.gate_threshold))
+
+
 if __name__ == "__main__":
     app()

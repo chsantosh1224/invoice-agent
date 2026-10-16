@@ -132,3 +132,16 @@ def test_to_invoice_reports_issues_instead_of_guessing() -> None:
     assert ("invoice_date", "normalize.date_ambiguous") in codes
     assert ("total", "normalize.amount") in codes
     assert invoice.invoice_date is None and invoice.total is None
+
+
+def test_digit_free_tax_id_becomes_null() -> None:
+    """'GSTIN: Unregistered' must not become a tax ID (the Day 3 bake-off's only error)."""
+    unregistered = RawParty(name="Taneja Inc", address=None, tax_id="Unregistered")
+    invoice, _ = to_invoice(_raw(buyer=unregistered))
+    assert invoice.buyer.tax_id is None
+
+
+def test_zero_or_negative_discount_is_normalized() -> None:
+    """'-500.00' and '(500.00)' are a 500 discount; an invented '0.00' is no discount."""
+    assert to_invoice(_raw(discount="(500.00)"))[0].discount == Decimal("500.00")
+    assert to_invoice(_raw(discount="0.00"))[0].discount is None

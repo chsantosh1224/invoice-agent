@@ -43,6 +43,9 @@ class Settings(BaseSettings):
     llm_cache_enabled: bool = True
     cache_dir: Path = Path(".cache")
 
+    # Validation gate: minimum confidence score to auto-accept (calibrated on dev).
+    gate_threshold: float = 0.8
+
     agent_max_steps: int = 8
     log_level: str = "INFO"
 

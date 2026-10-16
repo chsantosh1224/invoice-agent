@@ -207,19 +207,20 @@ def _clean(text: str | None) -> str | None:
     return text or None
 
 
-def _abs(value: Decimal | None) -> Decimal | None:
-    """Make an amount positive, keeping None as None.
+def _discount(value: Decimal | None) -> Decimal | None:
+    """Normalize a discount: always positive, and a zero discount means no discount.
 
-    Used for discounts, which invoices print either as '500.00' or '-500.00' but which
-    always mean a reduction.
+    Invoices print discounts as '500.00', '-500.00' or '(500.00)'; all mean a reduction.
+    Models also sometimes invent 'discount: 0.00' when none is printed - equivalent to
+    no discount, so it becomes None instead of a (hallucinated) value.
 
     Args:
         value: A parsed amount or None.
 
     Returns:
-        The absolute value, or None.
+        The absolute value, or None if absent or zero.
     """
-    return None if value is None else abs(value)
+    return None if value is None or value == 0 else abs(value)
 
 
 def _sum_taxes(amounts: list[Decimal | None]) -> Decimal | None:
@@ -239,6 +240,23 @@ def _sum_taxes(amounts: list[Decimal | None]) -> Decimal | None:
     return sum(parsed, Decimal(0)) if parsed else None
 
 
+def _tax_id(text: str | None) -> str | None:
+    """Clean a tax ID; text without any digit is not a tax ID.
+
+    GST invoices print 'GSTIN: Unregistered' for unregistered buyers, and models copy the
+    word into the tax-ID field (the only error left in the Day 3 bake-off). Real tax IDs
+    (GSTIN, VAT, EIN) always contain digits.
+
+    Args:
+        text: The tax ID as transcribed, or None.
+
+    Returns:
+        The whitespace-cleaned ID, or None if absent or digit-free ('Unregistered', 'N/A').
+    """
+    cleaned = _clean(text)
+    return cleaned if cleaned and any(c.isdigit() for c in cleaned) else None
+
+
 def _party(raw: RawParty) -> Party:
     """Convert a transcribed party (vendor or buyer) into the normalized Party model.
 
@@ -246,9 +264,10 @@ def _party(raw: RawParty) -> Party:
         raw: The party as the LLM transcribed it.
 
     Returns:
-        A Party with whitespace-cleaned name, address and tax ID (None where blank).
+        A Party with whitespace-cleaned name and address, and a validated tax ID
+        (None where blank or not a real ID).
     """
-    return Party(name=_clean(raw.name), address=_clean(raw.address), tax_id=_clean(raw.tax_id))
+    return Party(name=_clean(raw.name), address=_clean(raw.address), tax_id=_tax_id(raw.tax_id))
 
 
 def to_invoice(raw: RawInvoice) -> tuple[Invoice, list[ValidationIssue]]:
@@ -344,7 +363,7 @@ def to_invoice(raw: RawInvoice) -> tuple[Invoice, list[ValidationIssue]]:
         buyer=_party(raw.buyer),
         line_items=items,
         subtotal=amount("subtotal", raw.subtotal),
-        discount=_abs(amount("discount", raw.discount)),  # printed as '-500' or '500'
+        discount=_discount(amount("discount", raw.discount)),
         tax=_sum_taxes([amount(f"tax_lines[{i}]", t.amount) for i, t in enumerate(raw.tax_lines)]),
         total=amount("total", raw.total),
         payment_terms=_clean(raw.payment_terms),
