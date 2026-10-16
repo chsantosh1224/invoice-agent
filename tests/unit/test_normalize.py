@@ -10,7 +10,7 @@ from invoice_agent.normalize import (
     parse_date,
     to_invoice,
 )
-from invoice_agent.schemas import RawInvoice, RawLineItem, RawParty
+from invoice_agent.schemas import RawInvoice, RawLineItem, RawParty, RawTaxLine
 
 
 @pytest.mark.parametrize(
@@ -55,6 +55,7 @@ def test_parse_amount_rejects_non_numbers(text: str) -> None:
         ("April 3rd, 2026", None, date(2026, 4, 3)),
         ("03-Apr-2026", None, date(2026, 4, 3)),
         ("12 Sept 2026", None, date(2026, 9, 12)),
+        ("September 13, 2026", None, date(2026, 9, 13)),  # regression: "Sept" fix
     ],
 )
 def test_parse_date(text: str, dayfirst: bool | None, expected: date) -> None:
@@ -101,7 +102,10 @@ def _raw(**overrides: object) -> RawInvoice:
         ],
         subtotal="4,500.00",
         discount=None,
-        tax="810.00",
+        tax_lines=[
+            RawTaxLine(label="CGST @ 9%", amount="405.00"),
+            RawTaxLine(label="SGST @ 9%", amount="₹405.00"),
+        ],
         total="₹5,310.00",
         payment_terms=None,
     )
@@ -116,6 +120,7 @@ def test_to_invoice_uses_currency_to_resolve_date_order() -> None:
     assert invoice.currency == "INR"
     assert invoice.invoice_date == date(2026, 4, 3)  # INR -> day first
     assert invoice.total == Decimal("5310.00")
+    assert invoice.tax == Decimal("810.00")  # CGST + SGST summed in code, not by the LLM
     assert invoice.line_items[0].amount == Decimal("4500.00")
 
 

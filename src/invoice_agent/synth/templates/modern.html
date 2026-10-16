@@ -1,0 +1,48 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><style>
+  @page { size: A4; margin: 0 0 14mm; }
+  body { font-family: "Segoe UI", Calibri, sans-serif; font-size: 10pt; color: #1f2937; margin: 0; }
+  .band { background: #0f766e; color: #fff; padding: 22px 28px; display: flex; justify-content: space-between; align-items: center; }
+  .band .title { font-size: 26pt; font-weight: 300; letter-spacing: 1px; }
+  .band .brand { text-align: right; font-size: 13pt; font-weight: 600; }
+  .wrap { padding: 18px 28px 0; }
+  .parties { display: grid; grid-template-columns: 1fr 1fr 0.9fr; gap: 16px; margin-bottom: 18px; }
+  .card { background: #f0fdfa; border-radius: 6px; padding: 10px 12px; }
+  .card h4 { margin: 0 0 6px; font-size: 8pt; color: #0f766e; text-transform: uppercase; letter-spacing: 1px; }
+  table.items { width: 100%; border-collapse: collapse; }
+  table.items th { background: #134e4a; color: #fff; padding: 7px 6px; text-align: left; font-weight: 600; }
+  table.items td { padding: 6px; }
+  table.items tbody tr:nth-child(even) { background: #f3f4f6; }
+  table.items thead { display: table-header-group; }
+  table.items tr { page-break-inside: avoid; }
+  .num { text-align: right; }
+  .totals { width: 42%; margin: 14px 0 0 auto; border: 1px solid #99f6e4; border-radius: 6px; padding: 8px 12px; }
+  .row { display: flex; justify-content: space-between; padding: 3px 0; }
+  .row.grand { font-size: 13pt; font-weight: 700; color: #0f766e; border-top: 1px solid #99f6e4; margin-top: 4px; padding-top: 6px; }
+  .note { margin-top: 20px; font-size: 8.5pt; color: #6b7280; }
+</style></head><body>
+<div class="band"><div class="title">{{ title }}</div>
+  <div class="brand">{{ vendor.name }}<br><span style="font-weight:400;font-size:9pt">{{ vendor.email }}</span></div></div>
+<div class="wrap">
+<div class="parties">
+  <div class="card"><h4>From</h4>{{ vendor.name }}<br>{% for line in vendor.address_lines %}{{ line }}<br>{% endfor %}{% if vendor.tax_id %}{{ vendor.tax_label }} {{ vendor.tax_id }}{% endif %}</div>
+  <div class="card"><h4>Billed to</h4>{{ buyer.name }}<br>{% for line in buyer.address_lines %}{{ line }}<br>{% endfor %}{% if buyer.tax_id %}{{ buyer.tax_label }} {{ buyer.tax_id }}{% endif %}</div>
+  <div class="card"><h4>Details</h4>
+    Number: <b>{{ invoice_number }}</b><br>Issued: {{ invoice_date }}<br>
+    {% if due_date %}Due: {{ due_date }}<br>{% endif %}
+    {% if po_number %}Your PO: {{ po_number }}{% endif %}</div>
+</div>
+<table class="items">
+  <thead><tr><th>Item</th><th class="num">Qty</th><th>Unit</th><th class="num">Price</th><th class="num">Line total</th></tr></thead>
+  <tbody>{% for it in items %}
+    <tr><td>{{ it.description }}</td><td class="num">{{ it.qty }}</td><td>{{ it.unit }}</td><td class="num">{{ it.unit_price }}</td><td class="num">{{ it.amount }}</td></tr>
+  {% endfor %}</tbody>
+</table>
+<div class="totals">
+  <div class="row"><span>Subtotal</span><span>{{ subtotal }}</span></div>
+  {% if discount %}<div class="row"><span>Discount</span><span>- {{ discount }}</span></div>{% endif %}
+  {% for t in taxes %}<div class="row"><span>{{ t.label }}</span><span>{{ t.amount }}</span></div>{% endfor %}
+  <div class="row grand"><span>Amount due</span><span>{{ total }}</span></div>
+</div>
+<div class="note">{{ payment_terms }}. Bank transfer to {{ bank.name }}, account {{ bank.account }}. Questions? {{ vendor.phone }}</div>
+</div></body></html>

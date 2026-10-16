@@ -1,0 +1,41 @@
+{
+  "id": "inv-003-modern-EU",
+  "file": "inv-003-modern-EU.pdf",
+  "kind": "digital",
+  "split": "test",
+  "template": "modern",
+  "country": "EU",
+  "pages": 1,
+  "edge_cases": [],
+  "invoice": {
+    "document_type": "invoice",
+    "invoice_number": "RE-2026-0028",
+    "invoice_date": "2026-04-27",
+    "due_date": "2026-05-11",
+    "po_number": "PO/2026/160",
+    "currency": "EUR",
+    "vendor": {
+      "name": "Seifert",
+      "address": "Schusterring 8/6, 16115 Borken",
+      "tax_id": "DE459475016"
+    },
+    "buyer": {
+      "name": "Henschel",
+      "address": "Juliane-Wähner-Allee 7, 74249 Gera",
+      "tax_id": "FR153183607"
+    },
+    "line_items": [
+      {
+        "description": "Cloud hosting - monthly plan",
+        "quantity": "2",
+        "unit_price": "108.15",
+        "amount": "216.30"
+      }
+    ],
+    "subtotal": "216.30",
+    "discount": null,
+    "tax": "41.10",
+    "total": "257.40",
+    "payment_terms": "Payable within 14 days"
+  }
+}

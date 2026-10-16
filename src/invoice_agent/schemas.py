@@ -40,6 +40,13 @@ class RawLineItem(_Strict):
     amount: str | None = Field(description="Line total as printed")
 
 
+class RawTaxLine(_Strict):
+    """One tax line from the totals block, e.g. 'CGST @ 9%' or 'VAT 19%'. Copy as printed."""
+
+    label: str | None = Field(description="Tax name and rate as printed, e.g. 'IGST @ 18%'")
+    amount: str | None = Field(description="Tax amount as printed")
+
+
 class RawInvoice(_Strict):
     """The full invoice transcribed exactly as printed.
 
@@ -58,7 +65,10 @@ class RawInvoice(_Strict):
     line_items: list[RawLineItem]
     subtotal: str | None
     discount: str | None
-    tax: str | None = Field(description="Total tax amount (sum of GST/VAT lines)")
+    tax_lines: list[RawTaxLine] = Field(
+        description="Every tax line in the totals block (CGST and SGST are separate lines); "
+        "empty list if no tax is shown. Do not add them up."
+    )
     total: str | None = Field(description="Grand total / amount due")
     payment_terms: str | None
 

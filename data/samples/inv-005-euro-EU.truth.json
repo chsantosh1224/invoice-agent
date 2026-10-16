@@ -1,0 +1,243 @@
+{
+  "id": "inv-005-euro-EU",
+  "file": "inv-005-euro-EU.pdf",
+  "kind": "digital",
+  "split": "dev",
+  "template": "euro",
+  "country": "EU",
+  "pages": 2,
+  "edge_cases": [
+    "credit_note",
+    "multi_page",
+    "discount"
+  ],
+  "invoice": {
+    "document_type": "credit_note",
+    "invoice_number": "CN-2026-2817",
+    "invoice_date": "2026-05-30",
+    "due_date": "2026-07-14",
+    "po_number": "4500012144",
+    "currency": "EUR",
+    "vendor": {
+      "name": "Dehmel GmbH & Co. KGaA",
+      "address": "Schottinallee 752, 74355 Neuruppin",
+      "tax_id": "FR252607435"
+    },
+    "buyer": {
+      "name": "Sorgatz AG & Co. OHG",
+      "address": "Finkeweg 3-4, 48271 Kassel",
+      "tax_id": "NL572172893"
+    },
+    "line_items": [
+      {
+        "description": "Industrial lubricant",
+        "quantity": "4.5",
+        "unit_price": "8.10",
+        "amount": "36.45"
+      },
+      {
+        "description": "Stainless steel sheet 2mm",
+        "quantity": "16",
+        "unit_price": "2.45",
+        "amount": "39.20"
+      },
+      {
+        "description": "Cloud hosting - monthly plan",
+        "quantity": "10",
+        "unit_price": "131.92",
+        "amount": "1319.20"
+      },
+      {
+        "description": "Implementation consulting",
+        "quantity": "9.5",
+        "unit_price": "79.50",
+        "amount": "755.25"
+      },
+      {
+        "description": "Software licence, annual, per seat",
+        "quantity": "2",
+        "unit_price": "36.52",
+        "amount": "73.04"
+      },
+      {
+        "description": "Training workshop, half day",
+        "quantity": "2",
+        "unit_price": "253.04",
+        "amount": "506.08"
+      },
+      {
+        "description": "A4 copier paper (box of 5 reams)",
+        "quantity": "5",
+        "unit_price": "9.69",
+        "amount": "48.45"
+      },
+      {
+        "description": "Stainless steel sheet 2mm",
+        "quantity": "16",
+        "unit_price": "4.66",
+        "amount": "74.56"
+      },
+      {
+        "description": "Stainless steel sheet 2mm",
+        "quantity": "6.5",
+        "unit_price": "4.03",
+        "amount": "26.20"
+      },
+      {
+        "description": "Industrial lubricant",
+        "quantity": "1",
+        "unit_price": "3.80",
+        "amount": "3.80"
+      },
+      {
+        "description": "Cloud hosting - monthly plan",
+        "quantity": "2",
+        "unit_price": "100.16",
+        "amount": "200.32"
+      },
+      {
+        "description": "Stainless steel sheet 2mm",
+        "quantity": "7.5",
+        "unit_price": "3.56",
+        "amount": "26.70"
+      },
+      {
+        "description": "A4 copier paper (box of 5 reams)",
+        "quantity": "2",
+        "unit_price": "8.21",
+        "amount": "16.42"
+      },
+      {
+        "description": "Laptop, 14in, 16GB RAM",
+        "quantity": "5",
+        "unit_price": "861.39",
+        "amount": "4306.95"
+      },
+      {
+        "description": "Safety gloves (pair)",
+        "quantity": "2",
+        "unit_price": "2.87",
+        "amount": "5.74"
+      },
+      {
+        "description": "Corrugated shipping boxes",
+        "quantity": "2",
+        "unit_price": "0.52",
+        "amount": "1.04"
+      },
+      {
+        "description": "27in IPS monitor",
+        "quantity": "10",
+        "unit_price": "218.19",
+        "amount": "2181.90"
+      },
+      {
+        "description": "Laptop, 14in, 16GB RAM",
+        "quantity": "5",
+        "unit_price": "613.71",
+        "amount": "3068.55"
+      },
+      {
+        "description": "Wireless keyboard and mouse set",
+        "quantity": "2",
+        "unit_price": "18.82",
+        "amount": "37.64"
+      },
+      {
+        "description": "Laptop, 14in, 16GB RAM",
+        "quantity": "10",
+        "unit_price": "971.23",
+        "amount": "9712.30"
+      },
+      {
+        "description": "Safety gloves (pair)",
+        "quantity": "5",
+        "unit_price": "3.35",
+        "amount": "16.75"
+      },
+      {
+        "description": "Implementation consulting",
+        "quantity": "15.5",
+        "unit_price": "43.76",
+        "amount": "678.28"
+      },
+      {
+        "description": "Ergonomic office chair",
+        "quantity": "5",
+        "unit_price": "232.86",
+        "amount": "1164.30"
+      },
+      {
+        "description": "On-site support engineer",
+        "quantity": "18.5",
+        "unit_price": "31.34",
+        "amount": "579.79"
+      },
+      {
+        "description": "Cat6 network cable, 305m",
+        "quantity": "5",
+        "unit_price": "73.31",
+        "amount": "366.55"
+      },
+      {
+        "description": "27in IPS monitor",
+        "quantity": "2",
+        "unit_price": "202.86",
+        "amount": "405.72"
+      },
+      {
+        "description": "On-site support engineer",
+        "quantity": "3.5",
+        "unit_price": "26.73",
+        "amount": "93.56"
+      },
+      {
+        "description": "Safety gloves (pair)",
+        "quantity": "10",
+        "unit_price": "1.08",
+        "amount": "10.80"
+      },
+      {
+        "description": "Safety gloves (pair)",
+        "quantity": "2",
+        "unit_price": "2.85",
+        "amount": "5.70"
+      },
+      {
+        "description": "Corrugated shipping boxes",
+        "quantity": "1",
+        "unit_price": "1.26",
+        "amount": "1.26"
+      },
+      {
+        "description": "Training workshop, half day",
+        "quantity": "1",
+        "unit_price": "250.27",
+        "amount": "250.27"
+      },
+      {
+        "description": "Safety gloves (pair)",
+        "quantity": "2",
+        "unit_price": "2.84",
+        "amount": "5.68"
+      },
+      {
+        "description": "On-site support engineer",
+        "quantity": "20",
+        "unit_price": "27.53",
+        "amount": "550.60"
+      },
+      {
+        "description": "Laptop, 14in, 16GB RAM",
+        "quantity": "5",
+        "unit_price": "796.79",
+        "amount": "3983.95"
+      }
+    ],
+    "subtotal": "30553.00",
+    "discount": "3055.30",
+    "tax": "5499.54",
+    "total": "32997.24",
+    "payment_terms": "Payable within 45 days"
+  }
+}

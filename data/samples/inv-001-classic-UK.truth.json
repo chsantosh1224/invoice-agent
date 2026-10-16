@@ -1,0 +1,278 @@
+{
+  "id": "inv-001-classic-UK",
+  "file": "inv-001-classic-UK.pdf",
+  "kind": "digital",
+  "split": "dev",
+  "template": "classic",
+  "country": "UK",
+  "pages": 2,
+  "edge_cases": [
+    "multi_page",
+    "missing_po"
+  ],
+  "invoice": {
+    "document_type": "invoice",
+    "invoice_number": "INV004533",
+    "invoice_date": "2026-08-01",
+    "due_date": "2026-09-15",
+    "po_number": null,
+    "currency": "GBP",
+    "vendor": {
+      "name": "Chapman, White and Smith",
+      "address": "Studio 73W, Nicholas Ville, Robinsonfurt",
+      "tax_id": "GB730179653"
+    },
+    "buyer": {
+      "name": "Gardner-Watson",
+      "address": "Flat 07, Holly Vista, Port Christianberg",
+      "tax_id": "GB153998304"
+    },
+    "line_items": [
+      {
+        "description": "Industrial lubricant",
+        "quantity": "19.5",
+        "unit_price": "3.76",
+        "amount": "73.32"
+      },
+      {
+        "description": "Training workshop, half day",
+        "quantity": "2",
+        "unit_price": "277.52",
+        "amount": "555.04"
+      },
+      {
+        "description": "Cat6 network cable, 305m",
+        "quantity": "2",
+        "unit_price": "93.66",
+        "amount": "187.32"
+      },
+      {
+        "description": "Wireless keyboard and mouse set",
+        "quantity": "10",
+        "unit_price": "29.65",
+        "amount": "296.50"
+      },
+      {
+        "description": "Cat6 network cable, 305m",
+        "quantity": "10",
+        "unit_price": "56.89",
+        "amount": "568.90"
+      },
+      {
+        "description": "Implementation consulting",
+        "quantity": "20",
+        "unit_price": "51.04",
+        "amount": "1020.80"
+      },
+      {
+        "description": "Software licence, annual, per seat",
+        "quantity": "2",
+        "unit_price": "156.51",
+        "amount": "313.02"
+      },
+      {
+        "description": "On-site support engineer",
+        "quantity": "15.5",
+        "unit_price": "19.15",
+        "amount": "296.83"
+      },
+      {
+        "description": "Cloud hosting - monthly plan",
+        "quantity": "5",
+        "unit_price": "24.85",
+        "amount": "124.25"
+      },
+      {
+        "description": "Industrial lubricant",
+        "quantity": "10.5",
+        "unit_price": "4.94",
+        "amount": "51.87"
+      },
+      {
+        "description": "Safety gloves (pair)",
+        "quantity": "2",
+        "unit_price": "1.16",
+        "amount": "2.32"
+      },
+      {
+        "description": "Toner cartridge, black",
+        "quantity": "10",
+        "unit_price": "55.50",
+        "amount": "555.00"
+      },
+      {
+        "description": "Cloud hosting - monthly plan",
+        "quantity": "2",
+        "unit_price": "87.51",
+        "amount": "175.02"
+      },
+      {
+        "description": "A4 copier paper (box of 5 reams)",
+        "quantity": "2",
+        "unit_price": "8.74",
+        "amount": "17.48"
+      },
+      {
+        "description": "Toner cartridge, black",
+        "quantity": "5",
+        "unit_price": "74.96",
+        "amount": "374.80"
+      },
+      {
+        "description": "Corrugated shipping boxes",
+        "quantity": "10",
+        "unit_price": "1.74",
+        "amount": "17.40"
+      },
+      {
+        "description": "Toner cartridge, black",
+        "quantity": "2",
+        "unit_price": "78.28",
+        "amount": "156.56"
+      },
+      {
+        "description": "Laptop, 14in, 16GB RAM",
+        "quantity": "1",
+        "unit_price": "1136.03",
+        "amount": "1136.03"
+      },
+      {
+        "description": "Stainless steel sheet 2mm",
+        "quantity": "14",
+        "unit_price": "2.34",
+        "amount": "32.76"
+      },
+      {
+        "description": "Cloud hosting - monthly plan",
+        "quantity": "1",
+        "unit_price": "49.25",
+        "amount": "49.25"
+      },
+      {
+        "description": "Safety gloves (pair)",
+        "quantity": "10",
+        "unit_price": "3.99",
+        "amount": "39.90"
+      },
+      {
+        "description": "27in IPS monitor",
+        "quantity": "10",
+        "unit_price": "322.52",
+        "amount": "3225.20"
+      },
+      {
+        "description": "A4 copier paper (box of 5 reams)",
+        "quantity": "2",
+        "unit_price": "9.48",
+        "amount": "18.96"
+      },
+      {
+        "description": "Corrugated shipping boxes",
+        "quantity": "2",
+        "unit_price": "0.43",
+        "amount": "0.86"
+      },
+      {
+        "description": "Industrial lubricant",
+        "quantity": "9.5",
+        "unit_price": "3.43",
+        "amount": "32.59"
+      },
+      {
+        "description": "Wireless keyboard and mouse set",
+        "quantity": "2",
+        "unit_price": "15.26",
+        "amount": "30.52"
+      },
+      {
+        "description": "Ergonomic office chair",
+        "quantity": "5",
+        "unit_price": "110.62",
+        "amount": "553.10"
+      },
+      {
+        "description": "Wireless keyboard and mouse set",
+        "quantity": "1",
+        "unit_price": "33.68",
+        "amount": "33.68"
+      },
+      {
+        "description": "Industrial lubricant",
+        "quantity": "11",
+        "unit_price": "5.86",
+        "amount": "64.46"
+      },
+      {
+        "description": "Corrugated shipping boxes",
+        "quantity": "5",
+        "unit_price": "1.74",
+        "amount": "8.70"
+      },
+      {
+        "description": "Toner cartridge, black",
+        "quantity": "2",
+        "unit_price": "31.71",
+        "amount": "63.42"
+      },
+      {
+        "description": "Cat6 network cable, 305m",
+        "quantity": "2",
+        "unit_price": "117.37",
+        "amount": "234.74"
+      },
+      {
+        "description": "Ergonomic office chair",
+        "quantity": "1",
+        "unit_price": "190.86",
+        "amount": "190.86"
+      },
+      {
+        "description": "Cat6 network cable, 305m",
+        "quantity": "2",
+        "unit_price": "57.18",
+        "amount": "114.36"
+      },
+      {
+        "description": "Cloud hosting - monthly plan",
+        "quantity": "5",
+        "unit_price": "132.28",
+        "amount": "661.40"
+      },
+      {
+        "description": "Stainless steel sheet 2mm",
+        "quantity": "10",
+        "unit_price": "2.85",
+        "amount": "28.50"
+      },
+      {
+        "description": "Safety gloves (pair)",
+        "quantity": "2",
+        "unit_price": "1.82",
+        "amount": "3.64"
+      },
+      {
+        "description": "Laptop, 14in, 16GB RAM",
+        "quantity": "5",
+        "unit_price": "1195.70",
+        "amount": "5978.50"
+      },
+      {
+        "description": "Software licence, annual, per seat",
+        "quantity": "2",
+        "unit_price": "43.28",
+        "amount": "86.56"
+      },
+      {
+        "description": "Cloud hosting - monthly plan",
+        "quantity": "2",
+        "unit_price": "25.17",
+        "amount": "50.34"
+      }
+    ],
+    "subtotal": "17424.76",
+    "discount": null,
+    "tax": "3484.95",
+    "total": "20909.71",
+    "payment_terms": "Payable within 45 days"
+  }
+}

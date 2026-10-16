@@ -1,0 +1,44 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><style>
+  @page { size: A4; margin: 20mm 18mm; }
+  body { font-family: "Courier New", Courier, monospace; font-size: 10pt; color: #111; }
+  h2 { font-size: 13pt; margin: 0 0 2px; }
+  hr { border: 0; border-top: 1px dashed #333; margin: 10px 0; }
+  .kv { display: grid; grid-template-columns: 150px 1fr; row-gap: 2px; }
+  table.items { width: 100%; border-collapse: collapse; }
+  table.items th { text-align: left; border-bottom: 1px dashed #333; padding: 3px 2px; }
+  table.items td { padding: 3px 2px; vertical-align: top; }
+  table.items thead { display: table-header-group; }
+  table.items tr { page-break-inside: avoid; }
+  .num { text-align: right; }
+</style></head><body>
+<h2>{{ vendor.name }}</h2>
+{{ vendor.address_lines | join(" / ") }}<br>
+{% if vendor.tax_id %}{{ vendor.tax_label }} {{ vendor.tax_id }}{% endif %}
+<hr>
+<div class="kv">
+  <div>{{ title }} #</div><div>{{ invoice_number }}</div>
+  <div>DATE</div><div>{{ invoice_date }}</div>
+  {% if due_date %}<div>PAYMENT DUE</div><div>{{ due_date }}</div>{% endif %}
+  <div>P.O. REF</div><div>{{ po_number or "-" }}</div>
+  <div>CUSTOMER</div><div>{{ buyer.name }}</div>
+  <div></div><div>{{ buyer.address_lines | join(" / ") }}</div>
+  {% if buyer.tax_id %}<div>CUSTOMER TAX ID</div><div>{{ buyer.tax_id }}</div>{% endif %}
+</div>
+<hr>
+<table class="items">
+  <thead><tr><th>DESCRIPTION</th><th class="num">QTY</th><th class="num">PRICE</th><th class="num">AMOUNT</th></tr></thead>
+  <tbody>{% for it in items %}
+    <tr><td>{{ it.description }}</td><td class="num">{{ it.qty }}</td><td class="num">{{ it.unit_price }}</td><td class="num">{{ it.amount }}</td></tr>
+  {% endfor %}</tbody>
+</table>
+<hr>
+<div class="kv">
+  <div>SUBTOTAL</div><div class="num">{{ subtotal }}</div>
+  {% if discount %}<div>LESS DISCOUNT</div><div class="num">{{ discount }}</div>{% endif %}
+  {% for t in taxes %}<div>{{ t.label | upper }}</div><div class="num">{{ t.amount }}</div>{% endfor %}
+  <div><b>TOTAL DUE</b></div><div class="num"><b>{{ total }}</b></div>
+</div>
+<hr>
+TERMS: {{ payment_terms | upper }}
+</body></html>

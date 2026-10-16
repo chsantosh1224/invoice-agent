@@ -1,0 +1,83 @@
+{
+  "id": "inv-006-classic-IN-scan",
+  "file": "inv-006-classic-IN-scan.png",
+  "kind": "scanned",
+  "split": "test",
+  "template": "classic",
+  "country": "IN",
+  "pages": 1,
+  "edge_cases": [],
+  "invoice": {
+    "document_type": "invoice",
+    "invoice_number": "INV-2026-5346",
+    "invoice_date": "2026-02-03",
+    "due_date": "2026-03-20",
+    "po_number": "PO-2619",
+    "currency": "INR",
+    "vendor": {
+      "name": "Oza and Sons",
+      "address": "87/761, Shukla Marg, Ambala-346418",
+      "tax_id": "24WIMJD8252N1ZM"
+    },
+    "buyer": {
+      "name": "Wali Inc",
+      "address": "787, Kant Street, Noida-863483",
+      "tax_id": "24BBXTK3407C2ZJ"
+    },
+    "line_items": [
+      {
+        "description": "Ergonomic office chair",
+        "quantity": "10",
+        "unit_price": "8872.09",
+        "amount": "88720.90"
+      },
+      {
+        "description": "On-site support engineer",
+        "quantity": "10",
+        "unit_price": "2266.50",
+        "amount": "22665.00"
+      },
+      {
+        "description": "Software licence, annual, per seat",
+        "quantity": "2",
+        "unit_price": "16471.48",
+        "amount": "32942.96"
+      },
+      {
+        "description": "Industrial lubricant",
+        "quantity": "1.5",
+        "unit_price": "588.39",
+        "amount": "882.59"
+      },
+      {
+        "description": "On-site support engineer",
+        "quantity": "12",
+        "unit_price": "3943.70",
+        "amount": "47324.40"
+      },
+      {
+        "description": "27in IPS monitor",
+        "quantity": "10",
+        "unit_price": "11197.22",
+        "amount": "111972.20"
+      },
+      {
+        "description": "On-site support engineer",
+        "quantity": "20",
+        "unit_price": "2167.45",
+        "amount": "43349.00"
+      },
+      {
+        "description": "Industrial lubricant",
+        "quantity": "1.5",
+        "unit_price": "353.46",
+        "amount": "530.19"
+      }
+    ],
+    "subtotal": "348387.24",
+    "discount": null,
+    "tax": "62709.70",
+    "total": "411096.94",
+    "payment_terms": "Payable within 45 days"
+  }
+}

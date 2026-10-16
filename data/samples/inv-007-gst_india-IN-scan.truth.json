@@ -1,0 +1,86 @@
+{
+  "id": "inv-007-gst_india-IN-scan",
+  "file": "inv-007-gst_india-IN-scan.pdf",
+  "kind": "scanned",
+  "split": "dev",
+  "template": "gst_india",
+  "country": "IN",
+  "pages": 1,
+  "edge_cases": [
+    "buyer_without_tax_id",
+    "discount"
+  ],
+  "invoice": {
+    "document_type": "invoice",
+    "invoice_number": "2026-27/08073",
+    "invoice_date": "2026-06-22",
+    "due_date": "2026-06-29",
+    "po_number": "PO-6778",
+    "currency": "INR",
+    "vendor": {
+      "name": "Sane-Menon",
+      "address": "25/414, Ganesh Road, Mathura 318815",
+      "tax_id": "09VGGCR8156N2ZN"
+    },
+    "buyer": {
+      "name": "Chowdhury-Sastry",
+      "address": "75/100, Raj Path, Agra-608812",
+      "tax_id": null
+    },
+    "line_items": [
+      {
+        "description": "Laptop, 14in, 16GB RAM",
+        "quantity": "5",
+        "unit_price": "48158.42",
+        "amount": "240792.10"
+      },
+      {
+        "description": "Training workshop, half day",
+        "quantity": "1",
+        "unit_price": "8143.23",
+        "amount": "8143.23"
+      },
+      {
+        "description": "Safety gloves (pair)",
+        "quantity": "1",
+        "unit_price": "194.70",
+        "amount": "194.70"
+      },
+      {
+        "description": "Ergonomic office chair",
+        "quantity": "1",
+        "unit_price": "7318.40",
+        "amount": "7318.40"
+      },
+      {
+        "description": "Toner cartridge, black",
+        "quantity": "10",
+        "unit_price": "3834.06",
+        "amount": "38340.60"
+      },
+      {
+        "description": "A4 copier paper (box of 5 reams)",
+        "quantity": "10",
+        "unit_price": "502.98",
+        "amount": "5029.80"
+      },
+      {
+        "description": "Ergonomic office chair",
+        "quantity": "5",
+        "unit_price": "12877.23",
+        "amount": "64386.15"
+      },
+      {
+        "description": "Training workshop, half day",
+        "quantity": "10",
+        "unit_price": "12747.39",
+        "amount": "127473.90"
+      }
+    ],
+    "subtotal": "491678.88",
+    "discount": "49167.89",
+    "tax": "53101.32",
+    "total": "495612.31",
+    "payment_terms": "Payable within 7 days"
+  }
+}

@@ -1,0 +1,61 @@
+{
+  "id": "inv-028-modern-UK-scan",
+  "file": "inv-028-modern-UK-scan.pdf",
+  "kind": "scanned",
+  "split": "dev",
+  "template": "modern",
+  "country": "UK",
+  "pages": 1,
+  "edge_cases": [
+    "discount"
+  ],
+  "invoice": {
+    "document_type": "invoice",
+    "invoice_number": "SI-09060",
+    "invoice_date": "2026-08-16",
+    "due_date": "2026-09-15",
+    "po_number": "PO-6048",
+    "currency": "GBP",
+    "vendor": {
+      "name": "Smith-Davies",
+      "address": "Flat 6, Evans Lodge, Kellyland",
+      "tax_id": "GB716550647"
+    },
+    "buyer": {
+      "name": "Lawrence-Khan",
+      "address": "7 Julia Underpass, New Louise, L70 6AE",
+      "tax_id": "GB181795041"
+    },
+    "line_items": [
+      {
+        "description": "27in IPS monitor",
+        "quantity": "2",
+        "unit_price": "309.45",
+        "amount": "618.90"
+      },
+      {
+        "description": "Cat6 network cable, 305m",
+        "quantity": "10",
+        "unit_price": "74.09",
+        "amount": "740.90"
+      },
+      {
+        "description": "Cat6 network cable, 305m",
+        "quantity": "10",
+        "unit_price": "59.76",
+        "amount": "597.60"
+      },
+      {
+        "description": "Cat6 network cable, 305m",
+        "quantity": "2",
+        "unit_price": "68.55",
+        "amount": "137.10"
+      }
+    ],
+    "subtotal": "2094.50",
+    "discount": "104.73",
+    "tax": "397.95",
+    "total": "2387.72",
+    "payment_terms": "Net 30"
+  }
+}

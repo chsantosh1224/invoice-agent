@@ -1,0 +1,278 @@
+{
+  "id": "inv-019-minimal-US",
+  "file": "inv-019-minimal-US.pdf",
+  "kind": "digital",
+  "split": "dev",
+  "template": "minimal",
+  "country": "US",
+  "pages": 2,
+  "edge_cases": [
+    "multi_page",
+    "missing_po"
+  ],
+  "invoice": {
+    "document_type": "invoice",
+    "invoice_number": "906228",
+    "invoice_date": "2026-01-28",
+    "due_date": "2026-02-12",
+    "po_number": null,
+    "currency": "USD",
+    "vendor": {
+      "name": "Wright, Velez and Ray",
+      "address": "PSC 8082, Box 5686, APO AP 26486",
+      "tax_id": "25-6869383"
+    },
+    "buyer": {
+      "name": "Ayers, Bell and Johnson",
+      "address": "0350 Turner Turnpike Apt. 158, Ericksonton, SC 74560",
+      "tax_id": "09-4979316"
+    },
+    "line_items": [
+      {
+        "description": "Software licence, annual, per seat",
+        "quantity": "5",
+        "unit_price": "112.26",
+        "amount": "561.30"
+      },
+      {
+        "description": "Software licence, annual, per seat",
+        "quantity": "10",
+        "unit_price": "165.51",
+        "amount": "1655.10"
+      },
+      {
+        "description": "27in IPS monitor",
+        "quantity": "2",
+        "unit_price": "212.21",
+        "amount": "424.42"
+      },
+      {
+        "description": "A4 copier paper (box of 5 reams)",
+        "quantity": "5",
+        "unit_price": "8.14",
+        "amount": "40.70"
+      },
+      {
+        "description": "Cat6 network cable, 305m",
+        "quantity": "2",
+        "unit_price": "83.02",
+        "amount": "166.04"
+      },
+      {
+        "description": "Corrugated shipping boxes",
+        "quantity": "2",
+        "unit_price": "0.41",
+        "amount": "0.82"
+      },
+      {
+        "description": "Safety gloves (pair)",
+        "quantity": "10",
+        "unit_price": "3.39",
+        "amount": "33.90"
+      },
+      {
+        "description": "Toner cartridge, black",
+        "quantity": "2",
+        "unit_price": "61.62",
+        "amount": "123.24"
+      },
+      {
+        "description": "Toner cartridge, black",
+        "quantity": "2",
+        "unit_price": "51.63",
+        "amount": "103.26"
+      },
+      {
+        "description": "Toner cartridge, black",
+        "quantity": "1",
+        "unit_price": "67.43",
+        "amount": "67.43"
+      },
+      {
+        "description": "Corrugated shipping boxes",
+        "quantity": "1",
+        "unit_price": "1.75",
+        "amount": "1.75"
+      },
+      {
+        "description": "Cat6 network cable, 305m",
+        "quantity": "1",
+        "unit_price": "94.71",
+        "amount": "94.71"
+      },
+      {
+        "description": "A4 copier paper (box of 5 reams)",
+        "quantity": "5",
+        "unit_price": "6.90",
+        "amount": "34.50"
+      },
+      {
+        "description": "Ergonomic office chair",
+        "quantity": "5",
+        "unit_price": "189.64",
+        "amount": "948.20"
+      },
+      {
+        "description": "Wireless keyboard and mouse set",
+        "quantity": "5",
+        "unit_price": "25.97",
+        "amount": "129.85"
+      },
+      {
+        "description": "Corrugated shipping boxes",
+        "quantity": "10",
+        "unit_price": "0.40",
+        "amount": "4.00"
+      },
+      {
+        "description": "Safety gloves (pair)",
+        "quantity": "5",
+        "unit_price": "1.74",
+        "amount": "8.70"
+      },
+      {
+        "description": "Toner cartridge, black",
+        "quantity": "2",
+        "unit_price": "38.53",
+        "amount": "77.06"
+      },
+      {
+        "description": "Ergonomic office chair",
+        "quantity": "10",
+        "unit_price": "164.55",
+        "amount": "1645.50"
+      },
+      {
+        "description": "Industrial lubricant",
+        "quantity": "11.5",
+        "unit_price": "8.70",
+        "amount": "100.05"
+      },
+      {
+        "description": "Training workshop, half day",
+        "quantity": "2",
+        "unit_price": "249.33",
+        "amount": "498.66"
+      },
+      {
+        "description": "Cloud hosting - monthly plan",
+        "quantity": "2",
+        "unit_price": "142.45",
+        "amount": "284.90"
+      },
+      {
+        "description": "Industrial lubricant",
+        "quantity": "6.5",
+        "unit_price": "5.66",
+        "amount": "36.79"
+      },
+      {
+        "description": "On-site support engineer",
+        "quantity": "3.5",
+        "unit_price": "48.76",
+        "amount": "170.66"
+      },
+      {
+        "description": "Software licence, annual, per seat",
+        "quantity": "10",
+        "unit_price": "75.49",
+        "amount": "754.90"
+      },
+      {
+        "description": "Cloud hosting - monthly plan",
+        "quantity": "5",
+        "unit_price": "45.25",
+        "amount": "226.25"
+      },
+      {
+        "description": "Corrugated shipping boxes",
+        "quantity": "1",
+        "unit_price": "1.52",
+        "amount": "1.52"
+      },
+      {
+        "description": "Stainless steel sheet 2mm",
+        "quantity": "1.5",
+        "unit_price": "3.10",
+        "amount": "4.65"
+      },
+      {
+        "description": "A4 copier paper (box of 5 reams)",
+        "quantity": "5",
+        "unit_price": "10.45",
+        "amount": "52.25"
+      },
+      {
+        "description": "Industrial lubricant",
+        "quantity": "5",
+        "unit_price": "4.15",
+        "amount": "20.75"
+      },
+      {
+        "description": "Stainless steel sheet 2mm",
+        "quantity": "11",
+        "unit_price": "2.73",
+        "amount": "30.03"
+      },
+      {
+        "description": "Toner cartridge, black",
+        "quantity": "5",
+        "unit_price": "56.46",
+        "amount": "282.30"
+      },
+      {
+        "description": "Ergonomic office chair",
+        "quantity": "5",
+        "unit_price": "159.14",
+        "amount": "795.70"
+      },
+      {
+        "description": "Laptop, 14in, 16GB RAM",
+        "quantity": "2",
+        "unit_price": "718.38",
+        "amount": "1436.76"
+      },
+      {
+        "description": "27in IPS monitor",
+        "quantity": "5",
+        "unit_price": "323.31",
+        "amount": "1616.55"
+      },
+      {
+        "description": "Laptop, 14in, 16GB RAM",
+        "quantity": "2",
+        "unit_price": "1005.71",
+        "amount": "2011.42"
+      },
+      {
+        "description": "Laptop, 14in, 16GB RAM",
+        "quantity": "1",
+        "unit_price": "1163.69",
+        "amount": "1163.69"
+      },
+      {
+        "description": "Cat6 network cable, 305m",
+        "quantity": "2",
+        "unit_price": "59.05",
+        "amount": "118.10"
+      },
+      {
+        "description": "Safety gloves (pair)",
+        "quantity": "1",
+        "unit_price": "2.21",
+        "amount": "2.21"
+      },
+      {
+        "description": "Laptop, 14in, 16GB RAM",
+        "quantity": "1",
+        "unit_price": "1029.02",
+        "amount": "1029.02"
+      }
+    ],
+    "subtotal": "16757.64",
+    "discount": null,
+    "tax": null,
+    "total": "16757.64",
+    "payment_terms": "Net 15"
+  }
+}

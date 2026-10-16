@@ -1,0 +1,79 @@
+{
+  "id": "inv-010-euro-EU-scan",
+  "file": "inv-010-euro-EU-scan.png",
+  "kind": "scanned",
+  "split": "dev",
+  "template": "euro",
+  "country": "EU",
+  "pages": 1,
+  "edge_cases": [
+    "buyer_without_tax_id"
+  ],
+  "invoice": {
+    "document_type": "invoice",
+    "invoice_number": "RE-2026-3290",
+    "invoice_date": "2026-05-31",
+    "due_date": "2026-06-14",
+    "po_number": "PO-6831",
+    "currency": "EUR",
+    "vendor": {
+      "name": "Döhn GmbH & Co. KG",
+      "address": "Jessica-Scheel-Ring 52/70, 07628 Großenhain",
+      "tax_id": "NL929552094"
+    },
+    "buyer": {
+      "name": "Henschel Walter KG",
+      "address": "Losekannstr. 37/22, 57627 Nabburg",
+      "tax_id": null
+    },
+    "line_items": [
+      {
+        "description": "Laptop, 14in, 16GB RAM",
+        "quantity": "2",
+        "unit_price": "678.86",
+        "amount": "1357.72"
+      },
+      {
+        "description": "A4 copier paper (box of 5 reams)",
+        "quantity": "10",
+        "unit_price": "4.88",
+        "amount": "48.80"
+      },
+      {
+        "description": "Software licence, annual, per seat",
+        "quantity": "2",
+        "unit_price": "79.78",
+        "amount": "159.56"
+      },
+      {
+        "description": "Safety gloves (pair)",
+        "quantity": "5",
+        "unit_price": "2.52",
+        "amount": "12.60"
+      },
+      {
+        "description": "A4 copier paper (box of 5 reams)",
+        "quantity": "2",
+        "unit_price": "10.98",
+        "amount": "21.96"
+      },
+      {
+        "description": "Cat6 network cable, 305m",
+        "quantity": "1",
+        "unit_price": "75.88",
+        "amount": "75.88"
+      },
+      {
+        "description": "Implementation consulting",
+        "quantity": "12.5",
+        "unit_price": "33.52",
+        "amount": "419.00"
+      }
+    ],
+    "subtotal": "2095.52",
+    "discount": null,
+    "tax": "440.06",
+    "total": "2535.58",
+    "payment_terms": "Payable within 14 days"
+  }
+}

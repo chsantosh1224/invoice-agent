@@ -1,0 +1,47 @@
+{
+  "id": "inv-004-minimal-IN",
+  "file": "inv-004-minimal-IN.pdf",
+  "kind": "digital",
+  "split": "dev",
+  "template": "minimal",
+  "country": "IN",
+  "pages": 1,
+  "edge_cases": [],
+  "invoice": {
+    "document_type": "invoice",
+    "invoice_number": "GST/7659/26-27",
+    "invoice_date": "2026-05-14",
+    "due_date": "2026-05-29",
+    "po_number": "PO/2026/717",
+    "currency": "INR",
+    "vendor": {
+      "name": "Dugar Inc",
+      "address": "44/377, Anand Chowk, Dehri 706446",
+      "tax_id": "29QJUPB6446H1ZB"
+    },
+    "buyer": {
+      "name": "Sibal, Sharaf and Kota",
+      "address": "64, Batta Circle, Agartala 464621",
+      "tax_id": "24GAQSK2642R3ZQ"
+    },
+    "line_items": [
+      {
+        "description": "Ergonomic office chair",
+        "quantity": "5",
+        "unit_price": "14812.03",
+        "amount": "74060.15"
+      },
+      {
+        "description": "Training workshop, half day",
+        "quantity": "1",
+        "unit_price": "21172.34",
+        "amount": "21172.34"
+      }
+    ],
+    "subtotal": "95232.49",
+    "discount": null,
+    "tax": "26665.10",
+    "total": "121897.59",
+    "payment_terms": "Payable within 15 days"
+  }
+}

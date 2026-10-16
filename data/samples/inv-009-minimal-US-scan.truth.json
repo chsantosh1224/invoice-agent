@@ -1,0 +1,67 @@
+{
+  "id": "inv-009-minimal-US-scan",
+  "file": "inv-009-minimal-US-scan.png",
+  "kind": "scanned",
+  "split": "test",
+  "template": "minimal",
+  "country": "US",
+  "pages": 1,
+  "edge_cases": [
+    "due_on_receipt"
+  ],
+  "invoice": {
+    "document_type": "invoice",
+    "invoice_number": "965676",
+    "invoice_date": "2026-06-23",
+    "due_date": null,
+    "po_number": "4500035772",
+    "currency": "USD",
+    "vendor": {
+      "name": "Cobb-Richardson",
+      "address": "USNS Hernandez, FPO AE 23813",
+      "tax_id": "71-2554946"
+    },
+    "buyer": {
+      "name": "Petersen and Sons",
+      "address": "3241 Graham Stravenue Suite 551, East Henry, WY 75295",
+      "tax_id": "16-5022406"
+    },
+    "line_items": [
+      {
+        "description": "27in IPS monitor",
+        "quantity": "10",
+        "unit_price": "287.80",
+        "amount": "2878.00"
+      },
+      {
+        "description": "Wireless keyboard and mouse set",
+        "quantity": "5",
+        "unit_price": "37.89",
+        "amount": "189.45"
+      },
+      {
+        "description": "Training workshop, half day",
+        "quantity": "2",
+        "unit_price": "164.90",
+        "amount": "329.80"
+      },
+      {
+        "description": "Software licence, annual, per seat",
+        "quantity": "5",
+        "unit_price": "208.60",
+        "amount": "1043.00"
+      },
+      {
+        "description": "Training workshop, half day",
+        "quantity": "10",
+        "unit_price": "217.93",
+        "amount": "2179.30"
+      }
+    ],
+    "subtotal": "6619.55",
+    "discount": null,
+    "tax": "479.92",
+    "total": "7099.47",
+    "payment_terms": "Due on receipt"
+  }
+}

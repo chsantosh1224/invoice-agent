@@ -1,0 +1,85 @@
+{
+  "id": "inv-024-minimal-IN-scan",
+  "file": "inv-024-minimal-IN-scan.pdf",
+  "kind": "scanned",
+  "split": "dev",
+  "template": "minimal",
+  "country": "IN",
+  "pages": 1,
+  "edge_cases": [
+    "due_on_receipt"
+  ],
+  "invoice": {
+    "document_type": "invoice",
+    "invoice_number": "2026-27/03473",
+    "invoice_date": "2026-02-21",
+    "due_date": null,
+    "po_number": "4500058719",
+    "currency": "INR",
+    "vendor": {
+      "name": "Mani-Basak",
+      "address": "H.No. 072, Oommen Circle, Navi Mumbai-693126",
+      "tax_id": "24LNSGD2664S1ZI"
+    },
+    "buyer": {
+      "name": "Dugar-Kibe",
+      "address": "861, Dass Ganj, Korba-202584",
+      "tax_id": "09MGFJM7051C3ZH"
+    },
+    "line_items": [
+      {
+        "description": "Stainless steel sheet 2mm",
+        "quantity": "5",
+        "unit_price": "252.42",
+        "amount": "1262.10"
+      },
+      {
+        "description": "Laptop, 14in, 16GB RAM",
+        "quantity": "2",
+        "unit_price": "47096.30",
+        "amount": "94192.60"
+      },
+      {
+        "description": "Cat6 network cable, 305m",
+        "quantity": "10",
+        "unit_price": "7416.70",
+        "amount": "74167.00"
+      },
+      {
+        "description": "Safety gloves (pair)",
+        "quantity": "1",
+        "unit_price": "139.45",
+        "amount": "139.45"
+      },
+      {
+        "description": "On-site support engineer",
+        "quantity": "1.5",
+        "unit_price": "3628.01",
+        "amount": "5442.02"
+      },
+      {
+        "description": "Laptop, 14in, 16GB RAM",
+        "quantity": "2",
+        "unit_price": "66149.54",
+        "amount": "132299.08"
+      },
+      {
+        "description": "Training workshop, half day",
+        "quantity": "1",
+        "unit_price": "20559.97",
+        "amount": "20559.97"
+      },
+      {
+        "description": "On-site support engineer",
+        "quantity": "12",
+        "unit_price": "1536.97",
+        "amount": "18443.64"
+      }
+    ],
+    "subtotal": "346505.86",
+    "discount": null,
+    "tax": "41580.70",
+    "total": "388086.56",
+    "payment_terms": "Due on receipt"
+  }
+}

@@ -1,0 +1,65 @@
+{
+  "id": "inv-030-euro-UK",
+  "file": "inv-030-euro-UK.pdf",
+  "kind": "digital",
+  "split": "dev",
+  "template": "euro",
+  "country": "UK",
+  "pages": 1,
+  "edge_cases": [],
+  "invoice": {
+    "document_type": "invoice",
+    "invoice_number": "INV009358",
+    "invoice_date": "2026-04-24",
+    "due_date": "2026-05-08",
+    "po_number": "PO/2026/913",
+    "currency": "GBP",
+    "vendor": {
+      "name": "Webb-Hall",
+      "address": "Studio 2, Howard Mission, West Eric",
+      "tax_id": "GB047343412"
+    },
+    "buyer": {
+      "name": "Wright-James",
+      "address": "Flat 4, Cartwright Well, East Kevintown",
+      "tax_id": "GB080512751"
+    },
+    "line_items": [
+      {
+        "description": "Wireless keyboard and mouse set",
+        "quantity": "2",
+        "unit_price": "24.24",
+        "amount": "48.48"
+      },
+      {
+        "description": "Training workshop, half day",
+        "quantity": "5",
+        "unit_price": "119.88",
+        "amount": "599.40"
+      },
+      {
+        "description": "Toner cartridge, black",
+        "quantity": "10",
+        "unit_price": "71.58",
+        "amount": "715.80"
+      },
+      {
+        "description": "Implementation consulting",
+        "quantity": "2.5",
+        "unit_price": "79.79",
+        "amount": "199.48"
+      },
+      {
+        "description": "Safety gloves (pair)",
+        "quantity": "1",
+        "unit_price": "0.98",
+        "amount": "0.98"
+      }
+    ],
+    "subtotal": "1564.14",
+    "discount": null,
+    "tax": "312.83",
+    "total": "1876.97",
+    "payment_terms": "Payable within 14 days"
+  }
+}

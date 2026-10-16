@@ -2,6 +2,7 @@
 
 import json
 import time
+from pathlib import Path
 from typing import Annotated
 
 import httpx
@@ -163,6 +164,61 @@ def smoke(
             indent=2,
         )
     )
+
+
+@app.command()
+def synth(
+    out: Annotated[Path, typer.Option(help="Output folder")] = Path("data/samples"),
+    digital: Annotated[int, typer.Option(help="Number of digital invoices")] = 30,
+    scanned: Annotated[int, typer.Option(help="How many also get a scanned copy")] = 20,
+    seed: Annotated[int, typer.Option(help="Same seed -> identical dataset")] = 42,
+    test_fraction: Annotated[float, typer.Option(help="Share held out for testing")] = 0.4,
+    channel: Annotated[
+        str | None, typer.Option(help="Installed browser to use, e.g. 'msedge' or 'chrome'")
+    ] = None,
+) -> None:
+    """Generate the synthetic invoice dataset (PDFs/PNGs + truth JSON + manifest).
+
+    Usage: `invoice-agent synth --channel msedge` (uses the Edge already on Windows, so
+    no Chromium download is needed).
+
+    Args:
+        out: Folder to write the documents, truth files and manifest.json into.
+        digital: Number of digital invoices to generate.
+        scanned: How many of those also get a degraded, image-only copy.
+        seed: Master random seed; the dataset is fully reproducible from it.
+        test_fraction: Fraction of invoices assigned to the held-out test split.
+        channel: Browser for HTML->PDF. None uses Playwright's bundled Chromium.
+
+    Returns:
+        None. Writes files and prints a summary (counts by kind, split and template).
+    """
+    from collections import Counter
+
+    from invoice_agent.synth.generate import generate_dataset
+
+    started = time.perf_counter()
+    manifest = generate_dataset(
+        out,
+        n_digital=digital,
+        n_scanned=scanned,
+        seed=seed,
+        test_fraction=test_fraction,
+        channel=channel,
+    )
+    edge = Counter(e for doc in manifest if doc["kind"] == "digital" for e in doc["edge_cases"])
+    summary = {
+        "documents": len(manifest),
+        "by_kind": dict(Counter(d["kind"] for d in manifest)),
+        "by_split": dict(Counter(d["split"] for d in manifest)),
+        "by_template": dict(Counter(d["template"] for d in manifest if d["kind"] == "digital")),
+        "by_country": dict(Counter(d["country"] for d in manifest if d["kind"] == "digital")),
+        "edge_cases": dict(edge),
+        "multi_page_docs": sum(d["pages"] > 1 for d in manifest),
+        "seconds": round(time.perf_counter() - started, 1),
+        "out": str(out),
+    }
+    typer.echo(json.dumps(summary, indent=2))
 
 
 if __name__ == "__main__":

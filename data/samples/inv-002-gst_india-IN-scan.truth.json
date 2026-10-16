@@ -1,0 +1,75 @@
+{
+  "id": "inv-002-gst_india-IN-scan",
+  "file": "inv-002-gst_india-IN-scan.pdf",
+  "kind": "scanned",
+  "split": "dev",
+  "template": "gst_india",
+  "country": "IN",
+  "pages": 1,
+  "edge_cases": [
+    "buyer_without_tax_id",
+    "discount",
+    "missing_po"
+  ],
+  "invoice": {
+    "document_type": "invoice",
+    "invoice_number": "2026-27/07220",
+    "invoice_date": "2026-01-13",
+    "due_date": "2026-01-20",
+    "po_number": null,
+    "currency": "INR",
+    "vendor": {
+      "name": "Sanghvi, Peri and Rajan",
+      "address": "954, Varty Chowk, Vellore-602991",
+      "tax_id": "27YETTC9965W2Z0"
+    },
+    "buyer": {
+      "name": "Taneja Inc",
+      "address": "H.No. 68, Kumer Circle, Haldia-171768",
+      "tax_id": null
+    },
+    "line_items": [
+      {
+        "description": "Wireless keyboard and mouse set",
+        "quantity": "10",
+        "unit_price": "2025.99",
+        "amount": "20259.90"
+      },
+      {
+        "description": "On-site support engineer",
+        "quantity": "3.5",
+        "unit_price": "3567.86",
+        "amount": "12487.51"
+      },
+      {
+        "description": "Software licence, annual, per seat",
+        "quantity": "10",
+        "unit_price": "16646.00",
+        "amount": "166460.00"
+      },
+      {
+        "description": "Wireless keyboard and mouse set",
+        "quantity": "1",
+        "unit_price": "2295.96",
+        "amount": "2295.96"
+      },
+      {
+        "description": "Training workshop, half day",
+        "quantity": "1",
+        "unit_price": "10476.38",
+        "amount": "10476.38"
+      },
+      {
+        "description": "On-site support engineer",
+        "quantity": "16.5",
+        "unit_price": "1219.52",
+        "amount": "20122.08"
+      }
+    ],
+    "subtotal": "232101.83",
+    "discount": "23210.18",
+    "tax": "10444.58",
+    "total": "219336.23",
+    "payment_terms": "Net 7"
+  }
+}

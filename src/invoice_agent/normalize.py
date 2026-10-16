@@ -87,6 +87,7 @@ _TEXT_FORMATS = (
     "%b %d %Y", "%B %d %Y", "%d %b, %Y", "%d %B, %Y", "%d-%b-%y", "%d %b %y",
 )  # fmt: skip
 _ORDINAL = re.compile(r"(\d+)(st|nd|rd|th)\b", re.IGNORECASE)
+_SEPT = re.compile(r"\bSept\b\.?", re.IGNORECASE)  # 'Sept' -> 'Sep', but not inside 'September'
 
 DAYFIRST_CURRENCIES = {"INR", "EUR", "GBP", "AUD", "NZD", "SGD", "AED", "ZAR"}
 
@@ -119,7 +120,7 @@ def parse_date(text: str, *, dayfirst: bool | None = None) -> date:
         >>> parse_date("03/04/2026", dayfirst=True)
         datetime.date(2026, 4, 3)
     """
-    s = _ORDINAL.sub(r"\1", text.strip()).replace("Sept", "Sep")
+    s = _SEPT.sub("Sep", _ORDINAL.sub(r"\1", text.strip()))
     m = _NUMERIC_DATE.match(s)
     if m:
         a, b, c = m.groups()
@@ -201,6 +202,38 @@ def _clean(text: str | None) -> str | None:
         return None
     text = " ".join(text.split())
     return text or None
+
+
+def _abs(value: Decimal | None) -> Decimal | None:
+    """Make an amount positive, keeping None as None.
+
+    Used for discounts, which invoices print either as '500.00' or '-500.00' but which
+    always mean a reduction.
+
+    Args:
+        value: A parsed amount or None.
+
+    Returns:
+        The absolute value, or None.
+    """
+    return None if value is None else abs(value)
+
+
+def _sum_taxes(amounts: list[Decimal | None]) -> Decimal | None:
+    """Add up the parsed tax lines (e.g. CGST + SGST) into the invoice's total tax.
+
+    The LLM transcribes each tax line separately; adding them up is done here, in code,
+    so the LLM never does arithmetic.
+
+    Args:
+        amounts: Parsed tax-line amounts; None for lines that failed to parse.
+
+    Returns:
+        The sum of all parsed amounts, or None if there were no tax lines or none parsed
+        (a failed line is already reported as an issue by the caller).
+    """
+    parsed = [a for a in amounts if a is not None]
+    return sum(parsed, Decimal(0)) if parsed else None
 
 
 def _party(raw: RawParty) -> Party:
@@ -308,8 +341,8 @@ def to_invoice(raw: RawInvoice) -> tuple[Invoice, list[ValidationIssue]]:
         buyer=_party(raw.buyer),
         line_items=items,
         subtotal=amount("subtotal", raw.subtotal),
-        discount=amount("discount", raw.discount),
-        tax=amount("tax", raw.tax),
+        discount=_abs(amount("discount", raw.discount)),  # printed as '-500' or '500'
+        tax=_sum_taxes([amount(f"tax_lines[{i}]", t.amount) for i, t in enumerate(raw.tax_lines)]),
         total=amount("total", raw.total),
         payment_terms=_clean(raw.payment_terms),
     )

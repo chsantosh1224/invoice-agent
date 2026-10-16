@@ -1,0 +1,56 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><style>
+  @page { size: A4; margin: 18mm 16mm; }
+  body { font-family: Georgia, "Times New Roman", serif; font-size: 11pt; color: #222; }
+  .top { display: flex; justify-content: space-between; align-items: flex-start; }
+  .vendor h1 { font-size: 18pt; margin: 0 0 4px; }
+  .title { font-size: 24pt; letter-spacing: 2px; color: #444; text-align: right; }
+  table.meta td { padding: 1px 0 1px 12px; text-align: right; }
+  .billto { margin: 22px 0 14px; }
+  .billto b { display: block; font-size: 9pt; color: #777; text-transform: uppercase; }
+  table.items { width: 100%; border-collapse: collapse; margin-top: 8px; }
+  table.items th { border-bottom: 2px solid #222; text-align: left; padding: 6px 4px; }
+  table.items td { border-bottom: 1px solid #ccc; padding: 5px 4px; }
+  table.items thead { display: table-header-group; }
+  table.items tr { page-break-inside: avoid; }
+  .num { text-align: right; }
+  table.totals { margin-left: auto; margin-top: 12px; }
+  table.totals td { padding: 3px 0 3px 24px; text-align: right; }
+  .grand td { font-weight: bold; border-top: 2px solid #222; font-size: 12pt; }
+  .foot { margin-top: 28px; font-size: 9pt; color: #555; }
+</style></head><body>
+<div class="top">
+  <div class="vendor">
+    <h1>{{ vendor.name }}</h1>
+    {% for line in vendor.address_lines %}{{ line }}<br>{% endfor %}
+    {% if vendor.tax_id %}{{ vendor.tax_label }}: {{ vendor.tax_id }}<br>{% endif %}
+    {{ vendor.phone }}
+  </div>
+  <div>
+    <div class="title">{{ title }}</div>
+    <table class="meta">
+      <tr><td>Invoice No.</td><td>{{ invoice_number }}</td></tr>
+      <tr><td>Date</td><td>{{ invoice_date }}</td></tr>
+      {% if due_date %}<tr><td>Due Date</td><td>{{ due_date }}</td></tr>{% endif %}
+      {% if po_number %}<tr><td>PO Number</td><td>{{ po_number }}</td></tr>{% endif %}
+    </table>
+  </div>
+</div>
+<div class="billto"><b>Bill To</b>
+  {{ buyer.name }}<br>{% for line in buyer.address_lines %}{{ line }}<br>{% endfor %}
+  {% if buyer.tax_id %}{{ buyer.tax_label }}: {{ buyer.tax_id }}{% endif %}
+</div>
+<table class="items">
+  <thead><tr><th>#</th><th>Description</th><th class="num">Qty</th><th class="num">Unit Price</th><th class="num">Amount</th></tr></thead>
+  <tbody>{% for it in items %}
+    <tr><td>{{ it.no }}</td><td>{{ it.description }}</td><td class="num">{{ it.qty }}</td><td class="num">{{ it.unit_price }}</td><td class="num">{{ it.amount }}</td></tr>
+  {% endfor %}</tbody>
+</table>
+<table class="totals">
+  <tr><td>Subtotal</td><td>{{ subtotal }}</td></tr>
+  {% if discount %}<tr><td>Discount</td><td>-{{ discount }}</td></tr>{% endif %}
+  {% for t in taxes %}<tr><td>{{ t.label }}</td><td>{{ t.amount }}</td></tr>{% endfor %}
+  <tr class="grand"><td>Total ({{ currency }})</td><td>{{ total }}</td></tr>
+</table>
+<div class="foot">Terms: {{ payment_terms }} &middot; Please pay to {{ bank.name }}, A/C {{ bank.account }}</div>
+</body></html>

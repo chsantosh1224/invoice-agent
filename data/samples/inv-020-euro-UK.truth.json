@@ -1,0 +1,57 @@
+{
+  "id": "inv-020-euro-UK",
+  "file": "inv-020-euro-UK.pdf",
+  "kind": "digital",
+  "split": "test",
+  "template": "euro",
+  "country": "UK",
+  "pages": 1,
+  "edge_cases": [
+    "credit_note",
+    "freight_line",
+    "due_on_receipt"
+  ],
+  "invoice": {
+    "document_type": "credit_note",
+    "invoice_number": "CN-2026-8468",
+    "invoice_date": "2026-06-25",
+    "due_date": null,
+    "po_number": "PO-7002",
+    "currency": "GBP",
+    "vendor": {
+      "name": "Bailey, Wilson and Jones",
+      "address": "82 Francesca Station, South Alanburgh, E7S 9ZR",
+      "tax_id": "GB822816028"
+    },
+    "buyer": {
+      "name": "Ward-Murphy",
+      "address": "Flat 08x, Gavin Mills, East Eileenview",
+      "tax_id": "GB173996023"
+    },
+    "line_items": [
+      {
+        "description": "Corrugated shipping boxes",
+        "quantity": "1",
+        "unit_price": "0.54",
+        "amount": "0.54"
+      },
+      {
+        "description": "Ergonomic office chair",
+        "quantity": "5",
+        "unit_price": "220.13",
+        "amount": "1100.65"
+      },
+      {
+        "description": "Freight & handling",
+        "quantity": "1",
+        "unit_price": "21.80",
+        "amount": "21.80"
+      }
+    ],
+    "subtotal": "1122.99",
+    "discount": null,
+    "tax": "224.60",
+    "total": "1347.59",
+    "payment_terms": "Due on receipt"
+  }
+}

@@ -1,0 +1,63 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><style>
+  @page { size: A4; margin: 12mm; }
+  body { font-family: Arial, Helvetica, sans-serif; font-size: 9.5pt; color: #000; }
+  .frame { border: 1px solid #000; }
+  .head { text-align: center; border-bottom: 1px solid #000; padding: 6px; }
+  .head h1 { margin: 0; font-size: 15pt; }
+  .head .title { font-weight: bold; font-size: 11pt; margin-top: 4px; }
+  .grid { display: grid; grid-template-columns: 1fr 1fr; }
+  .cell { padding: 6px 8px; border-bottom: 1px solid #000; }
+  .cell + .cell { border-left: 1px solid #000; }
+  .lbl { font-weight: bold; }
+  table.items { width: 100%; border-collapse: collapse; }
+  table.items th, table.items td { border: 1px solid #000; padding: 4px; }
+  table.items th { background: #eee; font-size: 8.5pt; }
+  table.items thead { display: table-header-group; }
+  table.items tr { page-break-inside: avoid; }
+  .num { text-align: right; }
+  .sum { display: grid; grid-template-columns: 1.4fr 1fr; }
+  .sum table { width: 100%; border-collapse: collapse; }
+  .sum td { padding: 3px 8px; }
+  .sum .grand td { font-weight: bold; border-top: 1px solid #000; }
+  .sign { text-align: right; padding: 26px 8px 8px; }
+</style></head><body><div class="frame">
+<div class="head">
+  <h1>{{ vendor.name }}</h1>
+  {{ vendor.address_lines | join(", ") }}<br>
+  <span class="lbl">GSTIN:</span> {{ vendor.tax_id }} &nbsp; Ph: {{ vendor.phone }}
+  <div class="title">{{ title }}</div>
+</div>
+<div class="grid">
+  <div class="cell">
+    <span class="lbl">Invoice No:</span> {{ invoice_number }}<br>
+    <span class="lbl">Invoice Date:</span> {{ invoice_date }}<br>
+    {% if due_date %}<span class="lbl">Due Date:</span> {{ due_date }}<br>{% endif %}
+  </div>
+  <div class="cell">
+    {% if po_number %}<span class="lbl">Buyer's Order No:</span> {{ po_number }}<br>{% endif %}
+    <span class="lbl">Terms:</span> {{ payment_terms }}<br>
+    <span class="lbl">Currency:</span> {{ currency }}
+  </div>
+</div>
+<div class="cell"><span class="lbl">Details of Receiver (Billed To)</span><br>
+  {{ buyer.name }}<br>{{ buyer.address_lines | join(", ") }}<br>
+  {% if buyer.tax_id %}<span class="lbl">GSTIN:</span> {{ buyer.tax_id }}{% else %}<span class="lbl">GSTIN:</span> Unregistered{% endif %}
+</div>
+<table class="items">
+  <thead><tr><th>S.No</th><th>Description of Goods/Services</th><th>HSN/SAC</th><th>Qty</th><th>UOM</th><th>Rate</th><th>Taxable Value</th></tr></thead>
+  <tbody>{% for it in items %}
+    <tr><td>{{ it.no }}</td><td>{{ it.description }}</td><td>{{ it.hsn }}</td><td class="num">{{ it.qty }}</td><td>{{ it.unit }}</td><td class="num">{{ it.unit_price }}</td><td class="num">{{ it.amount }}</td></tr>
+  {% endfor %}</tbody>
+</table>
+<div class="sum">
+  <div class="cell">Bank: {{ bank.name }}<br>A/C No: {{ bank.account }}<br>Certified that the particulars given above are true and correct.</div>
+  <div class="cell"><table>
+    <tr><td>Total Taxable Value</td><td class="num">{{ subtotal }}</td></tr>
+    {% if discount %}<tr><td>Less: Discount</td><td class="num">{{ discount }}</td></tr>{% endif %}
+    {% for t in taxes %}<tr><td>{{ t.label }}</td><td class="num">{{ t.amount }}</td></tr>{% endfor %}
+    <tr class="grand"><td>Invoice Total</td><td class="num">{{ total }}</td></tr>
+  </table></div>
+</div>
+<div class="sign">For {{ vendor.name }}<br><br>Authorised Signatory</div>
+</div></body></html>

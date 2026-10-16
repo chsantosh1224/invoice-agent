@@ -1,0 +1,56 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><style>
+  @page { size: A4; margin: 15mm 20mm 25mm 25mm; }
+  body { font-family: Helvetica, Arial, sans-serif; font-size: 10pt; color: #222; }
+  .letterhead { text-align: right; font-size: 16pt; font-weight: bold; color: #333; }
+  .letterhead small { display: block; font-size: 8.5pt; font-weight: normal; color: #666; }
+  .layout { display: flex; justify-content: space-between; margin-top: 26px; }
+  .sender { font-size: 7.5pt; color: #666; text-decoration: underline; margin-bottom: 6px; }
+  .meta { font-size: 9.5pt; }
+  .meta td { padding: 1px 0 1px 10px; }
+  h2 { font-size: 13pt; margin: 30px 0 10px; }
+  table.items { width: 100%; border-collapse: collapse; }
+  table.items th { border-top: 1px solid #333; border-bottom: 1px solid #333; padding: 5px 4px; text-align: left; font-size: 9pt; }
+  table.items td { padding: 4px; border-bottom: 1px dotted #bbb; }
+  table.items thead { display: table-header-group; }
+  table.items tr { page-break-inside: avoid; }
+  .num { text-align: right; }
+  table.totals { margin: 10px 0 0 auto; }
+  table.totals td { padding: 2px 0 2px 30px; text-align: right; }
+  .grand td { font-weight: bold; border-top: 1px solid #333; border-bottom: 3px double #333; }
+  .footer { margin-top: 36px; font-size: 7.5pt; color: #555; border-top: 1px solid #ccc; padding-top: 6px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+</style></head><body>
+<div class="letterhead">{{ vendor.name }}<small>{{ vendor.address_lines | join(" · ") }}</small></div>
+<div class="layout">
+  <div>
+    <div class="sender">{{ vendor.name }} · {{ vendor.address_lines | join(" · ") }}</div>
+    {{ buyer.name }}<br>{% for line in buyer.address_lines %}{{ line }}<br>{% endfor %}
+    {% if buyer.tax_id %}{{ buyer.tax_label }} {{ buyer.tax_id }}{% endif %}
+  </div>
+  <table class="meta">
+    <tr><td>{{ "Credit note no." if title == "CREDIT NOTE" else "Invoice no." }}</td><td>{{ invoice_number }}</td></tr>
+    <tr><td>Invoice date</td><td>{{ invoice_date }}</td></tr>
+    {% if due_date %}<tr><td>Payment due</td><td>{{ due_date }}</td></tr>{% endif %}
+    {% if po_number %}<tr><td>Your order</td><td>{{ po_number }}</td></tr>{% endif %}
+  </table>
+</div>
+<h2>{{ title | title }} {{ invoice_number }}</h2>
+<table class="items">
+  <thead><tr><th>Pos.</th><th>Description</th><th class="num">Quantity</th><th>Unit</th><th class="num">Unit price</th><th class="num">Total</th></tr></thead>
+  <tbody>{% for it in items %}
+    <tr><td>{{ it.no }}</td><td>{{ it.description }}</td><td class="num">{{ it.qty }}</td><td>{{ it.unit }}</td><td class="num">{{ it.unit_price }}</td><td class="num">{{ it.amount }}</td></tr>
+  {% endfor %}</tbody>
+</table>
+<table class="totals">
+  <tr><td>Net amount</td><td>{{ subtotal }}</td></tr>
+  {% if discount %}<tr><td>Discount</td><td>-{{ discount }}</td></tr>{% endif %}
+  {% for t in taxes %}<tr><td>{{ t.label }}</td><td>{{ t.amount }}</td></tr>{% endfor %}
+  <tr class="grand"><td>Total amount</td><td>{{ total }}</td></tr>
+</table>
+<p>{{ payment_terms }}.</p>
+<div class="footer">
+  <div>{{ vendor.name }}<br>{{ vendor.address_lines | join(", ") }}</div>
+  <div>{{ vendor.tax_label }} {{ vendor.tax_id }}<br>{{ vendor.email }}</div>
+  <div>{{ bank.name }}<br>Account {{ bank.account }}</div>
+</div>
+</body></html>

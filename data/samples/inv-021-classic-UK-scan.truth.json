@@ -1,0 +1,61 @@
+{
+  "id": "inv-021-classic-UK-scan",
+  "file": "inv-021-classic-UK-scan.pdf",
+  "kind": "scanned",
+  "split": "test",
+  "template": "classic",
+  "country": "UK",
+  "pages": 1,
+  "edge_cases": [
+    "buyer_without_tax_id"
+  ],
+  "invoice": {
+    "document_type": "invoice",
+    "invoice_number": "INV008843",
+    "invoice_date": "2026-03-31",
+    "due_date": "2026-04-07",
+    "po_number": "4500049215",
+    "currency": "GBP",
+    "vendor": {
+      "name": "Baldwin Ltd",
+      "address": "82 Lydia Extension, North Garryborough, L3 7QP",
+      "tax_id": "GB020143033"
+    },
+    "buyer": {
+      "name": "James, Pratt and Dixon",
+      "address": "Flat 4, Williamson Crossing, East Marie",
+      "tax_id": null
+    },
+    "line_items": [
+      {
+        "description": "Laptop, 14in, 16GB RAM",
+        "quantity": "5",
+        "unit_price": "774.58",
+        "amount": "3872.90"
+      },
+      {
+        "description": "Laptop, 14in, 16GB RAM",
+        "quantity": "1",
+        "unit_price": "1107.81",
+        "amount": "1107.81"
+      },
+      {
+        "description": "Ergonomic office chair",
+        "quantity": "5",
+        "unit_price": "99.81",
+        "amount": "499.05"
+      },
+      {
+        "description": "Cat6 network cable, 305m",
+        "quantity": "1",
+        "unit_price": "75.66",
+        "amount": "75.66"
+      }
+    ],
+    "subtotal": "5555.42",
+    "discount": null,
+    "tax": "1111.08",
+    "total": "6666.50",
+    "payment_terms": "Net 7"
+  }
+}
