@@ -309,5 +309,43 @@ def ingest_eval(
     typer.echo(f"report: {report}")
 
 
+@app.command()
+def bakeoff(
+    n_docs: Annotated[int, typer.Option(help="Dev invoices to use")] = 10,
+    only: Annotated[
+        str | None, typer.Option(help="Run only configs whose name contains this text")
+    ] = None,
+    pause: Annotated[float, typer.Option(help="Seconds between live calls")] = 3.0,
+    retries: Annotated[int, typer.Option(help="HTTP retries per call (429s)")] = 2,
+    data: Annotated[Path, typer.Option(help="Dataset folder")] = Path("data/samples"),
+    report: Annotated[Path, typer.Option(help="Report path")] = Path("reports/model_selection.md"),
+) -> None:
+    """Compare models and inputs on dev invoices and write reports/model_selection.md.
+
+    Free models are rate-limited: failed calls are recorded, successful ones cached, so
+    simply re-run the command later to fill in the gaps.
+    Usage: `invoice-agent bakeoff` or `invoice-agent bakeoff --only gemma --n-docs 3`.
+
+    Args:
+        n_docs: Number of dev invoices (varied across templates and kinds).
+        only: Substring filter on config names, e.g. 'nemotron'.
+        pause: Seconds to wait after each live API call.
+        retries: HTTP retries per call before recording a failure.
+        data: Dataset folder.
+        report: Where to write the Markdown report.
+
+    Returns:
+        None. Prints the report.
+    """
+    from invoice_agent.evals.bakeoff import DEFAULT_CONFIGS, run_bakeoff, write_report
+    from invoice_agent.log import configure_logging
+
+    settings = get_settings().model_copy(update={"llm_max_retries": retries})
+    configure_logging(settings.log_level, json=False)
+    configs = [c for c in DEFAULT_CONFIGS if only is None or only in c.name]
+    records = run_bakeoff(configs, data, settings, n_docs=n_docs, pause_s=pause)
+    typer.echo(write_report(records, report))
+
+
 if __name__ == "__main__":
     app()

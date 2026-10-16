@@ -22,7 +22,9 @@ class Settings(BaseSettings):
 
     # Per-role models (free tier by default). The extractor must accept images; the agent
     # must call tools well; the judge should be a different family from the extractor.
-    extractor_model: str = "google/gemma-4-31b-it:free"
+    # Chosen by the Day 3 bake-off (reports/model_selection.md, docs/decisions.md).
+    extractor_model: str = "dots-studio/dots-3-note-preview:free"
+    extractor_fallback_model: str = "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free"
     agent_model: str = "nvidia/nemotron-3-super-120b-a12b:free"
     judge_model: str = "nvidia/nemotron-3-ultra-550b-a55b:free"
 
