@@ -32,9 +32,18 @@ Every error made by the top configs was the same: on GST invoices printing `GSTI
 
 **Fix (Day 4):** `normalize.py` treats a tax ID with no digits as null, and the validation gate checks the GSTIN checksum.
 
-## D4 (Day 3, open): The agent model needs re-evaluation
+## D4 (Day 3, resolved Day 5): Agent model = Nemotron 3 Super (free)
 
-Text-only Nemotron Super reads invoices poorly (68.7%). It mostly returns null for totals, currency and terms on the totals block or on page 2. Day 5 will compare vision-capable tool-calling models (nemotron-omni, dots-3) against it on tool-calling reliability before choosing `AGENT_MODEL`.
+The worry from the bake-off was that text-only Nemotron Super *transcribes* invoices poorly (68.7%). But the agent's job is different: it starts from the vision model's draft plus the gate's specific problems, and has to investigate with tools. Tested on the two invoices the fast path got wrong in calibration:
+
+| Invoice (fast-path error) | Nemotron Super | Nemotron Omni |
+|---|---|---|
+| inv-034-minimal-US (currency missing) | fixed in 2 turns, 20 s, accepted | fixed in 2 turns, 73 s, accepted |
+| inv-036-dense-IN-scan (GSTIN `0` read for `O`, checksum fails) | fixed in 8 turns, 300 s, accepted; corrected GSTIN equals the truth | provider capacity error (free tier); fast-path verdict kept |
+
+**Decision:** `AGENT_MODEL=nvidia/nemotron-3-super-120b-a12b:free`. It is reliable at tool calling, faster, and was available when Omni was not. Note that it sends `notes` as a string rather than a list; the graph now accepts both.
+
+**Risk:** this is two invoices. Day 6 measures the router end to end on the held-out test split.
 
 ## D5 (Day 4): Validation gate design and threshold 0.8
 

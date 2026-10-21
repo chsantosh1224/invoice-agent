@@ -352,8 +352,10 @@ def extract(
     file: Annotated[Path, typer.Argument(help="PDF or image invoice", exists=True)],
     as_json: Annotated[bool, typer.Option("--json", help="Print the full result as JSON")] = False,
     no_cache: Annotated[bool, typer.Option("--no-cache", help="Always call the API")] = False,
+    mode: Annotated[str, typer.Option(help="'router' (fast path + agent) or 'fast'")] = "router",
+    agent_model: Annotated[str | None, typer.Option(help="Override AGENT_MODEL")] = None,
 ) -> None:
-    """Extract one invoice with the fast path: ingest, LLM, validation gate.
+    """Extract one invoice: fast path, then the agent if the validation gate fails.
 
     Usage: `invoice-agent extract data/samples/inv-002-gst_india-IN-scan.pdf`.
 
@@ -361,6 +363,8 @@ def extract(
         file: The invoice to process.
         as_json: Print the complete ExtractionResult (invoice, issues, confidences) as JSON.
         no_cache: Skip the response cache and call the model again.
+        mode: 'router' escalates gate failures to the agent; 'fast' stops after the gate.
+        agent_model: Use a different agent model for this run (e.g. to compare models).
 
     Returns:
         None. Prints the verdict (accepted / needs_human_review), score, model, issues and
@@ -369,15 +373,17 @@ def extract(
     Raises:
         typer.Exit: With code 1 if the invoice needs human review (useful in scripts).
     """
-    from invoice_agent.extraction.fast_path import extract_document
+    from invoice_agent.extraction.router import process_document
     from invoice_agent.llm_cache import ResponseCache
     from invoice_agent.log import configure_logging
 
     settings = get_settings()
+    if agent_model:
+        settings = settings.model_copy(update={"agent_model": agent_model})
     configure_logging(settings.log_level, json=False)
     cache = None if no_cache else ResponseCache(settings.cache_dir / "llm.sqlite")
     try:
-        result, seconds = extract_document(file, settings, cache=cache)
+        result, seconds = process_document(file, settings, mode=mode, cache=cache)
     finally:
         if cache is not None:
             cache.close()
@@ -386,8 +392,10 @@ def extract(
     else:
         typer.echo(
             f"\n{result.status.upper()}  score={result.score:.2f}  model={result.model}  "
-            f"{seconds:.1f}s  run_id={result.run_id}"
+            f"route={result.route}  {seconds:.1f}s  run_id={result.run_id}"
         )
+        for note in result.notes:
+            typer.echo(f"  [agent note] {note}")
         for issue in result.issues:
             typer.echo(f"  [{issue.severity}] {issue.field}: {issue.code} - {issue.message}")
         typer.echo(result.invoice.model_dump_json(indent=2, exclude_none=True))
