@@ -372,17 +372,6 @@ def build_invoice(
     # Printable view: every value as a string, in this invoice's regional style
     style, symbol, date_fmt = p.number_style, rng.choice(p.symbols), rng.choice(p.date_formats)
 
-    def money(v: Decimal) -> str:
-        """Format a total-style amount with the currency symbol.
-
-        Args:
-            v: The amount.
-
-        Returns:
-            The amount as printed on this invoice, e.g. '₹ 12,862.00'.
-        """
-        return format_money(v, style, symbol, suffix=p.money_suffix)
-
     view: dict[str, Any] = {
         "title": "CREDIT NOTE" if credit else ("TAX INVOICE" if country == "IN" else "INVOICE"),
         "invoice_number": invoice_number,
@@ -407,10 +396,17 @@ def build_invoice(
             }
             for i, (desc, qty, price, amount, unit, hsn) in enumerate(rows)
         ],
-        "subtotal": money(subtotal),
-        "discount": money(discount) if discount is not None else None,
-        "taxes": [{"label": label, "amount": money(amt)} for label, amt in tax_lines],
-        "total": money(total),
+        "subtotal": format_money(subtotal, style, symbol, suffix=p.money_suffix),
+        "discount": (
+            format_money(discount, style, symbol, suffix=p.money_suffix)
+            if discount is not None
+            else None
+        ),
+        "taxes": [
+            {"label": label, "amount": format_money(amt, style, symbol, suffix=p.money_suffix)}
+            for label, amt in tax_lines
+        ],
+        "total": format_money(total, style, symbol, suffix=p.money_suffix),
         "bank": {
             "name": fake.company() + " Bank",
             "account": "".join(rng.choice("0123456789") for _ in range(12)),

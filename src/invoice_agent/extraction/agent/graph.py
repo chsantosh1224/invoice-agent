@@ -59,48 +59,72 @@ class AgentState(TypedDict, total=False):
     result: ExtractionResult
 
 
-def build_extraction_agent(
-    model: str,
-    settings: Settings,
-    *,
-    llm_factory: Callable[[str, Settings], BaseChatModel],
-) -> Any:
-    """Compile the extraction agent for one model.
+class ExtractionAgent:
+    """The extraction agent: configuration in __init__, one method per graph node.
 
-    Args:
-        model: OpenRouter slug of the agent model (must support tool calling).
-        settings: App settings (step limit, gate threshold).
-        llm_factory: Creates the chat model; tests pass a scripted fake.
+    LangGraph calls every node with only the state, so anything else a node needs (the
+    model, step limit, gate threshold) is stored on `self` and reached through the
+    bound method (`self.decide` remembers its `self`).
 
-    Returns:
-        A compiled graph. Invoke with {'messages': [...], 'doc_id': ..., 'run_id': ...,
-        'steps': 0}; the final state's 'result' holds the ExtractionResult.
+    Usage:
+        graph = ExtractionAgent(model, settings, llm_factory=get_chat_model).build()
+        final_state = graph.invoke({"messages": [...], "doc_id": ..., "steps": 0})
     """
-    max_steps = settings.agent_max_steps
-    llm = llm_factory(model, settings)
-    free = llm.bind_tools(ALL_TOOLS, parallel_tool_calls=False)
-    forced = llm.bind_tools(ALL_TOOLS, parallel_tool_calls=False, tool_choice="submit_invoice")
 
-    def decide(state: AgentState) -> dict[str, Any]:
-        """One model turn: pick the next tool (forced to submit on the last turn)."""
+    def __init__(
+        self,
+        model: str,
+        settings: Settings,
+        *,
+        llm_factory: Callable[[str, Settings], BaseChatModel],
+    ) -> None:
+        """Prepare the model clients and settings the nodes will use.
+
+        Args:
+            model: OpenRouter slug of the agent model (must support tool calling).
+            settings: App settings (step limit, gate threshold).
+            llm_factory: Creates the chat model; tests pass a scripted fake.
+        """
+        self.model = model
+        self.settings = settings
+        self.max_steps = settings.agent_max_steps
+        llm = llm_factory(model, settings)
+        # Normal turns: the model may call any tool, one per turn.
+        self.llm_free = llm.bind_tools(ALL_TOOLS, parallel_tool_calls=False)
+        # Last turn: the model must call submit_invoice.
+        self.llm_forced = llm.bind_tools(
+            ALL_TOOLS, parallel_tool_calls=False, tool_choice="submit_invoice"
+        )
+
+    # ---------- nodes: each receives the state and returns the keys it changes ----------
+
+    def decide(self, state: AgentState) -> dict[str, Any]:
+        """One model turn: pick the next tool (forced to submit on the last turn).
+
+        Args:
+            state: Current agent state; the whole conversation is sent to the model.
+
+        Returns:
+            The model's reply (appended to messages) and the updated step count.
+        """
         steps = state.get("steps", 0) + 1
-        last = steps >= max_steps
+        last = steps >= self.max_steps
         messages: list[AnyMessage] = [SystemMessage(AGENT_SYSTEM_PROMPT), *state["messages"]]
         if last:
             messages.append(HumanMessage(LAST_STEP_NUDGE))  # ephemeral: not stored in state
         try:
-            reply = (forced if last else free).invoke(messages)
+            reply = (self.llm_forced if last else self.llm_free).invoke(messages)
         except Exception as e:  # some providers reject forced tool_choice; retry unforced
             if not last:
                 raise
             log.warning("agent.forced_choice_failed", error=str(e)[:120])
-            reply = free.invoke(messages)
+            reply = self.llm_free.invoke(messages)
         assert isinstance(reply, AIMessage)
         log.info(
             "agent.step",
             run_id=state.get("run_id"),
             step=steps,
-            model=model,
+            model=self.model,
             tools=[c["name"] for c in reply.tool_calls],
         )
         update: dict[str, Any] = {"messages": [reply], "steps": steps}
@@ -108,22 +132,15 @@ def build_extraction_agent(
             update["messages"].append(HumanMessage(NO_TOOL_NUDGE))
         return update
 
-    def route(state: AgentState) -> Literal["tools", "check_submit", "decide", "finalize"]:
-        """Send tool calls to the tools, submissions to validation, and enforce the limit.
+    def check_submit(self, state: AgentState) -> dict[str, Any]:
+        """Parse the submitted draft; an invalid one goes back to the model with the error.
 
-        Once the step budget is spent, anything but a submission ends the run - even if
-        the model ignored the forced submit and asked for another tool.
+        Args:
+            state: Agent state whose last message is a submit_invoice call.
+
+        Returns:
+            On success the draft and notes; on failure a tool message with the error.
         """
-        last = next(m for m in reversed(state["messages"]) if isinstance(m, AIMessage))
-        out_of_steps = state.get("steps", 0) >= max_steps
-        if last.tool_calls and last.tool_calls[0]["name"] == "submit_invoice":
-            return "check_submit"
-        if out_of_steps:
-            return "finalize"
-        return "tools" if last.tool_calls else "decide"
-
-    def check_submit(state: AgentState) -> dict[str, Any]:
-        """Parse the submitted draft; an invalid one goes back to the model with the error."""
         call = state["messages"][-1].tool_calls[0]  # type: ignore[union-attr]
         try:
             draft = RawInvoice.model_validate(call["args"].get("draft"))
@@ -140,18 +157,19 @@ def build_extraction_agent(
             "messages": [ToolMessage("submitted", tool_call_id=call["id"])],
         }
 
-    def after_submit(state: AgentState) -> Literal["finalize", "decide"]:
-        """Finish once a valid draft is in; otherwise let the model try again if it can."""
-        if state.get("submitted") is not None or state.get("steps", 0) >= max_steps:
-            return "finalize"
-        return "decide"
+    def finalize(self, state: AgentState) -> dict[str, Any]:
+        """Re-run the validation gate on the submission and package the result.
 
-    def finalize(state: AgentState) -> dict[str, Any]:
-        """Re-run the validation gate on the submission and package the result."""
+        Args:
+            state: Final agent state (with or without a submission).
+
+        Returns:
+            {'result': ExtractionResult}, accepted only if the gate passes.
+        """
         draft = state.get("submitted")
         common = {
             "route": "agent",
-            "model": model,
+            "model": self.model,
             "prompt_version": AGENT_PROMPT_VERSION,
             "run_id": state.get("run_id", ""),
             "notes": state.get("notes", []),
@@ -160,7 +178,7 @@ def build_extraction_agent(
             issue = ValidationIssue(
                 field="*",
                 code="agent.no_submission",
-                message=f"no valid submission within {max_steps} steps",
+                message=f"no valid submission within {self.max_steps} steps",
             )
             result = ExtractionResult(
                 status="needs_human_review", invoice=Invoice(), issues=[issue], **common
@@ -171,7 +189,7 @@ def build_extraction_agent(
                 invoice,
                 workspace.get(state["doc_id"]).doc,
                 normalize_issues=issues,
-                threshold=settings.gate_threshold,
+                threshold=self.settings.gate_threshold,
             )
             result = ExtractionResult(
                 status="accepted" if gate.passed else "needs_human_review",
@@ -191,14 +209,81 @@ def build_extraction_agent(
         )
         return {"result": result}
 
-    graph = StateGraph(AgentState)
-    graph.add_node("decide", decide)
-    graph.add_node("tools", ToolNode(READ_ONLY_TOOLS))
-    graph.add_node("check_submit", check_submit)
-    graph.add_node("finalize", finalize)
-    graph.add_edge(START, "decide")
-    graph.add_conditional_edges("decide", route, ["tools", "check_submit", "decide", "finalize"])
-    graph.add_edge("tools", "decide")
-    graph.add_conditional_edges("check_submit", after_submit, ["finalize", "decide"])
-    graph.add_edge("finalize", END)
-    return graph.compile()
+    # ---------- routing: decide which node runs next (they change nothing) ----------
+
+    def route_after_decide(
+        self, state: AgentState
+    ) -> Literal["tools", "check_submit", "decide", "finalize"]:
+        """Send tool calls to the tools, submissions to validation, and enforce the limit.
+
+        Once the step budget is spent, anything but a submission ends the run, even if
+        the model ignored the forced submit and asked for another tool.
+
+        Args:
+            state: Agent state after a `decide` turn.
+
+        Returns:
+            The name of the next node.
+        """
+        last = next(m for m in reversed(state["messages"]) if isinstance(m, AIMessage))
+        if last.tool_calls and last.tool_calls[0]["name"] == "submit_invoice":
+            return "check_submit"
+        if state.get("steps", 0) >= self.max_steps:
+            return "finalize"
+        return "tools" if last.tool_calls else "decide"
+
+    def route_after_submit(self, state: AgentState) -> Literal["finalize", "decide"]:
+        """Finish once a valid draft is in; otherwise let the model try again if it can.
+
+        Args:
+            state: Agent state after `check_submit`.
+
+        Returns:
+            'finalize' or 'decide'.
+        """
+        if state.get("submitted") is not None or state.get("steps", 0) >= self.max_steps:
+            return "finalize"
+        return "decide"
+
+    # ---------- wiring ----------
+
+    def build(self) -> Any:
+        """Wire the nodes into a graph and compile it.
+
+        Returns:
+            A compiled LangGraph runnable. The loop is the edge tools -> decide.
+        """
+        graph = StateGraph(AgentState)
+        graph.add_node("decide", self.decide)
+        graph.add_node("tools", ToolNode(READ_ONLY_TOOLS))
+        graph.add_node("check_submit", self.check_submit)
+        graph.add_node("finalize", self.finalize)
+
+        graph.add_edge(START, "decide")
+        graph.add_conditional_edges(
+            "decide", self.route_after_decide, ["tools", "check_submit", "decide", "finalize"]
+        )
+        graph.add_edge("tools", "decide")  # the loop: every tool result goes back to the LLM
+        graph.add_conditional_edges("check_submit", self.route_after_submit, ["finalize", "decide"])
+        graph.add_edge("finalize", END)
+        return graph.compile()
+
+
+def build_extraction_agent(
+    model: str,
+    settings: Settings,
+    *,
+    llm_factory: Callable[[str, Settings], BaseChatModel],
+) -> Any:
+    """Compile the extraction agent for one model (shortcut for ExtractionAgent(...).build()).
+
+    Args:
+        model: OpenRouter slug of the agent model (must support tool calling).
+        settings: App settings (step limit, gate threshold).
+        llm_factory: Creates the chat model; tests pass a scripted fake.
+
+    Returns:
+        A compiled graph. Invoke with {'messages': [...], 'doc_id': ..., 'run_id': ...,
+        'steps': 0}; the final state's 'result' holds the ExtractionResult.
+    """
+    return ExtractionAgent(model, settings, llm_factory=llm_factory).build()

@@ -270,6 +270,77 @@ def _party(raw: RawParty) -> Party:
     return Party(name=_clean(raw.name), address=_clean(raw.address), tax_id=_tax_id(raw.tax_id))
 
 
+def _amount_field(field: str, text: str | None, issues: list[ValidationIssue]) -> Decimal | None:
+    """Parse one amount field, recording an issue instead of raising.
+
+    Args:
+        field: Dotted field path used in the issue, e.g. 'line_items[0].amount'.
+        text: The printed value, or None if the field was absent.
+        issues: List the issue is appended to when the value cannot be parsed.
+
+    Returns:
+        The Decimal value, or None if the field was absent or unparseable.
+    """
+    cleaned = _clean(text)
+    if cleaned is None:
+        return None
+    try:
+        return parse_amount(cleaned)
+    except ValueError as e:
+        issues.append(ValidationIssue(field=field, code="normalize.amount", message=str(e)))
+        return None
+
+
+def _date_field(
+    field: str, text: str | None, dayfirst: bool | None, issues: list[ValidationIssue]
+) -> date | None:
+    """Parse one date field, recording an issue instead of raising.
+
+    Args:
+        field: Field name used in the issue, e.g. 'invoice_date'.
+        text: The printed date, or None if the field was absent.
+        dayfirst: How to read ambiguous numeric dates (from the invoice's currency).
+        issues: List the issue is appended to when the date is ambiguous or unrecognized.
+
+    Returns:
+        The parsed date, or None if absent, ambiguous or unrecognized.
+    """
+    cleaned = _clean(text)
+    if cleaned is None:
+        return None
+    try:
+        return parse_date(cleaned, dayfirst=dayfirst)
+    except AmbiguousDateError as e:
+        issues.append(ValidationIssue(field=field, code="normalize.date_ambiguous", message=str(e)))
+    except ValueError as e:
+        issues.append(ValidationIssue(field=field, code="normalize.date", message=str(e)))
+    return None
+
+
+def _currency_field(text: str | None, issues: list[ValidationIssue]) -> str | None:
+    """Parse the currency field, recording a warning instead of raising.
+
+    Args:
+        text: The printed currency (symbol or code), or None.
+        issues: List the warning is appended to when the currency is unknown.
+
+    Returns:
+        The ISO 4217 code, or None if absent or unknown.
+    """
+    cleaned = _clean(text)
+    if cleaned is None:
+        return None
+    try:
+        return parse_currency(cleaned)
+    except ValueError as e:
+        issues.append(
+            ValidationIssue(
+                field="currency", code="normalize.currency", message=str(e), severity="warning"
+            )
+        )
+        return None
+
+
 def to_invoice(raw: RawInvoice) -> tuple[Invoice, list[ValidationIssue]]:
     """Normalize a full LLM transcription into a typed Invoice.
 
@@ -287,85 +358,36 @@ def to_invoice(raw: RawInvoice) -> tuple[Invoice, list[ValidationIssue]]:
         - the list of normalization issues found (empty when everything parsed).
     """
     issues: list[ValidationIssue] = []
-
-    def amount(field: str, text: str | None) -> Decimal | None:
-        """Parse one amount, recording an issue instead of raising.
-
-        Args:
-            field: Dotted field path used in the issue, e.g. 'line_items[0].amount'.
-            text: The printed value, or None if the field was absent.
-
-        Returns:
-            The Decimal value, or None if the field was absent or unparseable.
-        """
-        if not _clean(text):
-            return None
-        try:
-            return parse_amount(text)  # type: ignore[arg-type]
-        except ValueError as e:
-            issues.append(ValidationIssue(field=field, code="normalize.amount", message=str(e)))
-            return None
-
-    currency: str | None = None
-    if _clean(raw.currency):
-        try:
-            currency = parse_currency(raw.currency)  # type: ignore[arg-type]
-        except ValueError as e:
-            issues.append(
-                ValidationIssue(
-                    field="currency", code="normalize.currency", message=str(e), severity="warning"
-                )
-            )
-
+    currency = _currency_field(raw.currency, issues)
     dayfirst = None if currency is None else currency in DAYFIRST_CURRENCIES
-
-    def when(field: str, text: str | None) -> date | None:
-        """Parse one date using the invoice's currency as the day/month hint.
-
-        Args:
-            field: Field name used in the issue, e.g. 'invoice_date'.
-            text: The printed date, or None if the field was absent.
-
-        Returns:
-            The parsed date, or None if absent, ambiguous or unrecognized (the last two
-            are recorded as issues).
-        """
-        if not _clean(text):
-            return None
-        try:
-            return parse_date(text, dayfirst=dayfirst)  # type: ignore[arg-type]
-        except AmbiguousDateError as e:
-            issues.append(
-                ValidationIssue(field=field, code="normalize.date_ambiguous", message=str(e))
-            )
-        except ValueError as e:
-            issues.append(ValidationIssue(field=field, code="normalize.date", message=str(e)))
-        return None
 
     items = [
         LineItem(
             description=_clean(li.description),
-            quantity=amount(f"line_items[{i}].quantity", li.quantity),
-            unit_price=amount(f"line_items[{i}].unit_price", li.unit_price),
-            amount=amount(f"line_items[{i}].amount", li.amount),
+            quantity=_amount_field(f"line_items[{i}].quantity", li.quantity, issues),
+            unit_price=_amount_field(f"line_items[{i}].unit_price", li.unit_price, issues),
+            amount=_amount_field(f"line_items[{i}].amount", li.amount, issues),
         )
         for i, li in enumerate(raw.line_items)
+    ]
+    tax_amounts = [
+        _amount_field(f"tax_lines[{i}]", t.amount, issues) for i, t in enumerate(raw.tax_lines)
     ]
 
     invoice = Invoice(
         document_type=raw.document_type,
         invoice_number=_clean(raw.invoice_number),
-        invoice_date=when("invoice_date", raw.invoice_date),
-        due_date=when("due_date", raw.due_date),
+        invoice_date=_date_field("invoice_date", raw.invoice_date, dayfirst, issues),
+        due_date=_date_field("due_date", raw.due_date, dayfirst, issues),
         po_number=_clean(raw.po_number),
         currency=currency,
         vendor=_party(raw.vendor),
         buyer=_party(raw.buyer),
         line_items=items,
-        subtotal=amount("subtotal", raw.subtotal),
-        discount=_discount(amount("discount", raw.discount)),
-        tax=_sum_taxes([amount(f"tax_lines[{i}]", t.amount) for i, t in enumerate(raw.tax_lines)]),
-        total=amount("total", raw.total),
+        subtotal=_amount_field("subtotal", raw.subtotal, issues),
+        discount=_discount(_amount_field("discount", raw.discount, issues)),
+        tax=_sum_taxes(tax_amounts),
+        total=_amount_field("total", raw.total, issues),
         payment_terms=_clean(raw.payment_terms),
     )
     return invoice, issues

@@ -9,7 +9,7 @@ from datetime import date
 from decimal import Decimal
 
 from invoice_agent.normalize import parse_amount
-from invoice_agent.synth.formatting import DATE_FORMATS
+from invoice_agent.synth.formatting import DATE_FORMATS, format_date
 
 _NUMBER = re.compile(r"\d[\d.,]*\d|\d")
 _SPACES = re.compile(r"\s+")
@@ -55,4 +55,4 @@ def date_present(value: date, compact_text: str) -> bool:
     Returns:
         True if any format of the date (e.g. '03/04/2026', '3 Apr 2026') is present.
     """
-    return any(compact(fmt(value)) in compact_text for fmt in DATE_FORMATS.values())
+    return any(compact(format_date(value, fmt)) in compact_text for fmt in DATE_FORMATS)

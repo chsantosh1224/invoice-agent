@@ -48,6 +48,38 @@ class DocScore:
         return sum(self.found.values()) / len(self.found) if self.found else 1.0
 
 
+def _check_amount(score: DocScore, nums: set[Decimal], name: str, value: str | None) -> None:
+    """Record whether an amount is present in the text (skipped when the truth is null).
+
+    Args:
+        score: The score being filled in.
+        nums: Every number found in the engine's text.
+        name: Field path, e.g. 'total' or 'line_items[0].amount'.
+        value: The truth value as a string, or None.
+
+    Returns:
+        None. Sets score.found[name].
+    """
+    if value is not None:
+        score.found[name] = abs(Decimal(value)) in nums
+
+
+def _check_text(score: DocScore, flat: str, name: str, value: str | None) -> None:
+    """Record whether a string value is present in the text (spacing/case-insensitive).
+
+    Args:
+        score: The score being filled in.
+        flat: The engine's text, compacted (no whitespace, lowercase).
+        name: Field path, e.g. 'vendor.name'.
+        value: The truth value, or None/empty to skip.
+
+    Returns:
+        None. Sets score.found[name].
+    """
+    if value:
+        score.found[name] = _compact(value) in flat
+
+
 def score_document(doc_id: str, text: str, truth: dict[str, Any]) -> DocScore:
     """Score one engine's text for one document against its truth invoice.
 
@@ -63,31 +95,21 @@ def score_document(doc_id: str, text: str, truth: dict[str, Any]) -> DocScore:
     flat = _compact(text)
     nums = numbers_in(text)
 
-    def check_amount(name: str, value: str | None) -> None:
-        """Record whether an amount is present (skipped when the truth is null)."""
-        if value is not None:
-            score.found[name] = abs(Decimal(value)) in nums
-
-    def check_text(name: str, value: str | None) -> None:
-        """Record whether a string value is present (spacing/case-insensitive)."""
-        if value:
-            score.found[name] = _compact(value) in flat
-
     for name in ("invoice_number", "po_number"):
-        check_text(name, truth[name])
+        _check_text(score, flat, name, truth[name])
     for party in ("vendor", "buyer"):
-        check_text(f"{party}.name", truth[party]["name"])
-        check_text(f"{party}.tax_id", truth[party]["tax_id"])
+        _check_text(score, flat, f"{party}.name", truth[party]["name"])
+        _check_text(score, flat, f"{party}.tax_id", truth[party]["tax_id"])
     for name in ("invoice_date", "due_date"):
         if truth[name]:
             score.found[name] = _date_present(date.fromisoformat(truth[name]), flat)
     for name in ("subtotal", "discount", "tax", "total"):
         if name == "tax" and truth["tax"] is not None:
             continue  # tax is printed as separate CGST/SGST lines; the sum may not appear
-        check_amount(name, truth[name])
+        _check_amount(score, nums, name, truth[name])
     for i, item in enumerate(truth["line_items"]):
-        check_amount(f"line_items[{i}].amount", item["amount"])
-        check_amount(f"line_items[{i}].unit_price", item["unit_price"])
+        _check_amount(score, nums, f"line_items[{i}].amount", item["amount"])
+        _check_amount(score, nums, f"line_items[{i}].unit_price", item["unit_price"])
 
     lines = [numbers_in(line) for line in text.splitlines()]
     for item in truth["line_items"]:

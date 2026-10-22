@@ -2,7 +2,7 @@
 
 import json
 import time
-from collections import defaultdict
+from collections import Counter
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Protocol
@@ -169,14 +169,14 @@ def write_report(runs: list[Run], peak_rss_mb: dict[str, float], path: Path, spl
             cells += [f"{s['recall']:.1%}", f"{s['rows']:.1%}"]
         lines.append(f"| {template} | " + " | ".join(cells) + " |")
 
-    misses: dict[str, dict[str, int]] = defaultdict(lambda: defaultdict(int))
+    misses: dict[str, Counter[str]] = {e: Counter() for e in engines}
     for r in runs:
         for field_name, ok in r.score.found.items():
             if not ok:
                 misses[r.engine][field_name.split("[")[0]] += 1
     lines += ["", "## Most-missed fields", ""]
     for e in engines:
-        top = sorted(misses[e].items(), key=lambda kv: -kv[1])[:6]
+        top = misses[e].most_common(6)
         lines.append(f"- **{e}**: " + (", ".join(f"{k} ({v})" for k, v in top) or "none"))
 
     text = "\n".join(lines) + "\n"

@@ -19,8 +19,8 @@ from decimal import Decimal
 
 from invoice_agent.ingest.document import Document, Span
 from invoice_agent.ingest.layout import group_rows
-from invoice_agent.schemas import Invoice, ValidationIssue
-from invoice_agent.synth.formatting import DATE_FORMATS
+from invoice_agent.schemas import Invoice, Severity, ValidationIssue
+from invoice_agent.synth.formatting import DATE_FORMATS, format_date
 from invoice_agent.tax_ids import is_valid_gstin
 from invoice_agent.textmatch import compact, date_present, numbers_in
 
@@ -85,9 +85,18 @@ def _flat_fields(inv: Invoice) -> dict[str, object]:
     """
     flat: dict[str, object] = {
         k: getattr(inv, k)
-        for k in ("invoice_number", "invoice_date", "due_date", "po_number", "currency",
-                  "subtotal", "discount", "tax", "total")
-    }  # fmt: skip
+        for k in (
+            "invoice_number",
+            "invoice_date",
+            "due_date",
+            "po_number",
+            "currency",
+            "subtotal",
+            "discount",
+            "tax",
+            "total",
+        )
+    }
     for party in ("vendor", "buyer"):
         for k in ("name", "tax_id"):
             flat[f"{party}.{k}"] = getattr(getattr(inv, party), k)
@@ -114,8 +123,14 @@ def phrases(spans: list[Span]) -> list[Span]:
         current = row[0]
         for s in row[1:]:
             if s.x0 - current.x1 < 1.2 * max(current.height, s.height):
-                current = Span(f"{current.text} {s.text}", current.x0, min(current.y0, s.y0),
-                               s.x1, max(current.y1, s.y1), min(current.conf, s.conf))  # fmt: skip
+                current = Span(
+                    f"{current.text} {s.text}",
+                    current.x0,
+                    min(current.y0, s.y0),
+                    s.x1,
+                    max(current.y1, s.y1),
+                    min(current.conf, s.conf),
+                )
             else:
                 merged.append(current)
                 current = s
@@ -223,8 +238,8 @@ def _strip_value(name: str, value: object, text: str) -> str:
         The phrase without the value, e.g. 'Due Date:'.
     """
     if name.endswith("date"):
-        for fmt in DATE_FORMATS.values():
-            text = text.replace(fmt(value), "")  # type: ignore[arg-type]
+        for fmt in DATE_FORMATS:
+            text = text.replace(format_date(value, fmt), "")  # type: ignore[arg-type]
         return text
     return re.sub(r"[\d.,]+", "", text) if isinstance(value, Decimal) else text
 
@@ -265,6 +280,42 @@ def _only_under_buyer_label(name: str, doc: Document) -> bool:
 # ---------- the gate ----------
 
 
+class _Findings:
+    """Collects the gate's issues and per-field confidence while the checks run."""
+
+    def __init__(self, issues: list[ValidationIssue], conf: dict[str, float]) -> None:
+        """Start from issues already known (from normalization) and initial confidences.
+
+        Args:
+            issues: Issues found so far.
+            conf: Field path -> confidence (1.0 for every field that has a value).
+        """
+        self.issues = issues
+        self.conf = conf
+
+    def flag(
+        self, fld: str, code: str, message: str, *, error: bool = True, cap: float = 0.2
+    ) -> None:
+        """Record an issue and cap the field's confidence.
+
+        Args:
+            fld: Field path the issue is about.
+            code: Machine-readable issue code, e.g. 'math.total'.
+            message: Human-readable explanation.
+            error: True for an error (fails the gate), False for a warning.
+            cap: Maximum confidence the field may keep after this issue.
+
+        Returns:
+            None.
+        """
+        severity: Severity = "error" if error else "warning"
+        self.issues.append(
+            ValidationIssue(field=fld, code=code, message=message, severity=severity)
+        )
+        if fld in self.conf:
+            self.conf[fld] = min(self.conf[fld], cap)
+
+
 def validate(
     inv: Invoice,
     doc: Document,
@@ -283,46 +334,47 @@ def validate(
     Returns:
         A GateReport with issues, per-field confidence, score and the pass/fail verdict.
     """
-    issues = list(normalize_issues or [])
     flat = _flat_fields(inv)
     scanned = doc.kind == "scanned"
-    conf = {k: 1.0 for k, v in flat.items() if v is not None}
+    findings = _Findings(
+        issues=list(normalize_issues or []),
+        conf={k: 1.0 for k, v in flat.items() if v is not None},
+    )
     text = doc.text
     flat_text, nums = compact(text), numbers_in(text)
-
-    def flag(fld: str, code: str, message: str, *, error: bool = True, cap: float = 0.2) -> None:
-        """Record an issue and cap the field's confidence."""
-        issues.append(ValidationIssue(field=fld, code=code, message=message,
-                                      severity="error" if error else "warning"))  # fmt: skip
-        if fld in conf:
-            conf[fld] = min(conf[fld], cap)
 
     # required
     for fld in REQUIRED:
         if flat.get(fld) is None:
-            flag(fld, "required.missing", f"{fld} is missing")
+            findings.flag(fld, "required.missing", f"{fld} is missing")
 
     # math
     reconciled: set[str] = set()
     for i, li in enumerate(inv.line_items):
         q, p, a = li.quantity, li.unit_price, li.amount
         if q is not None and p is not None and a is not None and abs(q * p - a) > LINE_TOLERANCE:
-            flag(f"line_items[{i}].amount", "math.line", f"{q} x {p} != {a}")
+            findings.flag(f"line_items[{i}].amount", "math.line", f"{q} x {p} != {a}")
     amounts = [li.amount for li in inv.line_items if li.amount is not None]
     if inv.line_items and len(amounts) == len(inv.line_items):
         lines_sum = sum(amounts, Decimal(0))
         if inv.subtotal is not None:
             if abs(lines_sum - inv.subtotal) > TOTAL_TOLERANCE:
-                flag("subtotal", "math.subtotal",
-                     f"line items sum to {lines_sum}, subtotal is {inv.subtotal}")  # fmt: skip
+                findings.flag(
+                    "subtotal",
+                    "math.subtotal",
+                    f"line items sum to {lines_sum}, subtotal is {inv.subtotal}",
+                )
             else:
                 reconciled.add("subtotal")
         base = inv.subtotal if inv.subtotal is not None else lines_sum
         if inv.total is not None:
             expected = base - (inv.discount or Decimal(0)) + (inv.tax or Decimal(0))
             if abs(expected - inv.total) > TOTAL_TOLERANCE:
-                flag("total", "math.total",
-                     f"subtotal - discount + tax = {expected}, total is {inv.total}")  # fmt: skip
+                findings.flag(
+                    "total",
+                    "math.total",
+                    f"subtotal - discount + tax = {expected}, total is {inv.total}",
+                )
             else:
                 reconciled |= {"total", "tax", "discount"} | ({"subtotal"} & reconciled)
 
@@ -347,11 +399,21 @@ def validate(
             continue  # tax is the sum of printed CGST+SGST rows; math already confirms it
         if scanned:
             # OCR may have misread what the vision model read correctly from the image.
-            flag(fld, "grounding.ocr_mismatch", f"{fld}={value!r} not found in OCR text",
-                 error=False, cap=0.5 if fld not in reconciled else 0.95)  # fmt: skip
+            findings.flag(
+                fld,
+                "grounding.ocr_mismatch",
+                f"{fld}={value!r} not found in OCR text",
+                error=False,
+                cap=0.5 if fld not in reconciled else 0.95,
+            )
         else:
-            flag(fld, "grounding.missing", f"{fld}={value!r} is not printed on the document",
-                 error=fld not in reconciled and not fld.endswith(".name"), cap=0.3)  # fmt: skip
+            findings.flag(
+                fld,
+                "grounding.missing",
+                f"{fld}={value!r} is not printed on the document",
+                error=fld not in reconciled and not fld.endswith(".name"),
+                cap=0.3,
+            )
 
     # labels: values must sit next to their own label, not a competing one
     for fld in ("invoice_date", "due_date", "total"):
@@ -364,7 +426,9 @@ def validate(
             continue  # identical values (e.g. total == subtotal) cannot be told apart
         found = label_field_for(fld, value, doc)
         if isinstance(found, str) and found in group and found != fld:
-            flag(fld, "label.mismatch", f"{fld} value is printed next to the '{found}' label")
+            findings.flag(
+                fld, "label.mismatch", f"{fld} value is printed next to the '{found}' label"
+            )
 
     # format
     for party in ("vendor", "buyer"):
@@ -372,29 +436,38 @@ def validate(
         if isinstance(tax_id, str):
             compact_id = re.sub(r"\s", "", tax_id.upper())
             if _GSTIN_LIKE.match(compact_id) and not is_valid_gstin(compact_id):
-                flag(f"{party}.tax_id", "format.gstin_checksum", f"{tax_id} fails the checksum")
+                findings.flag(
+                    f"{party}.tax_id", "format.gstin_checksum", f"{tax_id} fails the checksum"
+                )
     if flat.get("buyer.tax_id") and flat.get("buyer.tax_id") == flat.get("vendor.tax_id"):
-        flag("buyer.tax_id", "format.same_tax_id", "buyer has the vendor's tax ID")
+        findings.flag("buyer.tax_id", "format.same_tax_id", "buyer has the vendor's tax ID")
     vendor, buyer = inv.vendor.name, inv.buyer.name
     if vendor and buyer and compact(vendor) == compact(buyer):
-        flag("vendor.name", "party.same_name", "vendor and buyer have the same name")
+        findings.flag("vendor.name", "party.same_name", "vendor and buyer have the same name")
     elif vendor and _only_under_buyer_label(vendor, doc):
-        flag("vendor.name", "party.vendor_under_bill_to",
-             f"vendor {vendor!r} only appears under a Bill-To/Customer label")  # fmt: skip
+        findings.flag(
+            "vendor.name",
+            "party.vendor_under_bill_to",
+            f"vendor {vendor!r} only appears under a Bill-To/Customer label",
+        )
     if inv.invoice_date and inv.due_date and inv.due_date < inv.invoice_date:
-        flag("due_date", "format.due_before_invoice",
-             f"due date {inv.due_date} is before invoice date {inv.invoice_date}")  # fmt: skip
+        findings.flag(
+            "due_date",
+            "format.due_before_invoice",
+            f"due date {inv.due_date} is before invoice date {inv.invoice_date}",
+        )
     for fld in ("invoice_date", "due_date"):
         d = getattr(inv, fld)
         if d is not None and not 2000 <= d.year <= 2100:
-            flag(fld, "format.implausible_year", f"{fld} year {d.year} is implausible")
+            findings.flag(fld, "format.implausible_year", f"{fld} year {d.year} is implausible")
 
+    conf = findings.conf
     for fld in reconciled & conf.keys():
         conf[fld] = max(conf[fld], 0.95)  # arithmetic corroborates these amounts
     if scanned:
         conf = {k: min(v, doc.ocr_confidence) if v == 1.0 else v for k, v in conf.items()}
     critical = [conf[k] for k in CRITICAL if k in conf]
     score = min(critical) if critical else 0.0
-    report = GateReport(issues=issues, field_confidence=conf, score=score)
+    report = GateReport(issues=findings.issues, field_confidence=conf, score=score)
     report.passed = not report.errors and score >= threshold
     return report

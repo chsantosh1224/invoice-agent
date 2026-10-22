@@ -4,7 +4,6 @@ Every style here must be readable by `normalize.py` back to the exact original v
 `tests/unit/test_synth.py` checks that round trip for every style.
 """
 
-from collections.abc import Callable
 from datetime import date
 from decimal import Decimal
 from typing import Literal
@@ -17,15 +16,17 @@ _MONTHS_LONG = [
     "July", "August", "September", "October", "November", "December",
 ]  # fmt: skip
 
-DATE_FORMATS: dict[str, Callable[[date], str]] = {
-    "dd/mm/yyyy": lambda d: f"{d.day:02d}/{d.month:02d}/{d.year}",
-    "mm/dd/yyyy": lambda d: f"{d.month:02d}/{d.day:02d}/{d.year}",
-    "dd.mm.yyyy": lambda d: f"{d.day:02d}.{d.month:02d}.{d.year}",
-    "dd-mm-yyyy": lambda d: f"{d.day:02d}-{d.month:02d}-{d.year}",
-    "dd Mon yyyy": lambda d: f"{d.day} {_MONTHS[d.month - 1]} {d.year}",
-    "dd-Mon-yyyy": lambda d: f"{d.day:02d}-{_MONTHS[d.month - 1]}-{d.year}",
-    "Month dd, yyyy": lambda d: f"{_MONTHS_LONG[d.month - 1]} {d.day}, {d.year}",
-    "yyyy-mm-dd": lambda d: d.isoformat(),
+# Format name -> template. Placeholders: {d} day, {m} month, {y} year (zero-padded with
+# ":02d" where printed that way), {mon} 'Apr', {month} 'April'.
+DATE_FORMATS: dict[str, str] = {
+    "dd/mm/yyyy": "{d:02d}/{m:02d}/{y}",
+    "mm/dd/yyyy": "{m:02d}/{d:02d}/{y}",
+    "dd.mm.yyyy": "{d:02d}.{m:02d}.{y}",
+    "dd-mm-yyyy": "{d:02d}-{m:02d}-{y}",
+    "dd Mon yyyy": "{d} {mon} {y}",
+    "dd-Mon-yyyy": "{d:02d}-{mon}-{y}",
+    "Month dd, yyyy": "{month} {d}, {y}",
+    "yyyy-mm-dd": "{y}-{m:02d}-{d:02d}",
 }
 
 
@@ -124,4 +125,10 @@ def format_date(value: date, fmt: str) -> str:
     Raises:
         KeyError: If `fmt` is not a known format.
     """
-    return DATE_FORMATS[fmt](value)
+    return DATE_FORMATS[fmt].format(
+        d=value.day,
+        m=value.month,
+        y=value.year,
+        mon=_MONTHS[value.month - 1],
+        month=_MONTHS_LONG[value.month - 1],
+    )

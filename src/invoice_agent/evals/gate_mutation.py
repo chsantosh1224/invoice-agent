@@ -178,6 +178,23 @@ def run_mutation_test(data_dir: Path, *, split: str = "dev", seed: int = 7) -> l
     return trials
 
 
+def _rate(trials: list[GateTrial], *, want_pass: bool) -> str:
+    """Share of trials where the gate gave the desired verdict.
+
+    Args:
+        trials: Gate trials of one group (e.g. one mutation on digital documents).
+        want_pass: True if the desired verdict is "passed" (clean truth), False if
+            "rejected" (an injected error).
+
+    Returns:
+        e.g. '95% (21/22)', or '-' for an empty group.
+    """
+    if not trials:
+        return "-"
+    good = sum(t.report.passed == want_pass for t in trials)
+    return f"{good / len(trials):.0%} ({good}/{len(trials)})"
+
+
 def write_report(trials: list[GateTrial], path: Path) -> str:
     """Write the mutation-test results as Markdown.
 
@@ -198,21 +215,14 @@ def write_report(trials: list[GateTrial], path: Path) -> str:
         "|---|---|---|---|",
     ]
 
-    def rate(ts: list[GateTrial], *, want_pass: bool) -> str:
-        """Share of trials with the desired outcome, as 'pct (k/n)'."""
-        if not ts:
-            return "-"
-        good = sum(t.report.passed == want_pass for t in ts)
-        return f"{good / len(ts):.0%} ({good}/{len(ts)})"
-
     for case in ["clean", *MUTATIONS]:
         group = [t for t in trials if t.mutation == case]
         want_pass = case == "clean"
         label = "clean truth: **passed**" if want_pass else f"{case}: **caught**"
         lines.append(
-            f"| {label} | {rate([t for t in group if t.kind == 'digital'], want_pass=want_pass)} "
-            f"| {rate([t for t in group if t.kind == 'scanned'], want_pass=want_pass)} "
-            f"| {rate(group, want_pass=want_pass)} |"
+            f"| {label} | {_rate([t for t in group if t.kind == 'digital'], want_pass=want_pass)} "
+            f"| {_rate([t for t in group if t.kind == 'scanned'], want_pass=want_pass)} "
+            f"| {_rate(group, want_pass=want_pass)} |"
         )
     mutated = [t for t in trials if t.mutation != "clean"]
     caught = sum(not t.report.passed for t in mutated)

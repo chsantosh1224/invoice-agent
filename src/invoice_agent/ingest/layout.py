@@ -6,6 +6,7 @@ table row stays on one line, which keeps qty / price / amount together for the L
 """
 
 import math
+from operator import attrgetter
 from statistics import median
 
 from invoice_agent.ingest.document import Span
@@ -70,14 +71,14 @@ def group_rows(spans: list[Span]) -> list[list[Span]]:
     tolerance = 0.5 * median(s.height for s in spans)
     rows: list[list[Span]] = []
     centers: list[float] = []
-    for s in sorted(spans, key=lambda s: s.cy):
+    for s in sorted(spans, key=attrgetter("cy")):  # top to bottom
         if rows and abs(s.cy - centers[-1]) <= tolerance:
             rows[-1].append(s)
             centers[-1] = sum(x.cy for x in rows[-1]) / len(rows[-1])
         else:
             rows.append([s])
             centers.append(s.cy)
-    return [sorted(r, key=lambda s: s.x0) for r in rows]
+    return [sorted(r, key=attrgetter("x0")) for r in rows]  # left to right
 
 
 def layout_text(spans: list[Span], *, columns: int = 140) -> str:
