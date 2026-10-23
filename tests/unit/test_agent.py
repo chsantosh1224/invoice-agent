@@ -3,7 +3,7 @@ from pathlib import Path
 from typing import Any
 
 from langchain_core.language_models.fake_chat_models import GenericFakeChatModel
-from langchain_core.messages import AIMessage
+from langchain_core.messages import AIMessage, ToolMessage
 
 from invoice_agent.config import Settings
 from invoice_agent.extraction.router import process_document
@@ -103,3 +103,33 @@ def test_notes_sent_as_one_string_stay_one_note() -> None:
         call("submit_invoice", {"draft": fixed, "notes": "added currency '$'"}, 1),
     )
     assert result.notes == ["added currency '$'"]
+
+
+def test_invalid_submission_loops_back_then_valid_one_finishes() -> None:
+    """submission='invalid' sends the run back to decide; the next valid draft finishes."""
+    fixed = raw_from_truth()
+    result = run(
+        AIMessage(json.dumps(raw_from_truth(currency=None))),
+        call("submit_invoice", {"draft": {"total": "not a full invoice"}, "notes": []}, 1),
+        call("submit_invoice", {"draft": fixed, "notes": ["second try"]}, 2),
+    )
+    assert result.status == "accepted", result.issues
+    assert result.notes == ["second try"]
+
+
+def test_router_reads_submission_flag() -> None:
+    """The single router follows the explicit state facts, in order."""
+    from invoice_agent.extraction.agent.graph import ExtractionAgent
+
+    settings = Settings(_env_file=None, agent_max_steps=8)  # type: ignore[call-arg]
+    agent = ExtractionAgent("fake/agent", settings, llm_factory=lambda m, s: ScriptedModel(
+        messages=iter([])))  # fmt: skip
+    tool = call("search_text", {"query": "$"}, 1)
+    submit = call("submit_invoice", {"draft": {}}, 2)
+    rejected = ToolMessage("Submission rejected", tool_call_id="c2")
+    assert agent.route({"messages": [tool], "steps": 1, "submission": "none"}) == "tools"
+    assert agent.route({"messages": [submit], "steps": 1, "submission": "none"}) == "check_submit"
+    assert agent.route({"messages": [submit], "steps": 1, "submission": "valid"}) == "finalize"
+    assert agent.route({"messages": [rejected], "steps": 3, "submission": "invalid"}) == "decide"
+    assert agent.route({"messages": [rejected], "steps": 8, "submission": "invalid"}) == "finalize"
+    assert agent.route({"messages": [tool], "steps": 8, "submission": "none"}) == "finalize"

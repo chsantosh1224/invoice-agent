@@ -45,6 +45,9 @@ class AgentState(TypedDict, total=False):
         doc_id: Workspace id; tools use it to reach the document.
         run_id: Correlates log lines with the fast-path run.
         steps: Model turns taken so far.
+        submission: Outcome of the latest submit_invoice call, written by check_submit
+            ('valid' / 'invalid') and reset to 'none' by decide at the start of every
+            turn, so the router never acts on a stale outcome.
         submitted: The draft passed to submit_invoice, once valid.
         notes: The agent's audit notes from submit_invoice.
         result: The final ExtractionResult.
@@ -54,6 +57,7 @@ class AgentState(TypedDict, total=False):
     doc_id: str
     run_id: str
     steps: int
+    submission: Literal["none", "valid", "invalid"]
     submitted: RawInvoice
     notes: list[str]
     result: ExtractionResult
@@ -105,7 +109,8 @@ class ExtractionAgent:
             state: Current agent state; the whole conversation is sent to the model.
 
         Returns:
-            The model's reply (appended to messages) and the updated step count.
+            The model's reply (appended to messages), the updated step count, and
+            `submission` reset to 'none' (a new turn has no submission outcome yet).
         """
         steps = state.get("steps", 0) + 1
         last = steps >= self.max_steps
@@ -127,7 +132,7 @@ class ExtractionAgent:
             model=self.model,
             tools=[c["name"] for c in reply.tool_calls],
         )
-        update: dict[str, Any] = {"messages": [reply], "steps": steps}
+        update: dict[str, Any] = {"messages": [reply], "steps": steps, "submission": "none"}
         if not reply.tool_calls:
             update["messages"].append(HumanMessage(NO_TOOL_NUDGE))
         return update
@@ -139,19 +144,24 @@ class ExtractionAgent:
             state: Agent state whose last message is a submit_invoice call.
 
         Returns:
-            On success the draft and notes; on failure a tool message with the error.
+            `submission`='valid' with the draft and notes; or `submission`='invalid' with
+            a tool message telling the model what was wrong.
         """
         call = state["messages"][-1].tool_calls[0]  # type: ignore[union-attr]
         try:
             draft = RawInvoice.model_validate(call["args"].get("draft"))
         except ValidationError as e:
             msg = f"Submission rejected - the draft does not match the schema: {e.errors()[:5]}"
-            return {"messages": [ToolMessage(msg, tool_call_id=call["id"])]}
+            return {
+                "submission": "invalid",
+                "messages": [ToolMessage(msg, tool_call_id=call["id"])],
+            }
         raw_notes = call["args"].get("notes") or []
         # Some models send one string instead of a list; iterating it would split it into
         # single characters (seen with Nemotron Super).
         notes = [raw_notes] if isinstance(raw_notes, str) else [str(n) for n in raw_notes]
         return {
+            "submission": "valid",
             "submitted": draft,
             "notes": notes,
             "messages": [ToolMessage("submitted", tool_call_id=call["id"])],
@@ -209,40 +219,36 @@ class ExtractionAgent:
         )
         return {"result": result}
 
-    # ---------- routing: decide which node runs next (they change nothing) ----------
+    # ---------- routing: decide which node runs next (changes nothing) ----------
 
-    def route_after_decide(
-        self, state: AgentState
-    ) -> Literal["tools", "check_submit", "decide", "finalize"]:
-        """Send tool calls to the tools, submissions to validation, and enforce the limit.
+    def route(self, state: AgentState) -> Literal["tools", "check_submit", "decide", "finalize"]:
+        """The agent's single router, used after both `decide` and `check_submit`.
 
-        Once the step budget is spent, anything but a submission ends the run, even if
-        the model ignored the forced submit and asked for another tool.
+        It reads explicit facts from the state, checked in this order:
+        1. `submission` is 'valid'       -> finalize (a good draft is in)
+        2. the model just asked to submit -> check_submit
+        3. out of turns                   -> finalize (even if the model ignored the
+                                             forced submit, or its last draft was invalid)
+        4. the model asked for a tool     -> tools
+        5. anything else                  -> decide (no tool call, or a rejected draft
+                                             with turns left: let the model try again)
 
         Args:
-            state: Agent state after a `decide` turn.
+            state: Agent state after `decide` or `check_submit`.
 
         Returns:
             The name of the next node.
         """
-        last = next(m for m in reversed(state["messages"]) if isinstance(m, AIMessage))
-        if last.tool_calls and last.tool_calls[0]["name"] == "submit_invoice":
+        if state.get("submission") == "valid":
+            return "finalize"
+        last = state["messages"][-1]
+        tool_calls = last.tool_calls if isinstance(last, AIMessage) else []
+        if tool_calls and tool_calls[0]["name"] == "submit_invoice":
             return "check_submit"
         if state.get("steps", 0) >= self.max_steps:
             return "finalize"
-        return "tools" if last.tool_calls else "decide"
-
-    def route_after_submit(self, state: AgentState) -> Literal["finalize", "decide"]:
-        """Finish once a valid draft is in; otherwise let the model try again if it can.
-
-        Args:
-            state: Agent state after `check_submit`.
-
-        Returns:
-            'finalize' or 'decide'.
-        """
-        if state.get("submitted") is not None or state.get("steps", 0) >= self.max_steps:
-            return "finalize"
+        if tool_calls:
+            return "tools"
         return "decide"
 
     # ---------- wiring ----------
@@ -260,11 +266,12 @@ class ExtractionAgent:
         graph.add_node("finalize", self.finalize)
 
         graph.add_edge(START, "decide")
+        # One router decides after both decision points.
         graph.add_conditional_edges(
-            "decide", self.route_after_decide, ["tools", "check_submit", "decide", "finalize"]
+            "decide", self.route, ["tools", "check_submit", "decide", "finalize"]
         )
         graph.add_edge("tools", "decide")  # the loop: every tool result goes back to the LLM
-        graph.add_conditional_edges("check_submit", self.route_after_submit, ["finalize", "decide"])
+        graph.add_conditional_edges("check_submit", self.route, ["finalize", "decide"])
         graph.add_edge("finalize", END)
         return graph.compile()
 
