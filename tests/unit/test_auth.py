@@ -73,14 +73,15 @@ def test_expired_invite_is_refused(store: AuthStore) -> None:
 # ---------- the gate ----------
 
 
-def test_logged_out_visitors_are_sent_to_login(client: TestClient) -> None:
-    """Pages redirect to /login, API calls get 401, public pages stay open."""
-    page = client.get("/", follow_redirects=False)
-    assert page.status_code == 303 and page.headers["location"] == "/login"
+def test_logged_out_visitors_see_home_and_are_sent_to_login(client: TestClient) -> None:
+    """Home is public; the app redirects to the login pop-up; API calls get 401."""
+    for path in ("/", "/request-access", "/invite", "/health", "/static/auth.css"):
+        assert client.get(path).status_code == 200, path
+    for path in ("/app", "/login", "/admin"):
+        page = client.get(path, follow_redirects=False)
+        assert page.status_code == 303 and page.headers["location"] == "/?login", path
     assert client.post("/extract").status_code == 401
     assert client.get("/api/me").status_code == 401
-    for path in ("/login", "/request-access", "/invite", "/health", "/static/auth.css"):
-        assert client.get(path).status_code == 200, path
 
 
 # ---------- the full journey ----------
@@ -117,7 +118,8 @@ def test_request_approve_invite_login_journey(client: TestClient, store: AuthSto
 
     # A normal user can't use the admin API.
     assert client.get("/api/admin/users").status_code == 403
-    assert client.get("/admin", follow_redirects=False).headers["location"] == "/"
+    assert client.get("/admin", follow_redirects=False).headers["location"] == "/app"
+    assert client.get("/login", follow_redirects=False).headers["location"] == "/app"
 
     # Disabling logs Ann out everywhere and blocks new logins.
     store.set_status(ann["id"], "disabled")

@@ -50,10 +50,12 @@ def client(tmp_path: Path) -> Iterator[TestClient]:
     store.close()
 
 
-def test_page_and_health(client: TestClient) -> None:
-    """The demo page is served and /health reports the configured models."""
-    page = client.get("/")
-    assert page.status_code == 200 and "Invoice Agent" in page.text
+def test_pages_and_health(client: TestClient) -> None:
+    """The home page and the app are served and /health reports the configured models."""
+    home = client.get("/")
+    assert home.status_code == 200 and "Try the demo" in home.text
+    app_page = client.get("/app")
+    assert app_page.status_code == 200 and "Extract an invoice" in app_page.text
     health = client.get("/health").json()
     assert health["status"] == "ok" and "extractor_model" in health
 

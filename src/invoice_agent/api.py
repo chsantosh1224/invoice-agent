@@ -1,6 +1,7 @@
 """HTTP API and demo page.
 
-    GET  /         the demo page (upload an invoice, see the result)
+    GET  /         home page: what the product does, with a login pop-up (public)
+    GET  /app      the demo app (upload an invoice, see the result)
     GET  /health   liveness check
     POST /extract  upload one invoice (PDF/PNG/JPG), get the ExtractionResult as JSON
 
@@ -27,7 +28,7 @@ log = structlog.get_logger()
 
 MAX_UPLOAD_BYTES = 10 * 1024 * 1024  # 10 MB: plenty for invoices, blocks abuse
 ALLOWED_SUFFIXES = {".pdf", ".png", ".jpg", ".jpeg"}
-PAGE = Path(__file__).parent / "web" / "index.html"
+WEB = Path(__file__).parent / "web"
 
 app = FastAPI(title="Invoice Agent", version=__version__)
 app.add_middleware(SessionGate)
@@ -35,14 +36,28 @@ app.include_router(auth_router)
 
 
 @app.get("/", include_in_schema=False)
-def index() -> FileResponse:
-    """Serve the demo page.
+def home() -> FileResponse:
+    """Serve the public home page.
 
     Returns:
-        The single-page HTML app (upload form + result view), marked not cacheable so a
-        browser always shows the latest version of the page.
+        The page describing the product, with 'Try the demo' opening a login pop-up;
+        marked not cacheable so a browser always shows the latest version.
     """
-    return FileResponse(PAGE, media_type="text/html", headers={"Cache-Control": "no-store"})
+    return FileResponse(
+        WEB / "home.html", media_type="text/html", headers={"Cache-Control": "no-store"}
+    )
+
+
+@app.get("/app", include_in_schema=False)
+def demo_app() -> FileResponse:
+    """Serve the demo app (logged-in users only, enforced by SessionGate).
+
+    Returns:
+        The single-page HTML app (upload form + result view), not cacheable.
+    """
+    return FileResponse(
+        WEB / "index.html", media_type="text/html", headers={"Cache-Control": "no-store"}
+    )
 
 
 @app.get("/health")

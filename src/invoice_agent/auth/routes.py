@@ -1,12 +1,13 @@
 """Login, access requests, invites and the admin page, plus the gate that guards the app.
 
     Pages (HTML)                 API (JSON)
-    GET /login                   POST /api/login, POST /api/logout, GET /api/me
+    GET / (home, login pop-up)   POST /api/login, POST /api/logout, GET /api/me
     GET /request-access          POST /api/access-requests
     GET /invite#<token>          POST /api/invite/accept
     GET /admin (admin only)      GET /api/admin/users, POST /api/admin/users/{id}/<action>
 
-Everything else (the demo page, /extract) requires a logged-in user; see `SessionGate`.
+Everything else (the app at /app, /extract) requires a logged-in user; see `SessionGate`.
+/login is kept for old links and redirects to the home page's login pop-up.
 """
 
 import re
@@ -30,12 +31,13 @@ log = structlog.get_logger()
 
 WEB = Path(__file__).parent.parent / "web"
 COOKIE = "ia_session"
+LOGIN_URL = "/?login"  # the home page, with its login pop-up open
 MAX_PENDING = 200  # stop accepting requests if this many are waiting (spam guard)
 EMAIL = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
 
 # Reachable without logging in. Everything else needs a session.
 PUBLIC_PATHS = {
-    "/health", "/login", "/request-access", "/invite", "/static/auth.css",
+    "/", "/health", "/login", "/request-access", "/invite", "/static/auth.css",
     "/api/login", "/api/logout", "/api/access-requests", "/api/invite/accept",
 }  # fmt: skip
 
@@ -88,8 +90,8 @@ CurrentUser = Annotated[User, Depends(current_user)]
 class SessionGate(BaseHTTPMiddleware):
     """Find the user from the session cookie and keep everyone else out.
 
-    Logged-out visitors are sent to /login (pages) or get 401 (API calls); non-admins
-    can't reach /admin or /api/admin/*.
+    Logged-out visitors are sent to the home page's login pop-up (pages) or get 401 (API
+    calls); non-admins can't reach /admin or /api/admin/*.
     """
 
     async def dispatch(self, request: Request, call_next: RequestResponseEndpoint) -> Response:
@@ -100,7 +102,8 @@ class SessionGate(BaseHTTPMiddleware):
             call_next: Starlette's handle to the rest of the app.
 
         Returns:
-            The app's response, a redirect to /login (or /), or a 401/403 JSON error.
+            The app's response, a redirect to the login pop-up (or /app), or a 401/403
+            JSON error.
         """
         token = request.cookies.get(COOKIE)
         user = get_store(request).session_user(token) if token else None
@@ -111,11 +114,11 @@ class SessionGate(BaseHTTPMiddleware):
         is_page = request.method == "GET" and not path.startswith("/api/")
         if user is None:
             if is_page:
-                return RedirectResponse("/login", status_code=303)
+                return RedirectResponse(LOGIN_URL, status_code=303)
             return JSONResponse({"detail": "Please log in"}, status_code=401)
         if (path == "/admin" or path.startswith("/api/admin/")) and not user.is_admin:
             if is_page:
-                return RedirectResponse("/", status_code=303)
+                return RedirectResponse("/app", status_code=303)
             return JSONResponse({"detail": "Admins only"}, status_code=403)
         return await call_next(request)
 
@@ -156,18 +159,18 @@ def _start_session(request: Request, response: Response, user: User, store: Auth
 
 
 @router.get("/login", include_in_schema=False)
-def login_page(request: Request) -> Response:
-    """The login page (or the app, for someone already logged in).
+def login_page(request: Request) -> RedirectResponse:
+    """Old login address: send people to the login pop-up (or the app, if logged in).
 
     Args:
         request: The current request.
 
     Returns:
-        login.html, or a redirect to / if a session is active.
+        A redirect to /app if a session is active, otherwise to the home page's pop-up.
     """
     if getattr(request.state, "user", None) is not None:
-        return RedirectResponse("/", status_code=303)
-    return _page("login.html")
+        return RedirectResponse("/app", status_code=303)
+    return RedirectResponse(LOGIN_URL, status_code=303)
 
 
 @router.get("/request-access", include_in_schema=False)

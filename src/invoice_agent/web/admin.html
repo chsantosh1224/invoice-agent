@@ -102,7 +102,7 @@ function button(label, className, onClick) {
 
 async function call(path, options) {
   const resp = await fetch(path, options);
-  if (resp.status === 401) { location.href = "/login"; throw new Error("Logged out"); }
+  if (resp.status === 401) { location.href = "/?login"; throw new Error("Logged out"); }
   const data = await resp.json().catch(() => ({}));
   if (!resp.ok) throw new Error(data.detail || `Request failed (${resp.status})`);
   return data;
@@ -179,7 +179,7 @@ document.getElementById("copy").addEventListener("click", async () => {
   setTimeout(() => { document.getElementById("copy").textContent = "Copy"; }, 1500);
 });
 document.getElementById("refresh").addEventListener("click", load);
-document.getElementById("back").addEventListener("click", () => { location.href = "/"; });
+document.getElementById("back").addEventListener("click", () => { location.href = "/app"; });
 load();
 </script>
 </body>
