@@ -1,6 +1,6 @@
 # Demo image: FastAPI app + lightweight ingestion (pdfplumber, RapidOCR). No Docling, no
-# synthetic-data tools. Built and run by Hugging Face Spaces (see docs/deploy.md); runs
-# the same anywhere else with `docker run -p 7860:7860 -e OPENROUTER_API_KEY=... <image>`.
+# synthetic-data tools. Run on AWS Lightsail behind Caddy (deploy/lightsail, docs/deploy.md);
+# works anywhere with `docker run -p 7860:7860 -e OPENROUTER_API_KEY=... <image>`.
 FROM python:3.12-slim
 
 # Shared libraries OpenCV (used by RapidOCR) and onnxruntime load at run time.

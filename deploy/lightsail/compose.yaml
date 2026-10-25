@@ -1,0 +1,29 @@
+# The demo on one server: the app, and Caddy in front of it for HTTPS.
+# Managed by `sudo invoice-setup` (deploy/lightsail/setup.sh); see docs/deploy.md.
+name: invoice
+
+services:
+  app:
+    build: ../..
+    env_file: /etc/invoice-agent/app.env  # OPENROUTER_API_KEY, DEMO_USER, DEMO_PASSWORD
+    ports:
+      - "127.0.0.1:7860:7860"  # this server only, for health checks; the world goes via Caddy
+    restart: unless-stopped
+
+  caddy:
+    image: caddy:2.10
+    env_file: /etc/invoice-agent/caddy.env  # DOMAIN
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data  # HTTPS certificates; kept across restarts
+      - caddy_config:/config
+    depends_on:
+      - app
+    restart: unless-stopped
+
+volumes:
+  caddy_data:
+  caddy_config:

@@ -1,0 +1,6 @@
+# Caddy gets and renews a Let's Encrypt certificate for $DOMAIN by itself, once the
+# domain's DNS points at this server. Plain HTTP is redirected to HTTPS.
+{$DOMAIN} {
+	encode gzip
+	reverse_proxy app:7860
+}
