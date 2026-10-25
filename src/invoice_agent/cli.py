@@ -458,5 +458,32 @@ def gate_calibrate(
     typer.echo(write_live_report(trials, report, chosen=settings.gate_threshold))
 
 
+@app.command()
+def serve(
+    host: Annotated[str, typer.Option(help="Interface to bind; 127.0.0.1 = this PC only")] = (
+        "127.0.0.1"
+    ),
+    port: Annotated[int, typer.Option(help="Port")] = 8000,
+) -> None:
+    """Start the API and demo page.
+
+    Usage: `invoice-agent serve`, then open http://127.0.0.1:8000 in a browser.
+    Binds to this computer only by default, so nobody else on the network can reach it.
+
+    Args:
+        host: Network interface to listen on.
+        port: TCP port.
+
+    Returns:
+        None. Runs until stopped with Ctrl+C.
+    """
+    import uvicorn
+
+    from invoice_agent.log import configure_logging
+
+    configure_logging(get_settings().log_level, json=False)
+    uvicorn.run("invoice_agent.api:app", host=host, port=port)
+
+
 if __name__ == "__main__":
     app()

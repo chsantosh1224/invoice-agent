@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "invoice-agent-demo",
+      "runtimeExecutable": ".venv/Scripts/invoice-agent.exe",
+      "runtimeArgs": ["serve", "--port", "8000"],
+      "port": 8000
+    }
+  ]
+}
