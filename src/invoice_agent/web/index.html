@@ -132,6 +132,10 @@
   .totals .grand { border-top: 1px solid var(--line); margin-top: 6px; padding-top: 10px; }
   .totals .grand span { color: var(--text) !important; font-weight: 700 !important; font-size: 17px; }
   footer { color: var(--subtle); font-size: 12px; margin-top: 8px; text-align: center; }
+  .credit { margin-top: 6px; color: var(--muted); font-size: 13px; }
+  .credit b { color: var(--text); font-weight: 600; }
+  .credit a { color: var(--accent); text-decoration: none; }
+  .credit a:hover { color: var(--accent-hover); text-decoration: underline; }
 </style>
 </head>
 <body>
@@ -222,7 +226,11 @@
     </section>
   </div>
 
-  <footer id="footer"></footer>
+  <footer>
+    <div id="footer"></div>
+    <div class="credit">Built by <b>Santosh Ch</b> ·
+      <a href="https://github.com/chsantosh1224/invoice-agent" target="_blank" rel="noopener">GitHub</a></div>
+  </footer>
 </main>
 
 <script>
