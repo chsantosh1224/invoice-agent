@@ -27,14 +27,26 @@ def transcription(t: dict[str, Any], **overrides: Any) -> str:
         "vendor": {"name": t["vendor"]["name"], "address": None, "tax_id": t["vendor"]["tax_id"]},
         "buyer": {"name": t["buyer"]["name"], "address": None, "tax_id": t["buyer"]["tax_id"]},
         "line_items": [{"description": li["description"], "quantity": li["quantity"],
-                        "unit_price": li["unit_price"], "amount": li["amount"]}
+                        "unit_price": li["unit_price"], "amount": li["amount"],
+                        "discount": None, "tax_rate": None, "tax_amount": None}
                        for li in t["line_items"]],
-        "subtotal": t["subtotal"], "discount": t["discount"],
-        "tax_lines": [{"label": "Tax", "amount": t["tax"]}] if t["tax"] else [],
-        "total": t["total"], "payment_terms": t["payment_terms"],
+        "summary_lines": summary_from_truth(t), "payment_terms": t["payment_terms"],
     }  # fmt: skip
     raw.update(overrides)
     return json.dumps(raw)
+
+
+def summary_from_truth(t: dict[str, Any], total: str | None = None) -> list[dict[str, Any]]:
+    """Totals-block rows a perfect model would transcribe for truth `t`."""
+    rows: list[dict[str, Any]] = [
+        {"label": "Subtotal", "amount": t["subtotal"], "kind": "subtotal"}
+    ]
+    if t["discount"]:
+        rows.append({"label": "Discount", "amount": t["discount"], "kind": "discount"})
+    if t["tax"]:
+        rows.append({"label": "Tax", "amount": t["tax"], "kind": "tax"})
+    rows.append({"label": "Total", "amount": total or t["total"], "kind": "total"})
+    return rows
 
 
 def run(*replies: str) -> Any:
@@ -56,7 +68,8 @@ def test_correct_extraction_is_accepted() -> None:
 def test_wrong_total_is_sent_to_review() -> None:
     """A misread total fails the arithmetic and grounding checks."""
     t = truth()
-    result = run(transcription(t, total=str(Decimal(t["total"]) + 500)))
+    wrong_total = str(Decimal(t["total"]) + 500)
+    result = run(transcription(t, summary_lines=summary_from_truth(t, total=wrong_total)))
     assert result.status == "needs_human_review"
     assert {"math.total", "grounding.missing"} <= {i.code for i in result.issues}
 

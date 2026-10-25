@@ -223,6 +223,10 @@
 
 <script>
 const $ = (id) => document.getElementById(id);
+const DOC_TYPES = {
+  invoice: "Invoice", credit_note: "Credit note", debit_note: "Debit note", proforma: "Proforma",
+  quote: "Quote", receipt: "Receipt", statement: "Statement", other: "Other document",
+};
 const fileInput = $("file");
 let chosen = null;
 
@@ -307,7 +311,9 @@ function render({ result, seconds, filename }) {
   $("score").textContent = `${Math.round(result.score * 100)}%`;
   $("meter").style.width = `${Math.round(result.score * 100)}%`;
   $("meter").style.background = result.score >= 0.8 ? "#12b76a" : result.score >= 0.5 ? "#f79009" : "#f04438";
-  $("route").textContent = result.route === "agent" ? "Agent" : "Fast path";
+  const agentTried = result.issues.some((i) => i.code === "agent.unavailable");
+  $("route").textContent = result.route === "agent" ? "Agent"
+    : agentTried ? "Fast path (agent unavailable)" : "Fast path";
   $("model").textContent = result.model.split("/").pop().replace(":free", "");
   $("time").textContent = `${seconds}s`;
 
@@ -328,7 +334,7 @@ function render({ result, seconds, filename }) {
 
   const f = $("fields");
   f.replaceChildren();
-  field(f, "Document type", inv.document_type === "credit_note" ? "Credit note" : "Invoice");
+  field(f, "Document type", DOC_TYPES[inv.document_type] || inv.document_type);
   field(f, "Invoice number", inv.invoice_number, conf.invoice_number);
   field(f, "Invoice date", inv.invoice_date, conf.invoice_date);
   field(f, "Due date", inv.due_date, conf.due_date);
@@ -365,7 +371,10 @@ function render({ result, seconds, filename }) {
   }
   const totals = $("totals");
   totals.replaceChildren();
-  for (const [label, v] of [["Subtotal", inv.subtotal], ["Discount", inv.discount], ["Tax", inv.tax]]) {
+  const rows = [["Subtotal", inv.subtotal], ["Discount", inv.discount === null ? null : -inv.discount],
+                ["Tax", inv.tax]];
+  for (const c of inv.other_charges || []) rows.push([c.label || c.kind, c.amount]);
+  for (const [label, v] of rows) {
     if (v === null || v === undefined) continue;
     const d = el("div"); d.appendChild(el("span", label)); d.appendChild(el("span", money(v, inv.currency)));
     totals.appendChild(d);
@@ -373,6 +382,10 @@ function render({ result, seconds, filename }) {
   const g = el("div", null, "grand");
   g.appendChild(el("span", "Total")); g.appendChild(el("span", money(inv.total, inv.currency) ?? "Not on document"));
   totals.appendChild(g);
+  if (inv.tax_included !== null && inv.tax_included !== undefined) {
+    const t = el("div"); t.appendChild(el("span", "incl. tax")); t.appendChild(el("span", money(inv.tax_included, inv.currency)));
+    totals.appendChild(t);
+  }
 
   $("footer").textContent = `${filename} · run ${result.run_id} · prompt ${result.prompt_version}`;
   $("result").style.display = "block";

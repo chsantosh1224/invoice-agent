@@ -15,11 +15,12 @@ confidence among its critical fields. The model's self-reported confidence is ne
 
 import re
 from dataclasses import dataclass, field
+from datetime import date
 from decimal import Decimal
 
 from invoice_agent.ingest.document import Document, Span
 from invoice_agent.ingest.layout import group_rows
-from invoice_agent.schemas import Invoice, Severity, ValidationIssue
+from invoice_agent.schemas import PAYABLE_TYPES, Invoice, LineItem, Severity, ValidationIssue
 from invoice_agent.synth.formatting import DATE_FORMATS, format_date
 from invoice_agent.tax_ids import is_valid_gstin
 from invoice_agent.textmatch import compact, date_present, numbers_in
@@ -31,7 +32,14 @@ REQUIRED = ("invoice_number", "invoice_date", "vendor.name", "currency", "total"
 CRITICAL = (*REQUIRED, "due_date", "po_number", "subtotal", "tax", "discount")
 # Normalization warnings that mean a value was assumed, and the confidence it keeps.
 # 0.6 is below the 0.8 threshold: an assumed currency is always reviewed by a person.
-NORMALIZE_WARNING_CAPS = {"currency.ambiguous_symbol": 0.6}
+NORMALIZE_WARNING_CAPS = {
+    "currency.ambiguous_symbol": 0.6,
+    "summary.kind_inferred": 0.6,  # the arithmetic, not the model, decided a row's kind
+    "summary.sign_corrected": 0.6,  # a row only fits with the opposite sign
+    "summary.sign_mismatch": 0.6,  # a charge printed negative
+}
+# Normalization issues about a totals row lower the confidence of the total.
+_SUMMARY_PREFIX = "summary_lines["
 _GSTIN_LIKE = re.compile(r"^\d{2}[0-9A-Z]{13}$")
 
 # Label phrases per field. Order matters: earlier fields win when a phrase matches several
@@ -319,6 +327,51 @@ class _Findings:
             self.conf[fld] = min(self.conf[fld], cap)
 
 
+def _line_reconciles(li: LineItem) -> bool:
+    """Check a line item's arithmetic, allowing for the row's own discount and tax.
+
+    Tries every reading the printed columns allow: quantity x unit price, minus the row
+    discount (amount or %), and with or without the row tax (rate or amount) added.
+
+    Args:
+        li: A line item whose quantity, unit price and amount are all present.
+
+    Returns:
+        True if any reading matches the printed amount within rounding.
+    """
+    assert li.quantity is not None and li.unit_price is not None and li.amount is not None
+    gross = li.quantity * li.unit_price
+    after_discount = [gross]
+    if li.discount is not None:
+        after_discount.append(gross - li.discount)
+    if li.discount_pct is not None:
+        after_discount.append(gross * (1 - li.discount_pct / 100))
+    candidates = list(after_discount)
+    for net in after_discount:
+        if li.tax_rate is not None:
+            candidates.append(net * (1 + li.tax_rate / 100))
+        if li.tax_amount is not None:
+            candidates.append(net + li.tax_amount)
+    return any(abs(c - li.amount) <= LINE_TOLERANCE for c in candidates)
+
+
+def _show(value: object) -> str:
+    """Format a field value for an issue message a person will read.
+
+    Args:
+        value: A date, Decimal or string.
+
+    Returns:
+        '2020-12-11' for dates, '162.37' for amounts, "'INV-42'" for text - never Python
+        internals such as "datetime.date(2020, 12, 11)".
+    """
+    if isinstance(value, date):
+        return value.isoformat()
+    if isinstance(value, Decimal):
+        return str(value)
+    return repr(value)
+
+
 def validate(
     inv: Invoice,
     doc: Document,
@@ -347,10 +400,19 @@ def validate(
     # so the assumption goes to review rather than being accepted silently.
     for issue in findings.issues:
         cap = NORMALIZE_WARNING_CAPS.get(issue.code)
-        if cap is not None and issue.field in findings.conf:
-            findings.conf[issue.field] = min(findings.conf[issue.field], cap)
+        target = "total" if issue.field.startswith(_SUMMARY_PREFIX) else issue.field
+        if cap is not None and target in findings.conf:
+            findings.conf[target] = min(findings.conf[target], cap)
     text = doc.text
     flat_text, nums = compact(text), numbers_in(text)
+
+    # document type: only invoices and credit notes are payable
+    if inv.document_type not in PAYABLE_TYPES:
+        findings.flag(
+            "document_type",
+            "document.not_payable",
+            f"document is a {inv.document_type.replace('_', ' ')}, not an invoice to pay",
+        )
 
     # required
     for fld in REQUIRED:
@@ -361,7 +423,7 @@ def validate(
     reconciled: set[str] = set()
     for i, li in enumerate(inv.line_items):
         q, p, a = li.quantity, li.unit_price, li.amount
-        if q is not None and p is not None and a is not None and abs(q * p - a) > LINE_TOLERANCE:
+        if q is not None and p is not None and a is not None and not _line_reconciles(li):
             findings.flag(f"line_items[{i}].amount", "math.line", f"{q} x {p} != {a}")
     amounts = [li.amount for li in inv.line_items if li.amount is not None]
     if inv.line_items and len(amounts) == len(inv.line_items):
@@ -377,12 +439,13 @@ def validate(
                 reconciled.add("subtotal")
         base = inv.subtotal if inv.subtotal is not None else lines_sum
         if inv.total is not None:
-            expected = base - (inv.discount or Decimal(0)) + (inv.tax or Decimal(0))
+            charges_sum = sum((c.amount for c in inv.other_charges), Decimal(0))
+            expected = base - (inv.discount or Decimal(0)) + (inv.tax or Decimal(0)) + charges_sum
             if abs(expected - inv.total) > TOTAL_TOLERANCE:
                 findings.flag(
                     "total",
                     "math.total",
-                    f"subtotal - discount + tax = {expected}, total is {inv.total}",
+                    f"subtotal - discount + tax + other charges = {expected}, total is {inv.total}",
                 )
             else:
                 reconciled |= {"total", "tax", "discount"} | ({"subtotal"} & reconciled)
@@ -411,7 +474,7 @@ def validate(
             findings.flag(
                 fld,
                 "grounding.ocr_mismatch",
-                f"{fld}={value!r} not found in OCR text",
+                f"{fld}={_show(value)} not found in OCR text",
                 error=False,
                 cap=0.5 if fld not in reconciled else 0.95,
             )
@@ -419,7 +482,7 @@ def validate(
             findings.flag(
                 fld,
                 "grounding.missing",
-                f"{fld}={value!r} is not printed on the document",
+                f"{fld}={_show(value)} is not printed on the document",
                 error=fld not in reconciled and not fld.endswith(".name"),
                 cap=0.3,
             )

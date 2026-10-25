@@ -34,17 +34,33 @@ class RawParty(_Strict):
 class RawLineItem(_Strict):
     """One row of the line-item table. Copy values exactly as printed; null if a cell is empty."""
 
-    description: str | None
-    quantity: str | None = Field(description="As printed, e.g. '2' or '1.5'")
-    unit_price: str | None = Field(description="As printed, including separators")
+    description: str | None = Field(description="Main description only, without SKU/codes")
+    quantity: str | None = Field(description="As printed, e.g. '2' or '1.5'; null if no column")
+    unit_price: str | None = Field(description="As printed, including separators; null if none")
     amount: str | None = Field(description="Line total as printed")
+    discount: str | None = Field(description="The row's own discount as printed ('10%', '5.00')")
+    tax_rate: str | None = Field(description="The row's own tax rate as printed, e.g. '18%'")
+    tax_amount: str | None = Field(description="The row's own tax amount as printed")
 
 
-class RawTaxLine(_Strict):
-    """One tax line from the totals block, e.g. 'CGST @ 9%' or 'VAT 19%'. Copy as printed."""
+SummaryKind = Literal[
+    "subtotal", "discount", "tax", "tax_included", "charge", "deduction", "adjustment",
+    "total", "other",
+]  # fmt: skip
+DocumentType = Literal[
+    "invoice", "credit_note", "debit_note", "proforma", "quote", "receipt", "statement", "other",
+]  # fmt: skip
+PAYABLE_TYPES = ("invoice", "credit_note")
 
-    label: str | None = Field(description="Tax name and rate as printed, e.g. 'IGST @ 18%'")
-    amount: str | None = Field(description="Tax amount as printed")
+
+class RawSummaryLine(_Strict):
+    """One row of the totals block (subtotal, discount, tax, shipping, ..., total), as printed."""
+
+    label: str | None = Field(description="Row label exactly as printed")
+    amount: str | None = Field(description="Amount exactly as printed, with sign and symbol")
+    kind: SummaryKind = Field(
+        description="What the row does to the amount payable; 'other' if you cannot tell"
+    )
 
 
 class RawInvoice(_Strict):
@@ -54,22 +70,21 @@ class RawInvoice(_Strict):
     formats as they appear. Use null for any field that is not on the document.
     """
 
-    document_type: Literal["invoice", "credit_note"]
+    document_type: DocumentType
     invoice_number: str | None
     invoice_date: str | None = Field(description="Exactly as printed, e.g. '03/04/2026'")
     due_date: str | None
     po_number: str | None = Field(description="Purchase order number; null if absent")
-    currency: str | None = Field(description="ISO code or symbol as printed, e.g. 'INR' or '₹'")
+    currency: str | None = Field(
+        description="Code or symbol as printed; if not stated, the symbol on the amounts"
+    )
     vendor: RawParty = Field(description="The party issuing the invoice (Bill From / Seller)")
     buyer: RawParty = Field(description="The party being billed (Bill To / Buyer)")
     line_items: list[RawLineItem]
-    subtotal: str | None
-    discount: str | None
-    tax_lines: list[RawTaxLine] = Field(
-        description="Every tax line in the totals block (CGST and SGST are separate lines); "
-        "empty list if no tax is shown. Do not add them up."
+    summary_lines: list[RawSummaryLine] = Field(
+        description="Every row of the totals block, top to bottom, including subtotal and "
+        "grand total. Do not add rows up."
     )
-    total: str | None = Field(description="Grand total / amount due")
     payment_terms: str | None
 
 
@@ -91,6 +106,21 @@ class LineItem(BaseModel):
     quantity: Decimal | None = None
     unit_price: Decimal | None = None
     amount: Decimal | None = None
+    discount: Decimal | None = Field(default=None, description="Row discount as an amount")
+    discount_pct: Decimal | None = Field(default=None, description="Row discount in percent")
+    tax_rate: Decimal | None = Field(default=None, description="Row tax rate in percent")
+    tax_amount: Decimal | None = None
+
+
+class Charge(BaseModel):
+    """A totals-block row other than subtotal / discount / tax / total, e.g. shipping.
+
+    The amount is signed: charges are positive, deductions negative, adjustments either.
+    """
+
+    label: str | None = None
+    kind: Literal["charge", "deduction", "adjustment"]
+    amount: Decimal
 
 
 class Invoice(BaseModel):
@@ -100,7 +130,7 @@ class Invoice(BaseModel):
     matching and storage work with.
     """
 
-    document_type: Literal["invoice", "credit_note"] = "invoice"
+    document_type: DocumentType = "invoice"
     invoice_number: str | None = None
     invoice_date: date | None = None
     due_date: date | None = None
@@ -112,6 +142,12 @@ class Invoice(BaseModel):
     subtotal: Decimal | None = None
     discount: Decimal | None = None
     tax: Decimal | None = None
+    tax_included: Decimal | None = Field(
+        default=None, description="Tax already inside the prices (informational, not added)"
+    )
+    other_charges: list[Charge] = Field(
+        default_factory=list, description="Shipping, fees, deductions, rounding, ... (signed)"
+    )
     total: Decimal | None = None
     payment_terms: str | None = None
 

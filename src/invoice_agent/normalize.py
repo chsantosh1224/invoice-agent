@@ -14,9 +14,11 @@ from invoice_agent.schemas import (
     LineItem,
     Party,
     RawInvoice,
+    RawLineItem,
     RawParty,
     ValidationIssue,
 )
+from invoice_agent.summary import SummaryRow, resolve_summary
 
 # ---------- amounts ----------
 
@@ -99,6 +101,25 @@ class AmbiguousDateError(ValueError):
     """Raised when a numeric date could be DD/MM or MM/DD and no hint says which."""
 
 
+# A time after the date: ', 10:56:14 AM', ' at 9:30pm', 'T10:56:14Z'.
+_TIME = re.compile(
+    r"(?:[,\s]+(?:at\s+)?|T)\d{1,2}:\d{2}(?::\d{2})?(?:\.\d+)?\s*(?:[AaPp]\.?\s*[Mm]\.?)?"
+    r"\s*(?:Z|[+-]\d{2}:?\d{2}|[A-Z]{2,4})?\s*$"
+)
+
+
+def strip_time(text: str) -> str:
+    """Remove a time of day printed after a date.
+
+    Args:
+        text: A printed date, possibly with a time, e.g. 'Dec 11, 2020, 10:56:14 AM'.
+
+    Returns:
+        The date part only, e.g. 'Dec 11, 2020'; the text unchanged if there is no time.
+    """
+    return _TIME.sub("", text.strip())
+
+
 def parse_date(text: str, *, dayfirst: bool | None = None) -> date:
     """Convert a printed date string into a `datetime.date`.
 
@@ -123,7 +144,7 @@ def parse_date(text: str, *, dayfirst: bool | None = None) -> date:
         >>> parse_date("03/04/2026", dayfirst=True)
         datetime.date(2026, 4, 3)
     """
-    s = _SEPT.sub("Sep", _ORDINAL.sub(r"\1", text.strip()))
+    s = _SEPT.sub("Sep", _ORDINAL.sub(r"\1", strip_time(text)))
     m = _NUMERIC_DATE.match(s)
     if m:
         a, b, c = m.groups()
@@ -270,23 +291,6 @@ def _discount(value: Decimal | None) -> Decimal | None:
     return None if value is None or value == 0 else abs(value)
 
 
-def _sum_taxes(amounts: list[Decimal | None]) -> Decimal | None:
-    """Add up the parsed tax lines (e.g. CGST + SGST) into the invoice's total tax.
-
-    The LLM transcribes each tax line separately; adding them up is done here, in code,
-    so the LLM never does arithmetic.
-
-    Args:
-        amounts: Parsed tax-line amounts; None for lines that failed to parse.
-
-    Returns:
-        The sum of all parsed amounts, or None if there were no tax lines or none parsed
-        (a failed line is already reported as an issue by the caller).
-    """
-    parsed = [a for a in amounts if a is not None]
-    return sum(parsed, Decimal(0)) if parsed else None
-
-
 def _tax_id(text: str | None) -> str | None:
     """Clean a tax ID; text without any digit is not a tax ID.
 
@@ -371,9 +375,10 @@ def _printed_amounts(raw: RawInvoice) -> list[str]:
         raw: The transcription.
 
     Returns:
-        The non-empty amount strings, totals first.
+        The non-empty amount strings, total rows first.
     """
-    texts = [raw.total, raw.subtotal, raw.discount, *(t.amount for t in raw.tax_lines)]
+    totals = [r.amount for r in raw.summary_lines if r.kind == "total"]
+    texts = totals + [r.amount for r in raw.summary_lines if r.kind != "total"]
     for li in raw.line_items:
         texts += [li.amount, li.unit_price]
     return [t for t in texts if t and t.strip()]
@@ -470,12 +475,41 @@ def _currency_field(raw: RawInvoice, issues: list[ValidationIssue]) -> str | Non
     return code
 
 
+def _line_item(index: int, raw: RawLineItem, issues: list[ValidationIssue]) -> LineItem:
+    """Normalize one line-item row, including its own discount and tax columns.
+
+    Args:
+        index: Row position, used in issue field paths.
+        raw: The row as transcribed.
+        issues: Receives an issue for every value that cannot be parsed.
+
+    Returns:
+        The LineItem. A discount printed with '%' becomes `discount_pct`, otherwise an
+        amount in `discount`; the tax rate is a percentage number (18 for '18%').
+    """
+    path = f"line_items[{index}]"
+    discount_text = _clean(raw.discount)
+    is_pct = discount_text is not None and "%" in discount_text
+    discount = _amount_field(f"{path}.discount", discount_text, issues)
+    return LineItem(
+        description=_clean(raw.description),
+        quantity=_amount_field(f"{path}.quantity", raw.quantity, issues),
+        unit_price=_amount_field(f"{path}.unit_price", raw.unit_price, issues),
+        amount=_amount_field(f"{path}.amount", raw.amount, issues),
+        discount=None if is_pct or discount is None or discount == 0 else abs(discount),
+        discount_pct=abs(discount) if is_pct and discount else None,
+        tax_rate=_amount_field(f"{path}.tax_rate", raw.tax_rate, issues),
+        tax_amount=_amount_field(f"{path}.tax_amount", raw.tax_amount, issues),
+    )
+
+
 def to_invoice(raw: RawInvoice) -> tuple[Invoice, list[ValidationIssue]]:
     """Normalize a full LLM transcription into a typed Invoice.
 
     Converts every amount to Decimal, every date to `date` and the currency to ISO 4217.
     The currency also decides how ambiguous dates are read (₹/€/£ -> day first,
-    $ -> month first). A value that fails to parse is set to None and reported as a
+    $ -> month first). The totals block is resolved by `summary.resolve_summary` (kinds
+    checked by arithmetic). A value that fails to parse is set to None and reported as a
     ValidationIssue; it is never guessed.
 
     Args:
@@ -490,18 +524,16 @@ def to_invoice(raw: RawInvoice) -> tuple[Invoice, list[ValidationIssue]]:
     currency = _currency_field(raw, issues)
     dayfirst = None if currency is None else currency in DAYFIRST_CURRENCIES
 
-    items = [
-        LineItem(
-            description=_clean(li.description),
-            quantity=_amount_field(f"line_items[{i}].quantity", li.quantity, issues),
-            unit_price=_amount_field(f"line_items[{i}].unit_price", li.unit_price, issues),
-            amount=_amount_field(f"line_items[{i}].amount", li.amount, issues),
-        )
-        for i, li in enumerate(raw.line_items)
+    items = [_line_item(i, li, issues) for i, li in enumerate(raw.line_items)]
+    amounts = [li.amount for li in items if li.amount is not None]
+    lines_sum = sum(amounts, Decimal(0)) if items and len(amounts) == len(items) else None
+    rows = [
+        SummaryRow(index=i, label=_clean(r.label), kind=r.kind, amount=amount)
+        for i, r in enumerate(raw.summary_lines)
+        if (amount := _amount_field(f"summary_lines[{i}]", r.amount, issues)) is not None
     ]
-    tax_amounts = [
-        _amount_field(f"tax_lines[{i}]", t.amount, issues) for i, t in enumerate(raw.tax_lines)
-    ]
+    totals = resolve_summary(rows, lines_sum)
+    issues += totals.issues
 
     invoice = Invoice(
         document_type=raw.document_type,
@@ -513,10 +545,12 @@ def to_invoice(raw: RawInvoice) -> tuple[Invoice, list[ValidationIssue]]:
         vendor=_party(raw.vendor),
         buyer=_party(raw.buyer),
         line_items=items,
-        subtotal=_amount_field("subtotal", raw.subtotal, issues),
-        discount=_discount(_amount_field("discount", raw.discount, issues)),
-        tax=_sum_taxes(tax_amounts),
-        total=_amount_field("total", raw.total, issues),
+        subtotal=totals.subtotal,
+        discount=_discount(totals.discount),
+        tax=totals.tax,
+        tax_included=totals.tax_included,
+        other_charges=totals.charges,
+        total=totals.total,
         payment_terms=_clean(raw.payment_terms),
     )
     return invoice, issues

@@ -112,3 +112,50 @@ def test_assumed_currency_is_sent_to_review() -> None:
     report = validate(invoice(currency="USD"), doc(SPANS), normalize_issues=[warning])
     assert report.field_confidence["currency"] == 0.6
     assert not report.passed and not report.errors  # reviewed because of low confidence
+
+
+def test_shipping_is_part_of_the_total_check() -> None:
+    """subtotal - discount + tax + shipping = total passes; without shipping it would fail."""
+    from invoice_agent.schemas import Charge
+
+    shipped = invoice(
+        other_charges=[Charge(label="Shipping", kind="charge", amount=Decimal("25.00"))],
+        total=Decimal("5335.00"),
+    )
+    assert "math.total" not in codes(shipped)
+    assert "math.total" in codes(invoice(total=Decimal("5335.00")))
+
+
+def test_quotes_and_receipts_are_not_payable() -> None:
+    """A quotation is never accepted for payment, however clean the extraction."""
+    assert "document.not_payable" in codes(invoice(document_type="quote"))
+    assert "document.not_payable" not in codes(invoice(document_type="credit_note"))
+
+
+def test_line_math_allows_row_discount_and_tax() -> None:
+    """10 x 100 less 10% plus 18% tax = 1062.00 is a correct row, not a math.line error."""
+    row = LineItem(
+        description="Paper",
+        quantity=Decimal(10),
+        unit_price=Decimal(100),
+        amount=Decimal("1062.00"),
+        discount_pct=Decimal(10),
+        tax_rate=Decimal(18),
+    )
+    assert "math.line" not in codes(invoice(line_items=[row]))
+    wrong = row.model_copy(update={"amount": Decimal("1070.00")})
+    assert "math.line" in codes(invoice(line_items=[wrong]))
+
+
+def test_short_month_date_format_is_grounded() -> None:
+    """'Dec 11, 2020' (month abbreviation first) counts as printed - no false warning."""
+    from invoice_agent.textmatch import compact, date_present
+
+    assert date_present(date(2020, 12, 11), compact("ORDER DATE Dec 11, 2020, 10:56:14"))
+
+
+def test_issue_messages_show_readable_values() -> None:
+    """Messages show '2026-12-31', never 'datetime.date(2026, 12, 31)'."""
+    report = validate(invoice(due_date=date(2026, 12, 31)), doc(SPANS, "scanned"))
+    messages = " ".join(i.message for i in report.issues)
+    assert "2026-12-31" in messages and "datetime" not in messages

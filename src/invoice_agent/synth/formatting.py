@@ -26,6 +26,7 @@ DATE_FORMATS: dict[str, str] = {
     "dd Mon yyyy": "{d} {mon} {y}",
     "dd-Mon-yyyy": "{d:02d}-{mon}-{y}",
     "Month dd, yyyy": "{month} {d}, {y}",
+    "Mon dd, yyyy": "{mon} {d}, {y}",  # 'Dec 11, 2020' (Magento, Shopify, ...)
     "yyyy-mm-dd": "{y}-{m:02d}-{d:02d}",
 }
 

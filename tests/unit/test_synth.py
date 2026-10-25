@@ -1,12 +1,13 @@
 import random
 from datetime import date, timedelta
 from decimal import ROUND_HALF_UP, Decimal
+from typing import Any
 
 import pytest
 from faker import Faker
 
 from invoice_agent.normalize import DAYFIRST_CURRENCIES, parse_amount, parse_date, to_invoice
-from invoice_agent.schemas import RawInvoice, RawLineItem, RawParty, RawTaxLine
+from invoice_agent.schemas import RawInvoice, RawLineItem, RawParty, RawSummaryLine
 from invoice_agent.synth.build import PROFILES, Country, InvoiceSpec, build_invoice
 from invoice_agent.synth.formatting import (
     format_date,
@@ -112,6 +113,16 @@ def test_edge_cases_all_occur() -> None:
             "buyer_without_tax_id"} <= seen  # fmt: skip
 
 
+def summary_rows(v: dict[str, Any]) -> list[RawSummaryLine]:
+    """Totals-block rows a perfect model would transcribe from a generated view."""
+    rows = [RawSummaryLine(label="Subtotal", amount=v["subtotal"], kind="subtotal")]
+    if v["discount"]:
+        rows.append(RawSummaryLine(label="Discount", amount=v["discount"], kind="discount"))
+    rows += [RawSummaryLine(label=t["label"], amount=t["amount"], kind="tax") for t in v["taxes"]]
+    rows.append(RawSummaryLine(label="Total", amount=v["total"], kind="total"))
+    return rows
+
+
 @pytest.mark.parametrize("country", COUNTRIES)
 def test_perfect_transcription_normalizes_to_truth(country: Country) -> None:
     """If an LLM copied every printed value perfectly, normalize.py yields the exact truth.
@@ -145,13 +156,13 @@ def test_perfect_transcription_normalizes_to_truth(country: Country) -> None:
                     quantity=i["qty"],
                     unit_price=i["unit_price"],
                     amount=i["amount"],
+                    discount=None,
+                    tax_rate=None,
+                    tax_amount=None,
                 )
                 for i in v["items"]
             ],
-            subtotal=v["subtotal"],
-            discount=v["discount"],
-            tax_lines=[RawTaxLine(label=t["label"], amount=t["amount"]) for t in v["taxes"]],
-            total=v["total"],
+            summary_lines=summary_rows(v),
             payment_terms=v["payment_terms"],
         )
         invoice, issues = to_invoice(raw)

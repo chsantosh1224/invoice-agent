@@ -10,7 +10,7 @@ from invoice_agent.normalize import (
     parse_date,
     to_invoice,
 )
-from invoice_agent.schemas import RawInvoice, RawLineItem, RawParty, RawTaxLine
+from invoice_agent.schemas import RawInvoice, RawLineItem, RawParty, RawSummaryLine
 
 
 @pytest.mark.parametrize(
@@ -79,16 +79,45 @@ def test_parse_currency(text: str, expected: str) -> None:
     assert parse_currency(text) == expected
 
 
+def _summary(
+    subtotal: str | None, discount: str | None, taxes: list[tuple[str, str]], total: str | None
+) -> list[RawSummaryLine]:
+    """Build totals-block rows from the usual shortcut values (None = row not printed)."""
+    rows = []
+    if subtotal is not None:
+        rows.append(RawSummaryLine(label="Subtotal", amount=subtotal, kind="subtotal"))
+    if discount is not None:
+        rows.append(RawSummaryLine(label="Discount", amount=discount, kind="discount"))
+    rows += [RawSummaryLine(label=label, amount=amount, kind="tax") for label, amount in taxes]
+    if total is not None:
+        rows.append(RawSummaryLine(label="Total", amount=total, kind="total"))
+    return rows
+
+
 def _raw(**overrides: object) -> RawInvoice:
     """Build a valid RawInvoice for tests.
 
     Args:
-        **overrides: Field values to replace in the default invoice.
+        **overrides: Field values to replace. The shortcuts `subtotal`, `discount`, `taxes`
+            and `total` are turned into summary_lines rows.
 
     Returns:
         A RawInvoice with the defaults below, updated with `overrides`.
     """
     party = RawParty(name=None, address=None, tax_id=None)
+    shortcuts: dict[str, object] = {
+        "subtotal": "4,500.00",
+        "discount": None,
+        "taxes": [("CGST @ 9%", "405.00"), ("SGST @ 9%", "₹405.00")],
+        "total": "₹5,310.00",
+    }
+    for key in list(shortcuts):
+        if key in overrides:
+            shortcuts[key] = overrides.pop(key)
+    line = RawLineItem(
+        description="Paper", quantity="10", unit_price="450.00", amount="4,500.00",
+        discount=None, tax_rate=None, tax_amount=None,
+    )  # fmt: skip
     base: dict[str, object] = dict(
         document_type="invoice",
         invoice_number="INV-1",
@@ -98,16 +127,8 @@ def _raw(**overrides: object) -> RawInvoice:
         currency="₹",
         vendor=party,
         buyer=party,
-        line_items=[
-            RawLineItem(description="Paper", quantity="10", unit_price="450.00", amount="4,500.00")
-        ],
-        subtotal="4,500.00",
-        discount=None,
-        tax_lines=[
-            RawTaxLine(label="CGST @ 9%", amount="405.00"),
-            RawTaxLine(label="SGST @ 9%", amount="₹405.00"),
-        ],
-        total="₹5,310.00",
+        line_items=[line],
+        summary_lines=_summary(**shortcuts),  # type: ignore[arg-type]
         payment_terms=None,
     )
     base.update(overrides)
@@ -130,7 +151,7 @@ def test_to_invoice_reports_issues_instead_of_guessing() -> None:
     invoice, issues = to_invoice(_raw(currency=None, total="TBD"))
     codes = {(i.field, i.code) for i in issues}
     assert ("invoice_date", "normalize.date_ambiguous") in codes
-    assert ("total", "normalize.amount") in codes
+    assert ("summary_lines[3]", "normalize.amount") in codes
     assert invoice.invoice_date is None and invoice.total is None
 
 
@@ -156,7 +177,7 @@ def test_currency_is_taken_from_amounts_when_the_model_left_it_empty() -> None:
 
 def test_bare_dollar_is_assumed_usd_but_flagged() -> None:
     """'$' could be USD, AUD, CAD...: USD is assumed and reported, never silently."""
-    raw = _raw(currency=None, total="$93.50", subtotal="$85.00", tax_lines=[], line_items=[])
+    raw = _raw(currency=None, total="$93.50", subtotal="$85.00", taxes=[], line_items=[])
     invoice, issues = to_invoice(raw)
     assert invoice.currency == "USD"
     codes = {i.code: i for i in issues}
@@ -186,3 +207,27 @@ def test_conflicting_currency_symbols_are_an_error() -> None:
     """Amounts printed in two currencies cannot be resolved; it is an error, not a pick."""
     _, issues = to_invoice(_raw(currency=None, total="$100.00", subtotal="€90.00"))
     assert any(i.code == "currency.conflicting_symbols" and i.severity == "error" for i in issues)
+
+
+@pytest.mark.parametrize(
+    ("text", "expected"),
+    [
+        ("Dec 11, 2020, 10:56:14 AM", date(2020, 12, 11)),
+        ("2026-01-13T10:56:14Z", date(2026, 1, 13)),
+        ("13/01/2026 09:30", date(2026, 1, 13)),
+        ("13 Jan 2026 at 9:30pm", date(2026, 1, 13)),
+    ],
+)
+def test_dates_with_a_time_are_parsed(text: str, expected: date) -> None:
+    """A printed time after the date (seen on the Magento sample) is ignored."""
+    assert parse_date(text, dayfirst=True) == expected
+
+
+def test_line_discount_and_tax_columns_are_normalized() -> None:
+    """'10%' becomes discount_pct; '18%' a tax rate of 18; a plain amount stays an amount."""
+    row = RawLineItem(description="Paper", quantity="10", unit_price="100.00", amount="1,062.00",
+                      discount="10%", tax_rate="18%", tax_amount="162.00")  # fmt: skip
+    invoice, _ = to_invoice(_raw(line_items=[row]))
+    li = invoice.line_items[0]
+    assert (li.discount, li.discount_pct, li.tax_rate, li.tax_amount) == (
+        None, Decimal(10), Decimal(18), Decimal("162.00"))  # fmt: skip

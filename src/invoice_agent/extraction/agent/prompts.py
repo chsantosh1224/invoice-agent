@@ -6,7 +6,7 @@ from typing import Any
 from invoice_agent.extraction.prompts import SYSTEM_PROMPT as TRANSCRIPTION_RULES
 from invoice_agent.schemas import RawInvoice, ValidationIssue
 
-AGENT_PROMPT_VERSION = "agent-v1"
+AGENT_PROMPT_VERSION = "agent-v2"  # embeds extract-v2 rules
 
 AGENT_SYSTEM_PROMPT = f"""\
 You are an accounts-payable specialist fixing an invoice extraction that failed automatic
