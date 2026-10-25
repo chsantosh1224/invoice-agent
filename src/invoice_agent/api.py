@@ -4,16 +4,21 @@
     GET  /health   liveness check
     POST /extract  upload one invoice (PDF/PNG/JPG), get the ExtractionResult as JSON
 
-Run with `invoice-agent serve` (or `uvicorn invoice_agent.api:app`).
+Run with `invoice-agent serve` (or `uvicorn invoice_agent.api:app`). When DEMO_PASSWORD is
+set (the hosted demo), every route except /health asks for a user name and password.
 """
 
+import base64
+import binascii
+import secrets
 import tempfile
 from pathlib import Path
 from typing import Annotated, Any
 
 import structlog
-from fastapi import FastAPI, File, Form, HTTPException, UploadFile
-from fastapi.responses import FileResponse
+from fastapi import FastAPI, File, Form, HTTPException, Request, Response, UploadFile
+from fastapi.responses import FileResponse, PlainTextResponse
+from starlette.middleware.base import BaseHTTPMiddleware, RequestResponseEndpoint
 
 from invoice_agent import __version__
 from invoice_agent.config import get_settings
@@ -26,7 +31,68 @@ MAX_UPLOAD_BYTES = 10 * 1024 * 1024  # 10 MB: plenty for invoices, blocks abuse
 ALLOWED_SUFFIXES = {".pdf", ".png", ".jpg", ".jpeg"}
 PAGE = Path(__file__).parent / "web" / "index.html"
 
+OPEN_PATHS = {"/health"}  # the host's uptime checks must reach it without a password
+
+
+class DemoLogin(BaseHTTPMiddleware):
+    """Password-protect the hosted demo with HTTP Basic auth.
+
+    The browser shows its own login box and then resends the credentials with every
+    request, so the page and the API need no login code of their own. Disabled when
+    DEMO_PASSWORD is empty, so local development stays login-free.
+    """
+
+    async def dispatch(self, request: Request, call_next: RequestResponseEndpoint) -> Response:
+        """Let the request through if no password is set, the path is open, or it logs in.
+
+        Args:
+            request: The incoming request.
+            call_next: Starlette's handle to the rest of the app.
+
+        Returns:
+            The app's response, or 401 with a login prompt when the credentials are
+            missing or wrong.
+        """
+        settings = get_settings()
+        password = settings.demo_password.get_secret_value()
+        if not password or request.url.path in OPEN_PATHS:
+            return await call_next(request)
+        if _credentials_match(
+            request.headers.get("authorization", ""), settings.demo_user, password
+        ):
+            return await call_next(request)
+        return PlainTextResponse(
+            "Login required", status_code=401,
+            headers={"WWW-Authenticate": 'Basic realm="Invoice Agent demo", charset="UTF-8"'},
+        )  # fmt: skip
+
+
+def _credentials_match(header: str, user: str, password: str) -> bool:
+    """Check an 'Authorization: Basic ...' header against the demo user and password.
+
+    Args:
+        header: The raw Authorization header value ('' when absent).
+        user: The expected user name.
+        password: The expected password.
+
+    Returns:
+        True only for a well-formed Basic header with both values correct. Compared in
+        constant time, so response timing doesn't reveal how much of a guess was right.
+    """
+    scheme, _, encoded = header.partition(" ")
+    if scheme.lower() != "basic":
+        return False
+    try:
+        given_user, _, given_password = base64.b64decode(encoded).decode().partition(":")
+    except (binascii.Error, UnicodeDecodeError):
+        return False
+    user_ok = secrets.compare_digest(given_user.encode(), user.encode())
+    password_ok = secrets.compare_digest(given_password.encode(), password.encode())
+    return user_ok and password_ok
+
+
 app = FastAPI(title="Invoice Agent", version=__version__)
+app.add_middleware(DemoLogin)
 
 
 @app.get("/", include_in_schema=False)

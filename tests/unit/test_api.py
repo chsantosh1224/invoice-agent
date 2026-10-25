@@ -72,3 +72,21 @@ def test_bad_uploads_are_rejected_before_any_llm_call(name: str, size: int, stat
     resp = client.post("/extract", files={"file": (name, content, "application/octet-stream")})
     assert resp.status_code == status
     assert fake_process.calls == []  # type: ignore[attr-defined]
+
+
+def test_demo_password_protects_everything_but_health(monkeypatch: pytest.MonkeyPatch) -> None:
+    """With DEMO_PASSWORD set: no or wrong login -> 401; right login -> page; /health open."""
+    from pydantic import SecretStr
+
+    from invoice_agent.config import Settings
+
+    def demo_settings() -> Settings:
+        return Settings(demo_user="demo", demo_password=SecretStr("s3cret"))
+
+    monkeypatch.setattr(api, "get_settings", demo_settings)
+    assert client.get("/").status_code == 401
+    assert "Basic" in client.get("/").headers["www-authenticate"]
+    assert client.get("/", auth=("demo", "wrong")).status_code == 401
+    assert client.get("/", headers={"Authorization": "Basic !!notbase64"}).status_code == 401
+    assert client.get("/", auth=("demo", "s3cret")).status_code == 200
+    assert client.get("/health").status_code == 200

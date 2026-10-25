@@ -1,0 +1,10 @@
+.venv/
+.git/
+.env
+.cache/
+data/
+reports/
+tests/
+docs/
+**/__pycache__/
+*.sqlite

@@ -51,6 +51,11 @@ class Settings(BaseSettings):
     agent_max_steps: int = 8
     log_level: str = "INFO"
 
+    # Hosted demo: when DEMO_PASSWORD is set, every page except /health asks for this
+    # user name and password (HTTP Basic auth). Empty = no login (local development).
+    demo_user: str = "demo"
+    demo_password: SecretStr = SecretStr("")
+
     @field_validator("provider_order", mode="before")
     @classmethod
     def _split_csv(cls, v: object) -> object:

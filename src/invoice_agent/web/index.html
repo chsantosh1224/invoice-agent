@@ -36,6 +36,8 @@
   .hero { max-width: 1080px; margin: 0 auto; padding: 28px 24px 0; }
   .hero h1 { font-size: 26px; font-weight: 700; letter-spacing: -.5px; margin: 0 0 6px; }
   .hero p { margin: 0; color: var(--muted); max-width: 640px; }
+  .notice { margin: 12px 0 0; font-size: 13px; color: var(--muted); }
+  .notice b { color: var(--text); }
   .steps { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
   .step { font-size: 12.5px; font-weight: 500; color: var(--muted); background: var(--card);
           border: 1px solid var(--line); border-radius: 999px; padding: 5px 12px; }
@@ -147,6 +149,8 @@
   <h1>Extract an invoice in seconds</h1>
   <p>Upload a PDF or a scan. An LLM reads it, and a validation gate checks every value against
     the document before anything is accepted.</p>
+  <p class="notice"><b>Demo only:</b> please upload sample or synthetic invoices, not real
+    ones. This demo runs on free AI models whose providers may log what they receive.</p>
   <div class="steps">
     <span class="step"><b>1</b>Read the page</span>
     <span class="step"><b>2</b>Extract with an LLM</span>
