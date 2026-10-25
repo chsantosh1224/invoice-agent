@@ -30,13 +30,25 @@ def raw_from_truth(**overrides: Any) -> dict[str, Any]:
         "vendor": {"name": t["vendor"]["name"], "address": None, "tax_id": t["vendor"]["tax_id"]},
         "buyer": {"name": t["buyer"]["name"], "address": None, "tax_id": t["buyer"]["tax_id"]},
         "line_items": [{k: li[k] for k in ("description", "quantity", "unit_price", "amount")}
+                       | {"discount": None, "tax_rate": None, "tax_amount": None}
                        for li in t["line_items"]],
-        "subtotal": t["subtotal"], "discount": t["discount"],
-        "tax_lines": [{"label": "Sales Tax", "amount": t["tax"]}] if t["tax"] else [],
-        "total": t["total"], "payment_terms": t["payment_terms"],
+        "summary_lines": summary_from_truth(t), "payment_terms": t["payment_terms"],
     }  # fmt: skip
     raw.update(overrides)
     return raw
+
+
+def summary_from_truth(t: dict[str, Any], total: str | None = None) -> list[dict[str, Any]]:
+    """Totals-block rows a perfect model would transcribe for truth `t`."""
+    rows: list[dict[str, Any]] = [
+        {"label": "Subtotal", "amount": t["subtotal"], "kind": "subtotal"}
+    ]
+    if t["discount"]:
+        rows.append({"label": "Discount", "amount": t["discount"], "kind": "discount"})
+    if t["tax"]:
+        rows.append({"label": "Tax", "amount": t["tax"], "kind": "tax"})
+    rows.append({"label": "Total", "amount": total or t["total"], "kind": "total"})
+    return rows
 
 
 def call(name: str, args: dict[str, Any], i: int) -> AIMessage:
@@ -133,3 +145,51 @@ def test_router_reads_submission_flag() -> None:
     assert agent.route({"messages": [rejected], "steps": 3, "submission": "invalid"}) == "decide"
     assert agent.route({"messages": [rejected], "steps": 8, "submission": "invalid"}) == "finalize"
     assert agent.route({"messages": [tool], "steps": 8, "submission": "none"}) == "finalize"
+
+
+class BrokenModel(ScriptedModel):
+    """A model whose provider is down: every agent call fails like NVIDIA's 404."""
+
+    def invoke(self, *args: Any, **kwargs: Any) -> Any:  # type: ignore[override]
+        """Fail the way the real provider did."""
+        raise RuntimeError("404 Function not found for account")
+
+
+class ModelPicker:
+    """llm_factory stand-in: returns a specific fake model per slug, else a default."""
+
+    def __init__(self, models: dict[str, Any], default: Any) -> None:
+        """Remember which fake to return for which model slug."""
+        self.models, self.default = models, default
+
+    def __call__(self, model: str, settings: Settings) -> Any:
+        """Return the fake model for `model`."""
+        return self.models.get(model, self.default)
+
+
+def test_agent_falls_back_to_the_second_model() -> None:
+    """Primary agent model down -> the fallback model runs the investigation."""
+    fixed = raw_from_truth()
+    good = ScriptedModel(messages=iter([
+        AIMessage(json.dumps(raw_from_truth(currency=None))),
+        call("submit_invoice", {"draft": fixed, "notes": ["added currency"]}, 1),
+    ]))  # fmt: skip
+    settings = Settings(_env_file=None, extractor_model="fake/x", extractor_fallback_model="fake/x",
+                        agent_model="fake/broken", agent_fallback_model="fake/backup")  # type: ignore[call-arg]  # fmt: skip
+    pick = {"fake/broken": BrokenModel(messages=iter([]))}
+    result, _ = process_document(DATA / f"{DOC}.pdf", settings, llm_factory=ModelPicker(pick, good))
+    assert result.route == "agent" and result.status == "accepted"
+    assert result.model == "fake/backup"
+
+
+def test_unavailable_agent_is_reported_not_hidden() -> None:
+    """Both agent models down -> fast-path verdict plus an agent.unavailable warning."""
+    settings = Settings(_env_file=None, extractor_model="fake/x", extractor_fallback_model="fake/x",
+                        agent_model="fake/a", agent_fallback_model="fake/b")  # type: ignore[call-arg]  # fmt: skip
+    fast = ScriptedModel(messages=iter([AIMessage(json.dumps(raw_from_truth(currency=None)))]))
+    broken = BrokenModel(messages=iter([]))
+    factory = ModelPicker({"fake/x": fast}, broken)
+    result, _ = process_document(DATA / f"{DOC}.pdf", settings, llm_factory=factory)
+    assert result.route == "fast_path" and result.status == "needs_human_review"
+    unavailable = [i for i in result.issues if i.code == "agent.unavailable"]
+    assert unavailable and "a: RuntimeError" in unavailable[0].message

@@ -26,6 +26,8 @@ class Settings(BaseSettings):
     extractor_model: str = "dots-studio/dots-3-note-preview:free"
     extractor_fallback_model: str = "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free"
     agent_model: str = "nvidia/nemotron-3-super-120b-a12b:free"
+    # Used when the agent model's provider fails (seen: NVIDIA 404 on Nemotron Super).
+    agent_fallback_model: str = "nvidia/nemotron-3-ultra-550b-a55b:free"
     judge_model: str = "nvidia/nemotron-3-ultra-550b-a55b:free"
 
     # Most free endpoints may log prompts. Allowed only for synthetic data in development;
