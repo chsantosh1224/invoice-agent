@@ -1,3 +1,4 @@
+from collections.abc import Iterator
 from pathlib import Path
 from typing import Any
 
@@ -5,9 +6,10 @@ import pytest
 from fastapi.testclient import TestClient
 
 from invoice_agent import api
+from invoice_agent.auth.routes import COOKIE
+from invoice_agent.auth.store import AuthStore
 from invoice_agent.schemas import ExtractionResult, Invoice
 
-client = TestClient(api.app)
 SAMPLE = Path("data/samples/inv-004-minimal-IN.pdf")
 
 
@@ -35,7 +37,20 @@ def _fake_pipeline(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(api, "process_document", fake_process)
 
 
-def test_page_and_health() -> None:
+@pytest.fixture
+def client(tmp_path: Path) -> Iterator[TestClient]:
+    """A client logged in as an approved user, against a throwaway user database."""
+    store = AuthStore(tmp_path / "auth.sqlite")
+    api.app.state.auth = store
+    user = store.create_admin("tester@example.com", "Tester", "a-long-password")
+    with TestClient(api.app) as c:
+        c.cookies.set(COOKIE, store.create_session(user.id))
+        yield c
+    api.app.state.auth = None
+    store.close()
+
+
+def test_page_and_health(client: TestClient) -> None:
     """The demo page is served and /health reports the configured models."""
     page = client.get("/")
     assert page.status_code == 200 and "Invoice Agent" in page.text
@@ -43,7 +58,7 @@ def test_page_and_health() -> None:
     assert health["status"] == "ok" and "extractor_model" in health
 
 
-def test_extract_returns_the_result_and_passes_the_agent_switch() -> None:
+def test_extract_returns_the_result_and_passes_the_agent_switch(client: TestClient) -> None:
     """A valid upload reaches the pipeline as a real file; the agent checkbox sets the mode."""
     with SAMPLE.open("rb") as fh:
         resp = client.post(
@@ -66,27 +81,11 @@ def test_extract_returns_the_result_and_passes_the_agent_switch() -> None:
     [("notes.txt", 5, 415), ("empty.pdf", 0, 400), ("big.pdf", 11 * 2**20, 413)],
     ids=["wrong-type", "empty", "too-large"],
 )
-def test_bad_uploads_are_rejected_before_any_llm_call(name: str, size: int, status: int) -> None:
+def test_bad_uploads_are_rejected_before_any_llm_call(
+    client: TestClient, name: str, size: int, status: int
+) -> None:
     """Wrong type, empty file and oversized file are refused, and the pipeline never runs."""
     content = b"x" * size  # built here: as a parameter it would become an 11 MB test name
     resp = client.post("/extract", files={"file": (name, content, "application/octet-stream")})
     assert resp.status_code == status
     assert fake_process.calls == []  # type: ignore[attr-defined]
-
-
-def test_demo_password_protects_everything_but_health(monkeypatch: pytest.MonkeyPatch) -> None:
-    """With DEMO_PASSWORD set: no or wrong login -> 401; right login -> page; /health open."""
-    from pydantic import SecretStr
-
-    from invoice_agent.config import Settings
-
-    def demo_settings() -> Settings:
-        return Settings(demo_user="demo", demo_password=SecretStr("s3cret"))
-
-    monkeypatch.setattr(api, "get_settings", demo_settings)
-    assert client.get("/").status_code == 401
-    assert "Basic" in client.get("/").headers["www-authenticate"]
-    assert client.get("/", auth=("demo", "wrong")).status_code == 401
-    assert client.get("/", headers={"Authorization": "Basic !!notbase64"}).status_code == 401
-    assert client.get("/", auth=("demo", "s3cret")).status_code == 200
-    assert client.get("/health").status_code == 200

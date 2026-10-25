@@ -459,6 +459,44 @@ def gate_calibrate(
 
 
 @app.command()
+def create_admin(
+    email: Annotated[str, typer.Option(prompt=True, help="Admin's email (the login)")],
+    name: Annotated[str, typer.Option(prompt=True, help="Admin's name")],
+    password: Annotated[
+        str, typer.Option(prompt=True, hide_input=True, confirmation_prompt=True, help="Password")
+    ],
+) -> None:
+    """Create the admin account (or reset its password) for the user database.
+
+    Usage: `invoice-agent create-admin`; it asks for each value, the password hidden.
+    On the server: `sudo invoice-setup admin`.
+
+    Args:
+        email: The admin's email, used to log in.
+        name: The admin's name.
+        password: The admin's password.
+
+    Returns:
+        None. Prints a confirmation.
+
+    Raises:
+        typer.Exit: With code 1 if the password is too short.
+    """
+    from invoice_agent.auth.passwords import MIN_PASSWORD_LENGTH
+    from invoice_agent.auth.store import AuthStore
+
+    if len(password) < MIN_PASSWORD_LENGTH:
+        typer.echo(f"Use at least {MIN_PASSWORD_LENGTH} characters.", err=True)
+        raise typer.Exit(1)
+    store = AuthStore(get_settings().auth_db)
+    try:
+        admin = store.create_admin(email, name, password)
+    finally:
+        store.close()
+    typer.echo(f"Admin ready: {admin.email}. Log in, then open /admin.")
+
+
+@app.command()
 def serve(
     host: Annotated[str, typer.Option(help="Interface to bind; 127.0.0.1 = this PC only")] = (
         "127.0.0.1"

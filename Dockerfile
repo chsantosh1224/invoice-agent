@@ -25,12 +25,19 @@ RUN uv sync --locked --no-default-groups --no-install-project
 COPY --chown=user src ./src
 RUN uv sync --locked --no-default-groups
 
+# The user database lives here; Compose mounts a volume on it so accounts survive rebuilds.
+RUN mkdir -p /home/user/data
+
 # Free OpenRouter endpoints may log prompts: allowed because the demo takes sample data
 # only (the page says so). The cache lives in /tmp and is lost on restart, which is fine.
+# FORWARDED_ALLOW_IPS: trust Caddy's X-Forwarded-Proto, so the app knows the site is HTTPS
+# (secure cookies, https invite links). Safe: the port is only reachable through Caddy.
 ENV ALLOW_PROMPT_LOGGING=true \
     CACHE_DIR=/tmp/invoice-agent-cache \
+    AUTH_DB=/home/user/data/auth.sqlite \
+    FORWARDED_ALLOW_IPS=* \
     LOG_LEVEL=INFO
 
-# OPENROUTER_API_KEY and DEMO_PASSWORD come from the host's secrets, never the image.
+# OPENROUTER_API_KEY comes from the host's secrets, never the image.
 EXPOSE 7860
 CMD ["invoice-agent", "serve", "--host", "0.0.0.0", "--port", "7860"]

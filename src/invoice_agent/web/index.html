@@ -33,6 +33,14 @@
   .brand { font-weight: 700; font-size: 17px; letter-spacing: -.2px; }
   .tag { margin-left: auto; font-size: 12px; font-weight: 500; padding: 5px 12px;
          border-radius: 999px; background: rgba(255, 255, 255, .14); }
+  .user { display: none; align-items: center; gap: 10px; font-size: 13px; }
+  .user.show { display: flex; }
+  .user .who { opacity: .85; }
+  .user a, .user button { color: #fff; background: rgba(255, 255, 255, .14); border: 0; border-radius: 999px;
+                          padding: 5px 12px; font: inherit; font-size: 12px; font-weight: 600; cursor: pointer;
+                          text-decoration: none; box-shadow: none; }
+  .user a:hover, .user button:hover:not(:disabled) { background: rgba(255, 255, 255, .26); }
+  @media (max-width: 640px) { .tag, .user .who { display: none; } .user { margin-left: auto; } }
   .hero { max-width: 1080px; margin: 0 auto; padding: 28px 24px 0; }
   .hero h1 { font-size: 26px; font-weight: 700; letter-spacing: -.5px; margin: 0 0 6px; }
   .hero p { margin: 0; color: var(--muted); max-width: 640px; }
@@ -146,6 +154,11 @@
     </div>
     <div class="brand">Invoice Agent</div>
     <div class="tag">AI extraction · verified by code</div>
+    <div class="user" id="user">
+      <span class="who" id="userName"></span>
+      <a href="/admin" id="adminLink" hidden>Admin</a>
+      <button type="button" id="logout">Log out</button>
+    </div>
   </div>
 </div>
 
@@ -285,6 +298,7 @@ $("go").addEventListener("click", async () => {
     body.append("file", chosen);
     body.append("use_agent", $("agent").checked ? "true" : "false");
     const resp = await fetch("/extract", { method: "POST", body });
+    if (resp.status === 401) { location.href = "/login"; return; }
     const data = await resp.json();
     if (!resp.ok) throw new Error(data.detail || `Request failed (${resp.status})`);
     render(data);
@@ -404,6 +418,15 @@ function render({ result, seconds, filename }) {
   $("result").scrollIntoView({ behavior: "smooth", block: "start" });
 }
 
+fetch("/api/me").then((r) => (r.ok ? r.json() : Promise.reject(r))).then((me) => {
+  $("userName").textContent = me.name;
+  $("adminLink").hidden = !me.is_admin;
+  $("user").classList.add("show");
+}).catch(() => {});
+$("logout").addEventListener("click", async () => {
+  await fetch("/api/logout", { method: "POST" }).catch(() => {});
+  location.href = "/login";
+});
 fetch("/health").then((r) => r.json()).then((h) => {
   $("footer").textContent = `Extractor ${h.extractor_model} · Agent ${h.agent_model} · v${h.version}`;
 }).catch(() => {});

@@ -1,0 +1,63 @@
+/* Shared by login, request-access, invite and admin pages. Same tokens as index.html. */
+:root {
+  color-scheme: light;
+  --bg: #f5f7fb; --card: #ffffff; --text: #101828; --muted: #667085; --subtle: #98a2b3;
+  --line: #eaecf0; --line-strong: #d0d5dd;
+  --accent: #4f46e5; --accent-hover: #4338ca; --accent-soft: #eef2ff; --accent-ring: rgba(79, 70, 229, .18);
+  --ok: #067647; --ok-soft: #ecfdf3; --ok-line: #abefc6;
+  --warn: #b54708; --warn-soft: #fffaeb; --warn-line: #fedf89;
+  --bad: #b42318; --bad-soft: #fef3f2; --bad-line: #fecdca;
+  --radius: 14px;
+  --shadow: 0 1px 2px rgba(16, 24, 40, .04), 0 4px 16px rgba(16, 24, 40, .06);
+  --mono: ui-monospace, "Cascadia Code", Consolas, monospace;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--text); min-height: 100vh;
+       font: 15px/1.55 Inter, "Segoe UI", system-ui, -apple-system, sans-serif;
+       -webkit-font-smoothing: antialiased; }
+a { color: var(--accent); text-decoration: none; }
+a:hover { color: var(--accent-hover); text-decoration: underline; }
+
+.topbar { background: linear-gradient(120deg, #312e81 0%, #4f46e5 55%, #7c3aed 100%); color: #fff; }
+.topbar-inner { max-width: 1080px; margin: 0 auto; padding: 18px 24px; display: flex;
+                align-items: center; gap: 12px; }
+.topbar a { color: #fff; }
+.logo { width: 34px; height: 34px; border-radius: 10px; background: rgba(255, 255, 255, .16);
+        display: grid; place-items: center; }
+.brand { font-weight: 700; font-size: 17px; letter-spacing: -.2px; }
+.tag { margin-left: auto; font-size: 12px; font-weight: 500; padding: 5px 12px;
+       border-radius: 999px; background: rgba(255, 255, 255, .14); }
+
+.narrow { max-width: 440px; margin: 0 auto; padding: 40px 16px 64px; }
+.wide { max-width: 1080px; margin: 0 auto; padding: 28px 24px 64px; }
+.card { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius);
+        box-shadow: var(--shadow); padding: 26px 26px 22px; }
+h1 { font-size: 22px; font-weight: 700; letter-spacing: -.4px; margin: 0 0 4px; }
+.lede { color: var(--muted); margin: 0 0 20px; font-size: 14px; }
+
+label { display: block; font-size: 13px; font-weight: 600; margin: 14px 0 6px; }
+label .opt { color: var(--subtle); font-weight: 400; }
+input, textarea { width: 100%; font: inherit; color: var(--text); background: #fff;
+                  border: 1px solid var(--line-strong); border-radius: 10px; padding: 10px 12px; }
+textarea { min-height: 90px; resize: vertical; }
+input:focus, textarea:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 4px var(--accent-ring); }
+.hp { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; }
+
+button { display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+         background: var(--accent); color: #fff; border: 0; border-radius: 10px; padding: 11px 20px;
+         font: inherit; font-weight: 600; cursor: pointer; transition: background .15s; }
+button:hover:not(:disabled) { background: var(--accent-hover); }
+button:disabled { opacity: .5; cursor: not-allowed; }
+button.full { width: 100%; margin-top: 20px; }
+button.small { padding: 6px 12px; font-size: 13px; border-radius: 8px; }
+button.ghost { background: #fff; color: var(--text); border: 1px solid var(--line-strong); }
+button.ghost:hover:not(:disabled) { background: #f9fafb; }
+button.danger { background: #fff; color: var(--bad); border: 1px solid var(--bad-line); }
+button.danger:hover:not(:disabled) { background: var(--bad-soft); }
+
+.msg { display: none; margin-top: 16px; padding: 11px 14px; border-radius: 10px; font-size: 14px; border: 1px solid; }
+.msg.error { display: block; background: var(--bad-soft); color: var(--bad); border-color: var(--bad-line); }
+.msg.ok { display: block; background: var(--ok-soft); color: var(--ok); border-color: var(--ok-line); }
+.alt { text-align: center; margin-top: 18px; font-size: 14px; color: var(--muted); }
+.credit { text-align: center; margin-top: 22px; color: var(--subtle); font-size: 13px; }
+.credit b { color: var(--muted); font-weight: 600; }

@@ -51,10 +51,9 @@ class Settings(BaseSettings):
     agent_max_steps: int = 8
     log_level: str = "INFO"
 
-    # Hosted demo: when DEMO_PASSWORD is set, every page except /health asks for this
-    # user name and password (HTTP Basic auth). Empty = no login (local development).
-    demo_user: str = "demo"
-    demo_password: SecretStr = SecretStr("")
+    # User accounts (access requests, invites, sessions). Create the first admin with
+    # `invoice-agent create-admin`.
+    auth_db: Path = Path(".data/auth.sqlite")
 
     @field_validator("provider_order", mode="before")
     @classmethod

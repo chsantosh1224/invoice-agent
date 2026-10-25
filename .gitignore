@@ -10,3 +10,4 @@ dist/
 *.sqlite
 reports/raw/
 .vscode/
+.data/
