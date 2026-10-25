@@ -155,7 +155,8 @@ def test_perfect_transcription_normalizes_to_truth(country: Country) -> None:
             payment_terms=v["payment_terms"],
         )
         invoice, issues = to_invoice(raw)
-        assert issues == [], issues
+        # A bare "$" is reported as an assumption (USD); nothing else may be flagged.
+        assert {i.code for i in issues} <= {"currency.ambiguous_symbol"}, issues
         assert invoice == truth
 
 

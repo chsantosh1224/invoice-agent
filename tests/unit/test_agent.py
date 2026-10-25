@@ -26,7 +26,7 @@ def raw_from_truth(**overrides: Any) -> dict[str, Any]:
     raw: dict[str, Any] = {
         "document_type": t["document_type"], "invoice_number": t["invoice_number"],
         "invoice_date": t["invoice_date"], "due_date": t["due_date"],
-        "po_number": t["po_number"], "currency": "$",
+        "po_number": t["po_number"], "currency": "USD",  # bare "$" is ambiguous
         "vendor": {"name": t["vendor"]["name"], "address": None, "tax_id": t["vendor"]["tax_id"]},
         "buyer": {"name": t["buyer"]["name"], "address": None, "tax_id": t["buyer"]["tax_id"]},
         "line_items": [{k: li[k] for k in ("description", "quantity", "unit_price", "amount")}

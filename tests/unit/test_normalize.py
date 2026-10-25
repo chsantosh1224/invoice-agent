@@ -145,3 +145,44 @@ def test_zero_or_negative_discount_is_normalized() -> None:
     """'-500.00' and '(500.00)' are a 500 discount; an invented '0.00' is no discount."""
     assert to_invoice(_raw(discount="(500.00)"))[0].discount == Decimal("500.00")
     assert to_invoice(_raw(discount="0.00"))[0].discount is None
+
+
+def test_currency_is_taken_from_amounts_when_the_model_left_it_empty() -> None:
+    """The Sliced Invoices sample: no currency line, but '$93.50' is printed on the totals."""
+    invoice, issues = to_invoice(_raw(currency=None, total="₹5,310.00"))
+    assert invoice.currency == "INR"
+    assert [i.code for i in issues] == ["currency.inferred"]
+
+
+def test_bare_dollar_is_assumed_usd_but_flagged() -> None:
+    """'$' could be USD, AUD, CAD...: USD is assumed and reported, never silently."""
+    raw = _raw(currency=None, total="$93.50", subtotal="$85.00", tax_lines=[], line_items=[])
+    invoice, issues = to_invoice(raw)
+    assert invoice.currency == "USD"
+    codes = {i.code: i for i in issues}
+    assert (
+        "currency.ambiguous_symbol" in codes and "AUD" in codes["currency.ambiguous_symbol"].message
+    )
+
+
+@pytest.mark.parametrize(
+    ("printed", "code"),
+    [
+        ("A$ 93.50", "AUD"),
+        ("AU$93.50", "AUD"),
+        ("CA$ 12", "CAD"),
+        ("US$ 5", "USD"),
+        ("S$ 9", "SGD"),
+    ],
+)
+def test_prefixed_dollars_are_unambiguous(printed: str, code: str) -> None:
+    """Country-prefixed dollars resolve to the right currency with no ambiguity warning."""
+    invoice, issues = to_invoice(_raw(currency=printed))
+    assert invoice.currency == code
+    assert not [i for i in issues if i.code == "currency.ambiguous_symbol"]
+
+
+def test_conflicting_currency_symbols_are_an_error() -> None:
+    """Amounts printed in two currencies cannot be resolved; it is an error, not a pick."""
+    _, issues = to_invoice(_raw(currency=None, total="$100.00", subtotal="€90.00"))
+    assert any(i.code == "currency.conflicting_symbols" and i.severity == "error" for i in issues)

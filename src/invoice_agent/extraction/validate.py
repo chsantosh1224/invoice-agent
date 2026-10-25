@@ -29,6 +29,9 @@ LINE_TOLERANCE = Decimal("0.011")  # one cent of rounding per line
 TOTAL_TOLERANCE = Decimal("0.02")
 REQUIRED = ("invoice_number", "invoice_date", "vendor.name", "currency", "total")
 CRITICAL = (*REQUIRED, "due_date", "po_number", "subtotal", "tax", "discount")
+# Normalization warnings that mean a value was assumed, and the confidence it keeps.
+# 0.6 is below the 0.8 threshold: an assumed currency is always reviewed by a person.
+NORMALIZE_WARNING_CAPS = {"currency.ambiguous_symbol": 0.6}
 _GSTIN_LIKE = re.compile(r"^\d{2}[0-9A-Z]{13}$")
 
 # Label phrases per field. Order matters: earlier fields win when a phrase matches several
@@ -340,6 +343,12 @@ def validate(
         issues=list(normalize_issues or []),
         conf={k: 1.0 for k, v in flat.items() if v is not None},
     )
+    # Some normalization warnings mean "a value was assumed": lower that field's confidence
+    # so the assumption goes to review rather than being accepted silently.
+    for issue in findings.issues:
+        cap = NORMALIZE_WARNING_CAPS.get(issue.code)
+        if cap is not None and issue.field in findings.conf:
+            findings.conf[issue.field] = min(findings.conf[issue.field], cap)
     text = doc.text
     flat_text, nums = compact(text), numbers_in(text)
 

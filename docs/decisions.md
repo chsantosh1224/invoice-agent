@@ -54,3 +54,15 @@ The worry from the bake-off was that text-only Nemotron Super *transcribes* invo
 - [Live calibration](../reports/gate_calibration.md) (real dots-3 output, 37 dev invoices): 35 fully correct, all auto-accepted; 2 wrong (missing currency, one misread GSTIN character), both caught. **0 silent errors.** Thresholds from 0.5 to 0.95 behave the same; 0.99 would reject correct scans. 0.8 keeps that margin.
 
 **Known gap:** a full party swap on layouts with no buyer label. Fix in Week 2: match the vendor against the ERP vendor master (name + tax ID).
+
+## D6 (Week 1): Currency from printed amounts; a bare "$" is never assumed silently
+
+**Trigger:** a real third-party sample (Sliced Invoices, WordPress PDF plugin) printed `$93.50` on its amounts but no separate currency line. The model returned `currency: null`, and the gate reported "currency is missing". The invoice also mixes US and Australian signals (an Arizona vendor; a Melbourne buyer; ANZ bank details with a BSB number), so `$` may well mean AUD.
+
+**Decision:**
+1. If the currency field is empty, it is taken from the symbols printed on the amounts (`currency.inferred`). Amounts in different currencies are an error (`currency.conflicting_symbols`).
+2. A bare `$` (or `¥`) resolves to its most common currency (USD/JPY) but is reported as `currency.ambiguous_symbol`. The gate caps currency confidence at 0.6, below the 0.8 threshold, so a person confirms it. Prefixed dollars (`US$`, `A$`, `C$`, `NZ$`, `S$`, `HK$`), ISO codes and ₹/€/£ are unambiguous.
+
+**Impact** ([re-calibration](../reports/gate_calibration.md), 37 dev invoices, cached answers): fully correct 35 → 36; auto-accepted 35 → 34 (92%), because two correct US invoices printing only `$` now go to review; **silent errors stay 0**.
+
+**Known gap:** when the model writes `USD` itself for a document that prints only `$`, the assumption is not detected, because the currency field is not grounded against the page. Possible fixes: ground the currency field, or tighten the prompt. Later, the ERP vendor master or PO currency can settle `$` automatically (Week 2).

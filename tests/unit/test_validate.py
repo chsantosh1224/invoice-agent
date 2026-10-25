@@ -101,3 +101,14 @@ def test_ungrounded_value_is_an_error_on_digital_but_a_warning_on_scans() -> Non
     issue = next(i for i in scan.issues if i.field == "po_number")
     assert issue.code == "grounding.ocr_mismatch" and issue.severity == "warning"
     assert scan.field_confidence["po_number"] <= 0.5 and not scan.passed  # low score -> review
+
+
+def test_assumed_currency_is_sent_to_review() -> None:
+    """An ambiguous '$' warning from normalization caps currency confidence below threshold."""
+    from invoice_agent.schemas import ValidationIssue
+
+    warning = ValidationIssue(field="currency", code="currency.ambiguous_symbol",
+                              message="'$' could be USD, AUD", severity="warning")  # fmt: skip
+    report = validate(invoice(currency="USD"), doc(SPANS), normalize_issues=[warning])
+    assert report.field_confidence["currency"] == 0.6
+    assert not report.passed and not report.errors  # reviewed because of low confidence

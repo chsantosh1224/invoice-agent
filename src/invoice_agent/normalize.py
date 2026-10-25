@@ -155,16 +155,28 @@ def parse_date(text: str, *, dayfirst: bool | None = None) -> date:
 
 _SYMBOLS = {"₹": "INR", "RS": "INR", "RS.": "INR", "€": "EUR", "£": "GBP", "¥": "JPY", "$": "USD"}
 _ISO = re.compile(r"\b([A-Z]{3})\b")
+# Dollar signs with a country prefix are unambiguous. Longest first: 'CA$' contains 'A$'.
+_PREFIXED_DOLLARS = {
+    "US$": "USD", "AU$": "AUD", "CA$": "CAD", "NZ$": "NZD", "HK$": "HKD",
+    "A$": "AUD", "C$": "CAD", "S$": "SGD",
+}  # fmt: skip
+# Symbols used by several currencies; the first code is what we assume.
+AMBIGUOUS_SYMBOLS = {
+    "$": ("USD", "AUD", "CAD", "NZD", "SGD", "HKD", "MXN"),
+    "¥": ("JPY", "CNY"),
+}
+_NUMERIC_CHARS = set("0123456789.,-()/ ")
 
 
 def parse_currency(text: str) -> str:
     """Convert a printed currency symbol or code into an ISO 4217 code.
 
-    An explicit 3-letter code wins over a symbol, so 'CAD $' becomes CAD rather than USD.
-    A bare '$' defaults to USD.
+    Checked in order: prefixed dollars ('A$' -> AUD), an explicit 3-letter code ('CAD $'
+    -> CAD), then plain symbols. A bare '$' returns USD; use `ambiguous_symbol` to find out
+    whether that was an assumption.
 
     Args:
-        text: The currency as printed, e.g. '₹', 'Rs.', 'INR', '€', 'usd', 'CAD $'.
+        text: The currency as printed, e.g. '₹', 'Rs.', 'INR', '€', 'usd', 'A$', '$93.50'.
 
     Returns:
         The uppercase ISO 4217 code, e.g. 'INR'.
@@ -173,12 +185,15 @@ def parse_currency(text: str) -> str:
         ValueError: If no known symbol or 3-letter code is found.
 
     Example:
-        >>> parse_currency("Rs.")
-        'INR'
+        >>> parse_currency("A$ 93.50")
+        'AUD'
     """
     s = text.strip().upper()
     if s in _SYMBOLS:
         return _SYMBOLS[s]
+    for prefix, code in _PREFIXED_DOLLARS.items():
+        if prefix in s:
+            return code
     m = _ISO.search(s)
     if m:
         return m.group(1)
@@ -186,6 +201,38 @@ def parse_currency(text: str) -> str:
         if sym in s:
             return code
     raise ValueError(f"unknown currency {text!r}")
+
+
+def ambiguous_symbol(text: str) -> str | None:
+    """Tell whether a printed currency relies on a symbol shared by several currencies.
+
+    Args:
+        text: The currency or amount as printed, e.g. '$', '$93.50', 'US$ 5', 'USD 5'.
+
+    Returns:
+        The ambiguous symbol ('$' or '¥') if that is all the text says, or None when the
+        currency is unambiguous (an ISO code, a prefixed dollar, ₹/€/£, or no symbol).
+
+    Example:
+        >>> ambiguous_symbol("$93.50"), ambiguous_symbol("AUD 93.50")
+        ('$', None)
+    """
+    s = text.strip().upper()
+    if _ISO.search(s) or any(prefix in s for prefix in _PREFIXED_DOLLARS):
+        return None
+    return next((sym for sym in AMBIGUOUS_SYMBOLS if sym in s), None)
+
+
+def _has_currency_marker(text: str) -> bool:
+    """Check whether a printed amount carries a currency symbol or code.
+
+    Args:
+        text: An amount as printed, e.g. '$93.50' or '93.50'.
+
+    Returns:
+        True if it contains anything besides digits, separators, signs and spaces.
+    """
+    return any(c not in _NUMERIC_CHARS for c in text)
 
 
 # ---------- whole invoice ----------
@@ -317,28 +364,110 @@ def _date_field(
     return None
 
 
-def _currency_field(text: str | None, issues: list[ValidationIssue]) -> str | None:
-    """Parse the currency field, recording a warning instead of raising.
+def _printed_amounts(raw: RawInvoice) -> list[str]:
+    """Collect every amount string the model transcribed (totals, taxes, line items).
 
     Args:
-        text: The printed currency (symbol or code), or None.
-        issues: List the warning is appended to when the currency is unknown.
+        raw: The transcription.
 
     Returns:
-        The ISO 4217 code, or None if absent or unknown.
+        The non-empty amount strings, totals first.
     """
-    cleaned = _clean(text)
-    if cleaned is None:
-        return None
-    try:
-        return parse_currency(cleaned)
-    except ValueError as e:
+    texts = [raw.total, raw.subtotal, raw.discount, *(t.amount for t in raw.tax_lines)]
+    for li in raw.line_items:
+        texts += [li.amount, li.unit_price]
+    return [t for t in texts if t and t.strip()]
+
+
+def _currency_from_amounts(
+    raw: RawInvoice, issues: list[ValidationIssue]
+) -> tuple[str | None, str | None]:
+    """Work out the currency from the symbols printed on the amounts.
+
+    Used when the model left `currency` empty because the document has no separate
+    currency line - the symbol on '$93.50' is still printed evidence, not a guess.
+
+    Args:
+        raw: The transcription.
+        issues: Receives a warning saying the currency was taken from the amounts, or
+            that the amounts carry conflicting currencies.
+
+    Returns:
+        (ISO code, an example amount it came from), or (None, None) if no amount carries
+        a currency or the amounts disagree.
+    """
+    found: dict[str, str] = {}
+    for text in _printed_amounts(raw):
+        if not _has_currency_marker(text):
+            continue
+        try:
+            found.setdefault(parse_currency(text), text)
+        except ValueError:
+            continue
+    if len(found) > 1:
         issues.append(
             ValidationIssue(
-                field="currency", code="normalize.currency", message=str(e), severity="warning"
+                field="currency",
+                code="currency.conflicting_symbols",
+                message=f"amounts are printed in different currencies: {sorted(found)}",
             )
         )
-        return None
+        return None, None
+    if not found:
+        return None, None
+    code, example = next(iter(found.items()))
+    issues.append(
+        ValidationIssue(
+            field="currency",
+            code="currency.inferred",
+            message=f"no currency stated; taken from amounts printed like {example!r}",
+            severity="warning",
+        )
+    )
+    return code, example
+
+
+def _currency_field(raw: RawInvoice, issues: list[ValidationIssue]) -> str | None:
+    """Resolve the invoice currency: the currency field, else the symbols on the amounts.
+
+    A bare '$' or '¥' is resolved to its most common currency (USD, JPY) but reported as
+    `currency.ambiguous_symbol`, so the validation gate sends the invoice to review instead
+    of silently assuming. That assumption also decides how DD/MM vs MM/DD dates are read.
+
+    Args:
+        raw: The transcription.
+        issues: Receives warnings (unknown, inferred, ambiguous) and the conflict error.
+
+    Returns:
+        The ISO 4217 code, or None if no currency can be determined.
+    """
+    printed = _clean(raw.currency)
+    code: str | None = None
+    if printed is not None:
+        try:
+            code = parse_currency(printed)
+        except ValueError as e:
+            issues.append(
+                ValidationIssue(
+                    field="currency", code="normalize.currency", message=str(e), severity="warning"
+                )
+            )
+    if code is None:
+        code, printed = _currency_from_amounts(raw, issues)
+    if code is not None and printed is not None:
+        symbol = ambiguous_symbol(printed)
+        if symbol is not None:
+            options = ", ".join(AMBIGUOUS_SYMBOLS[symbol])
+            issues.append(
+                ValidationIssue(
+                    field="currency",
+                    code="currency.ambiguous_symbol",
+                    message=f"'{symbol}' alone could be {options}; assumed {code}. "
+                    "Confirm against the vendor or PO.",
+                    severity="warning",
+                )
+            )
+    return code
 
 
 def to_invoice(raw: RawInvoice) -> tuple[Invoice, list[ValidationIssue]]:
@@ -358,7 +487,7 @@ def to_invoice(raw: RawInvoice) -> tuple[Invoice, list[ValidationIssue]]:
         - the list of normalization issues found (empty when everything parsed).
     """
     issues: list[ValidationIssue] = []
-    currency = _currency_field(raw.currency, issues)
+    currency = _currency_field(raw, issues)
     dayfirst = None if currency is None else currency in DAYFIRST_CURRENCIES
 
     items = [
