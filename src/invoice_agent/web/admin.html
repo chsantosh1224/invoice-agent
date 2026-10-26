@@ -32,6 +32,9 @@
   .link-row { display: flex; gap: 8px; margin-top: 10px; }
   .link-row input { font-family: var(--mono); font-size: 13px; }
   .hint { color: var(--muted); font-size: 13px; margin: 8px 0 0; }
+  .mail { margin: 10px 0 0; padding: 9px 12px; border-radius: 10px; font-size: 14px; border: 1px solid; }
+  .mail.sent { background: var(--ok-soft); color: var(--ok); border-color: var(--ok-line); }
+  .mail.failed { background: var(--warn-soft); color: var(--warn); border-color: var(--warn-line); }
 </style>
 </head>
 <body>
@@ -53,8 +56,9 @@
 
   <div class="card" id="invite">
     <h1 style="font-size:17px">Invite link for <span id="inviteName"></span></h1>
-    <p class="lede" style="margin:0">Send this link to them yourself (Upwork, email, WhatsApp). It works
-      once and expires in 7 days.</p>
+    <p class="lede" style="margin:0" id="inviteNote">Send this link to them yourself (Upwork, email,
+      WhatsApp). It works once and expires in 7 days.</p>
+    <p class="mail" id="mailStatus" hidden></p>
     <div class="link-row">
       <input id="inviteUrl" readonly>
       <button class="small" id="copy" type="button">Copy</button>
@@ -118,6 +122,20 @@ async function act(user, action) {
     if (data.invite_url) {
       document.getElementById("inviteName").textContent = `${user.name} (${user.email})`;
       document.getElementById("inviteUrl").value = data.invite_url;
+      const mail = document.getElementById("mailStatus");
+      const note = document.getElementById("inviteNote");
+      mail.hidden = !(data.emailed || data.email_error);
+      if (data.emailed) {
+        mail.className = "mail sent";
+        mail.textContent = `✓ Emailed to ${user.email}. Nothing else to do; the link below is a backup.`;
+        note.hidden = true;
+      } else {
+        note.hidden = false;
+        if (data.email_error) {
+          mail.className = "mail failed";
+          mail.textContent = `The email couldn't be sent (${data.email_error}). Send the link yourself.`;
+        }
+      }
       document.getElementById("invite").className = "card show";
       document.getElementById("invite").scrollIntoView({ behavior: "smooth" });
     }

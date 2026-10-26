@@ -55,6 +55,16 @@ class Settings(BaseSettings):
     # `invoice-agent create-admin`.
     auth_db: Path = Path(".data/auth.sqlite")
 
+    # Email (invites, access-request notices). Empty SMTP_HOST = no email: the admin
+    # copies invite links by hand. Resend: host smtp.resend.com, port 587, user 'resend',
+    # password = a Resend API key; MAIL_FROM must be on a domain verified in Resend.
+    smtp_host: str = ""
+    smtp_port: int = 587
+    smtp_user: str = ""
+    smtp_password: SecretStr = SecretStr("")
+    mail_from: str = ""  # e.g. invites@aicruit.in
+    mail_from_name: str = "Invoice Agent"
+
     @field_validator("provider_order", mode="before")
     @classmethod
     def _split_csv(cls, v: object) -> object:

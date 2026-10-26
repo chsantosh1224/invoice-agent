@@ -59,8 +59,9 @@ failed: `tail -f /var/log/cloud-init-output.log`.
 
 1. A visitor fills in `/request-access` (name, email, optional company and reason).
 2. You log in and open **Admin** (top right): pending requests are listed first.
-3. **Approve** shows a one-time invite link (valid 7 days). Send it yourself, e.g. on
-   Upwork, email or WhatsApp. Don't open it yourself: that uses it up.
+3. **Approve** emails them a one-time invite link (valid 7 days), once email is set up
+   (see [Email](#email)); the admin page shows the link too, as a backup. Without email,
+   send the link yourself. Don't open it yourself: that uses it up.
 4. They open it, choose a password and are logged in. Logins last 14 days.
 
 Also on the admin page: **Reject** a request; **Disable** someone (logs them out
@@ -69,12 +70,33 @@ was forgotten (the old password works until the new link is used). Five wrong pa
 for one email block that email for 15 minutes. Forgot your own admin password? Run
 `sudo invoice-setup admin` again with the same email.
 
+## Email
+
+Invites and "new access request" notices go out through [Resend](https://resend.com)
+(free up to 100 emails a day) from `invites@aicruit.in`. One-time setup:
+
+1. Sign up at resend.com → *Domains → Add domain* → `aicruit.in` (region of your choice).
+2. Resend lists DNS records (a DKIM `TXT`, plus an `MX` and a `TXT` for the `send`
+   subdomain; optionally DMARC). Add each in GoDaddy (*aicruit.in → DNS → Add new
+   record*), copying name and value exactly. Note GoDaddy adds `.aicruit.in` to names
+   itself: enter `resend._domainkey`, not `resend._domainkey.aicruit.in`.
+3. Back in Resend, *Verify*; wait until the domain shows **Verified** (minutes to hours).
+4. Resend → *API Keys → Create* with **Sending access** only.
+5. On the server: `sudo invoice-setup email` → From address (Enter for
+   `invites@aicruit.in`) and the API key (hidden). It restarts the app and asks where to
+   send a test email.
+
+New links for people who already have access (*New invite link*, *Password reset link*)
+are not emailed: copy them from the admin page. If an email fails, the admin page says
+why and shows the link to send by hand.
+
 ## Day to day
 
 ```bash
 sudo invoice-setup update   # after pushing to GitHub: pull, rebuild, restart
 sudo invoice-setup logs     # follow the app's logs
 sudo invoice-setup admin    # create the admin, or reset its password
+sudo invoice-setup email    # set or change the email settings (sends a test)
 sudo invoice-setup          # change the domain or the API key
 ```
 

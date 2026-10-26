@@ -17,11 +17,12 @@ from pathlib import Path
 from typing import Annotated, Any, Literal
 
 import structlog
-from fastapi import APIRouter, Depends, HTTPException, Request, Response
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request, Response
 from fastapi.responses import FileResponse, JSONResponse, RedirectResponse
 from pydantic import BaseModel, Field
 from starlette.middleware.base import BaseHTTPMiddleware, RequestResponseEndpoint
 
+from invoice_agent.auth.mailer import Email, Mailer, MailError, invite_email, request_notice
 from invoice_agent.auth.passwords import MIN_PASSWORD_LENGTH
 from invoice_agent.auth.store import SESSION_DAYS, AuthStore, User, normalize_email
 from invoice_agent.auth.throttle import LoginThrottle
@@ -65,6 +66,48 @@ def get_store(request: Request) -> AuthStore:
         return store
 
 
+def get_mailer(request: Request) -> Mailer:
+    """The app's email sender. Tests replace it by setting `app.state.mailer`.
+
+    Args:
+        request: Any request (gives access to the app).
+
+    Returns:
+        The Mailer (which may be disabled if SMTP isn't configured).
+    """
+    mailer: Mailer | None = getattr(request.app.state, "mailer", None)
+    return mailer if mailer is not None else Mailer(get_settings())
+
+
+def _site(request: Request) -> str:
+    """This site's base address, for links in emails.
+
+    Args:
+        request: The current request (behind Caddy it reports https and the real host).
+
+    Returns:
+        E.g. 'https://invoice.aicruit.in', without a trailing slash.
+    """
+    return str(request.base_url).rstrip("/")
+
+
+def _send_all(mailer: Mailer, emails: list[Email]) -> None:
+    """Send emails in the background, logging (not raising) failures.
+
+    Args:
+        mailer: The email sender.
+        emails: The messages.
+
+    Returns:
+        None.
+    """
+    for email in emails:
+        try:
+            mailer.send(email)
+        except MailError as e:
+            log.warning("mail.failed", subject=email.subject, error=str(e))
+
+
 def current_user(request: Request) -> User:
     """The logged-in user, as found by `SessionGate`.
 
@@ -84,6 +127,7 @@ def current_user(request: Request) -> User:
 
 
 Store = Annotated[AuthStore, Depends(get_store)]
+Mail = Annotated[Mailer, Depends(get_mailer)]
 CurrentUser = Annotated[User, Depends(current_user)]
 
 
@@ -301,12 +345,21 @@ class AccessRequestBody(BaseModel):
 
 
 @router.post("/api/access-requests", status_code=202)
-def request_access(body: AccessRequestBody, store: Store) -> dict[str, Any]:
-    """Record a request for access, for the admin to approve.
+def request_access(
+    body: AccessRequestBody,
+    request: Request,
+    background: BackgroundTasks,
+    store: Store,
+    mailer: Mail,
+) -> dict[str, Any]:
+    """Record a request for access, for the admin to approve, and email the admins.
 
     Args:
         body: The form fields.
+        request: The current request (for the admin-page link in the email).
+        background: Runs the email after the response, so the form answers at once.
         store: The user database.
+        mailer: The email sender (nothing is sent if email isn't configured).
 
     Returns:
         {'ok': True}: the same answer for new, repeated and bot requests, so the form
@@ -324,6 +377,16 @@ def request_access(body: AccessRequestBody, store: Store) -> dict[str, Any]:
         raise HTTPException(503, "We aren't taking new requests right now. Please try later.")
     if store.request_access(body.name, body.email, body.company, body.reason):
         log.info("auth.access_requested")
+        if mailer.enabled:
+            notices = [
+                request_notice(
+                    admin.email, body.name.strip(), normalize_email(body.email),
+                    body.company.strip(), body.reason.strip(), f"{_site(request)}/admin",
+                )
+                for admin in store.list_users()
+                if admin.is_admin and admin.status == "approved"
+            ]  # fmt: skip
+            background.add_task(_send_all, mailer, notices)
     return {"ok": True}
 
 
@@ -377,27 +440,42 @@ def admin_users(store: Store) -> dict[str, Any]:
 
 
 @router.post("/api/admin/users/{user_id}/approve")
-def admin_approve(user_id: int, request: Request, store: Store) -> dict[str, Any]:
+def admin_approve(user_id: int, request: Request, store: Store, mailer: Mail) -> dict[str, Any]:
     """Approve a request (or re-enable a user, or resend an invite) and get the invite link.
+
+    A real approval (the user didn't have access before) also emails them the link, if
+    email is configured. A new link for someone who already has access (expired invite,
+    forgotten password) is only shown to the admin, to send by hand.
 
     Args:
         user_id: The user to approve.
         request: The current request (its address is used to build the link).
         store: The user database.
+        mailer: The email sender.
 
     Returns:
-        {'invite_url': 'https://<this site>/invite#<token>'}: send it to the user. The
-        token sits after '#', so browsers never send it to the server in logs or
-        Referer headers.
+        {'invite_url': 'https://<this site>/invite#<token>', 'emailed': bool,
+        'email_error': str | None}. The token sits after '#', so browsers never send it
+        to the server in logs or Referer headers.
 
     Raises:
         HTTPException: 404 if there is no such user.
     """
+    before = store.get(user_id)
     token = store.approve(user_id)
-    if token is None:
+    if before is None or token is None:
         raise HTTPException(404, "No such user")
-    log.info("auth.approved", user_id=user_id)
-    return {"invite_url": f"{str(request.base_url).rstrip('/')}/invite#{token}"}
+    invite_url = f"{_site(request)}/invite#{token}"
+    emailed, email_error = False, None
+    if before.status != "approved" and mailer.enabled:
+        try:
+            mailer.send(invite_email(before, invite_url))
+            emailed = True
+        except MailError as e:
+            email_error = str(e)
+            log.warning("mail.invite_failed", user_id=user_id, error=email_error)
+    log.info("auth.approved", user_id=user_id, emailed=emailed)
+    return {"invite_url": invite_url, "emailed": emailed, "email_error": email_error}
 
 
 @router.post("/api/admin/users/{user_id}/reject")

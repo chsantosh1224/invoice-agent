@@ -1,16 +1,19 @@
 from collections.abc import Iterator
 from datetime import timedelta
 from pathlib import Path
+from typing import ClassVar
 
 import pytest
 from fastapi.testclient import TestClient
 
 from invoice_agent import api
 from invoice_agent.auth import routes
+from invoice_agent.auth.mailer import Email, Mailer, MailError
 from invoice_agent.auth.passwords import hash_password, verify_password
 from invoice_agent.auth.routes import COOKIE
 from invoice_agent.auth.store import AuthStore, _iso, _now
 from invoice_agent.auth.throttle import LoginThrottle
+from invoice_agent.config import Settings
 
 ADMIN_PASSWORD = "admin-password-1"
 
@@ -26,8 +29,36 @@ def store(tmp_path: Path) -> Iterator[AuthStore]:
     s.close()
 
 
+class FakeMailer(Mailer):
+    """Records emails instead of sending them; can be switched off or made to fail."""
+
+    def __init__(self, enabled: bool = False, fail: bool = False) -> None:
+        super().__init__(Settings())
+        self.on, self.fail, self.sent = enabled, fail, []  # type: ignore[var-annotated]
+
+    @property
+    def enabled(self) -> bool:
+        return self.on
+
+    def send(self, email: Email) -> None:
+        if self.fail:
+            raise MailError("SMTPAuthenticationError: bad key")
+        self.sent.append(email)
+
+
 @pytest.fixture
-def client(store: AuthStore, monkeypatch: pytest.MonkeyPatch) -> Iterator[TestClient]:
+def mailer() -> Iterator[FakeMailer]:
+    """The app's mailer for this test: off unless a test turns it on."""
+    fake = FakeMailer()
+    api.app.state.mailer = fake
+    yield fake
+    api.app.state.mailer = None
+
+
+@pytest.fixture
+def client(
+    store: AuthStore, mailer: FakeMailer, monkeypatch: pytest.MonkeyPatch
+) -> Iterator[TestClient]:
     """A logged-out browser, with a fresh login throttle."""
     monkeypatch.setattr(routes, "throttle", LoginThrottle())
     with TestClient(api.app) as c:
@@ -159,3 +190,107 @@ def test_admin_cannot_lock_themselves_out(client: TestClient, store: AuthStore) 
     assert login(client, "admin@example.com", ADMIN_PASSWORD) == 200
     admin_id = store.list_users()[0].id
     assert client.post(f"/api/admin/users/{admin_id}/disable").status_code == 400
+
+
+# ---------- email ----------
+
+
+def pending_id(store: AuthStore, email: str) -> int:
+    """The id of the user with this email."""
+    return next(u.id for u in store.list_users() if u.email == email)
+
+
+def test_request_emails_the_admins(client: TestClient, mailer: FakeMailer) -> None:
+    """A new request sends each admin a notice with the details and the admin-page link."""
+    mailer.on = True
+    assert request_access(client, "ann@example.com", name="Ann\nClient") == 202
+    [notice] = mailer.sent
+    assert notice.to == "admin@example.com"
+    assert notice.subject == "Access request: Ann Client"  # no line break in the header
+    assert "ann@example.com" in notice.text and "http://testserver/admin" in notice.text
+    assert request_access(client, "ann@example.com") == 202  # repeat: no second email
+    assert len(mailer.sent) == 1
+
+
+def test_approval_emails_the_invite_but_new_links_do_not(
+    client: TestClient, store: AuthStore, mailer: FakeMailer
+) -> None:
+    """Approve -> invite emailed; 'new invite link' later -> shown to the admin only."""
+    request_access(client, "ann@example.com")
+    mailer.on = True
+    login(client, "admin@example.com", ADMIN_PASSWORD)
+    ann = pending_id(store, "ann@example.com")
+    first = client.post(f"/api/admin/users/{ann}/approve").json()
+    assert first["emailed"] is True and first["email_error"] is None
+    [invite] = mailer.sent
+    assert invite.to == "ann@example.com" and first["invite_url"] in invite.text
+    assert first["invite_url"] in invite.html
+    again = client.post(f"/api/admin/users/{ann}/approve").json()
+    assert again["emailed"] is False and len(mailer.sent) == 1
+
+
+def test_failed_email_still_gives_the_admin_the_link(
+    client: TestClient, store: AuthStore, mailer: FakeMailer
+) -> None:
+    """If the provider refuses, approval still succeeds and the admin sees why."""
+    request_access(client, "ann@example.com")
+    mailer.on, mailer.fail = True, True
+    login(client, "admin@example.com", ADMIN_PASSWORD)
+    resp = client.post(f"/api/admin/users/{pending_id(store, 'ann@example.com')}/approve")
+    body = resp.json()
+    assert resp.status_code == 200 and "/invite#" in body["invite_url"]
+    assert body["emailed"] is False and "bad key" in body["email_error"]
+
+
+def test_invite_email_escapes_names() -> None:
+    """A name with HTML in it is shown as text in the email, not as markup."""
+    from invoice_agent.auth.mailer import invite_email
+    from invoice_agent.auth.store import User
+
+    user = User(1, "x@example.com", "<b>Eve</b>", "", "", "approved", False, False, True,
+                "2026-01-01", None, None)  # fmt: skip
+    email = invite_email(user, "https://site/invite#tok")
+    assert "<b>Eve</b>" not in email.html and "&lt;b&gt;Eve&lt;/b&gt;" in email.html
+
+
+class FakeSMTP:
+    """Stands in for smtplib.SMTP and records what the mailer does."""
+
+    calls: ClassVar[list[str]] = []
+
+    def __init__(self, host: str, port: int, timeout: float) -> None:
+        FakeSMTP.calls = [f"connect {host}:{port}"]
+
+    def __enter__(self) -> "FakeSMTP":
+        return self
+
+    def __exit__(self, *exc: object) -> None:
+        FakeSMTP.calls.append("quit")
+
+    def starttls(self, context: object) -> None:
+        FakeSMTP.calls.append("starttls")
+
+    def login(self, user: str, password: str) -> None:
+        FakeSMTP.calls.append(f"login {user}")
+
+    def send_message(self, msg: object) -> None:
+        FakeSMTP.calls.append(f"send to {msg['To']} from {msg['From']}")  # type: ignore[index]
+
+
+def test_mailer_uses_starttls_and_logs_in(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Port 587: connect, upgrade to TLS, log in, send, quit - with the right From."""
+    from pydantic import SecretStr
+
+    monkeypatch.setattr("invoice_agent.auth.mailer.smtplib.SMTP", FakeSMTP)
+    settings = Settings(
+        smtp_host="smtp.resend.com",
+        smtp_user="resend",
+        smtp_password=SecretStr("re_x"),
+        mail_from="invites@aicruit.in",
+    )
+    Mailer(settings).send(Email("ann@example.com", "Hi", "text", "<p>html</p>"))
+    assert FakeSMTP.calls == [
+        "connect smtp.resend.com:587", "starttls", "login resend",
+        "send to ann@example.com from Invoice Agent <invites@aicruit.in>", "quit",
+    ]  # fmt: skip
+    assert not Mailer(Settings(smtp_host="")).enabled

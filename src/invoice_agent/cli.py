@@ -497,6 +497,38 @@ def create_admin(
 
 
 @app.command()
+def send_test_email(
+    to: Annotated[str, typer.Option(prompt="Send a test email to", help="Recipient")],
+) -> None:
+    """Check the email settings by sending one test message.
+
+    Usage: `invoice-agent send-test-email`; on the server `sudo invoice-setup email` runs it.
+
+    Args:
+        to: Where to send the test.
+
+    Returns:
+        None. Prints whether it worked.
+
+    Raises:
+        typer.Exit: With code 1 if email isn't configured or sending fails.
+    """
+    from invoice_agent.auth.mailer import Email, Mailer, MailError
+
+    mailer = Mailer(get_settings())
+    if not mailer.enabled:
+        typer.echo("Email isn't configured: set SMTP_HOST and MAIL_FROM.", err=True)
+        raise typer.Exit(1)
+    text = "This is a test from Invoice Agent. Invites and access-request notices will work."
+    try:
+        mailer.send(Email(to, "Invoice Agent: test email", text, f"<p>{text}</p>"))
+    except MailError as e:
+        typer.echo(f"Sending failed: {e}", err=True)
+        raise typer.Exit(1) from e
+    typer.echo(f"Sent to {to}. Check the inbox (and the spam folder).")
+
+
+@app.command()
 def serve(
     host: Annotated[str, typer.Option(help="Interface to bind; 127.0.0.1 = this PC only")] = (
         "127.0.0.1"
