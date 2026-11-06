@@ -131,7 +131,12 @@ def extract(
         path.write_bytes(data)
         try:
             result, seconds = process_document(
-                path, settings, mode="router" if use_agent else "fast", cache=cache
+                path,
+                settings,
+                mode="router" if use_agent else "fast",
+                cache=cache,
+                user_id=str(user.id),
+                filename=file.filename,
             )
         finally:
             if cache is not None:

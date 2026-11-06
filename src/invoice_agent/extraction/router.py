@@ -13,9 +13,11 @@ from pathlib import Path
 from typing import Any
 
 import structlog
+from langchain_core.callbacks import BaseCallbackHandler
 from langchain_core.language_models import BaseChatModel
 from langchain_core.messages import HumanMessage
 
+from invoice_agent import tracing
 from invoice_agent.config import Settings, get_settings
 from invoice_agent.extraction.agent import workspace
 from invoice_agent.extraction.agent.graph import build_extraction_agent
@@ -54,6 +56,8 @@ def process_document(
     mode: str = "router",
     cache: ResponseCache | None = None,
     llm_factory: Callable[[str, Settings], BaseChatModel] = get_chat_model,
+    user_id: str | None = None,
+    filename: str | None = None,
 ) -> tuple[ExtractionResult, float]:
     """Extract one invoice: fast path, then the agent if the validation gate fails.
 
@@ -63,6 +67,8 @@ def process_document(
         mode: 'router' (fast path + agent) or 'fast' (fast path only).
         cache: Response cache for the fast path's LLM call.
         llm_factory: Creates chat models; tests pass fakes.
+        user_id: Who uploaded it; recorded on the Langfuse trace (if tracing is on).
+        filename: The original file name, for the trace; defaults to the path's name.
 
     Returns:
         (result, seconds). `result.route` says which path produced the answer; agent
@@ -73,12 +79,44 @@ def process_document(
     settings = settings or get_settings()
     started = time.perf_counter()
     run_id = uuid.uuid4().hex[:12]
+    with tracing.trace_run(
+        settings, run_id, mode=mode, user_id=user_id, filename=filename or path.name
+    ) as trace:
+        result = _route(path, settings, mode, cache, llm_factory, run_id, trace.callbacks)
+        result = result.model_copy(update={"trace_id": trace.trace_id})
+        trace.finish(result)
+    return result, time.perf_counter() - started
+
+
+def _route(
+    path: Path,
+    settings: Settings,
+    mode: str,
+    cache: ResponseCache | None,
+    llm_factory: Callable[[str, Settings], BaseChatModel],
+    run_id: str,
+    callbacks: list[BaseCallbackHandler],
+) -> ExtractionResult:
+    """Run the fast path, and the agent models in turn if the gate rejects its answer.
+
+    Args:
+        path: A PDF or image.
+        settings: App settings.
+        mode: 'router' or 'fast'.
+        cache: Response cache for the fast path's LLM call.
+        llm_factory: Creates chat models.
+        run_id: Correlates log lines (and the trace) across both paths.
+        callbacks: LangChain callbacks for every graph run (Langfuse when tracing).
+
+    Returns:
+        The final ExtractionResult (see `process_document`).
+    """
     fast = build_fast_path(settings, llm_factory=llm_factory, cache=cache).invoke(
-        {"path": str(path), "run_id": run_id}
+        {"path": str(path), "run_id": run_id}, config={"callbacks": callbacks}
     )
     result: ExtractionResult = fast["result"]
     if mode == "fast" or result.status == "accepted" or fast.get("raw") is None:
-        return result, time.perf_counter() - started
+        return result
 
     log.info("router.escalate", run_id=run_id, issues=[i.code for i in result.issues])
     doc_id = workspace.register(workspace.Workspace(Path(path), fast["doc"], fast["images"]))
@@ -86,15 +124,13 @@ def process_document(
     try:
         for model in dict.fromkeys([settings.agent_model, settings.agent_fallback_model]):
             try:
-                agent_result = _run_agent(
-                    model, fast, result, doc_id, run_id, settings, llm_factory
+                return _run_agent(
+                    model, fast, result, doc_id, run_id, settings, llm_factory, callbacks
                 )
             except Exception as e:  # provider down, model removed, ...: try the next model
                 errors.append(f"{model.split('/')[-1]}: {type(e).__name__}")
                 log.warning("router.agent_failed", run_id=run_id, model=model,
                             error=f"{type(e).__name__}: {e}"[:300])  # fmt: skip
-                continue
-            return agent_result, time.perf_counter() - started
     finally:
         workspace.release(doc_id)
 
@@ -107,8 +143,7 @@ def process_document(
         + "); showing the fast-path result",
         severity="warning",
     )
-    result = result.model_copy(update={"issues": [*result.issues, unavailable]})
-    return result, time.perf_counter() - started
+    return result.model_copy(update={"issues": [*result.issues, unavailable]})
 
 
 def _run_agent(
@@ -119,6 +154,7 @@ def _run_agent(
     run_id: str,
     settings: Settings,
     llm_factory: Callable[[str, Settings], BaseChatModel],
+    callbacks: list[BaseCallbackHandler],
 ) -> ExtractionResult:
     """Run the extraction agent with one model on a document the gate rejected.
 
@@ -130,6 +166,7 @@ def _run_agent(
         run_id: Correlates log lines with the fast-path run.
         settings: App settings (step limit, gate threshold).
         llm_factory: Creates the chat model.
+        callbacks: LangChain callbacks for the agent run (Langfuse when tracing).
 
     Returns:
         The agent's ExtractionResult (route='agent'), already re-checked by the gate.
@@ -154,7 +191,7 @@ def _run_agent(
             "run_id": run_id,
             "steps": 0,
         },
-        config={"recursion_limit": 4 * settings.agent_max_steps + 10},
+        config={"recursion_limit": 4 * settings.agent_max_steps + 10, "callbacks": callbacks},
     )
     agent_result: ExtractionResult = state["result"]
     return agent_result

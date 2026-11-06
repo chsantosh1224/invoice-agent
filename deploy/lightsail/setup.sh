@@ -4,6 +4,7 @@
 #   sudo invoice-setup          ask for the domain and OpenRouter key; start
 #   sudo invoice-setup admin    create your admin login (or reset its password)
 #   sudo invoice-setup email    set up sending email (Resend); sends a test message
+#   sudo invoice-setup langfuse turn on Langfuse tracing (Langfuse Cloud keys)
 #   sudo invoice-setup update   pull the latest code from GitHub, rebuild and restart
 #   sudo invoice-setup logs     follow the app's logs (Ctrl+C to stop)
 #
@@ -72,6 +73,29 @@ configure_email() {
     "${COMPOSE[@]}" exec app invoice-agent send-test-email
 }
 
+configure_langfuse() {
+    local region host public secret
+    read -rp "Langfuse Cloud region, eu or us [eu]: " region
+    case "${region:-eu}" in
+        eu) host=https://cloud.langfuse.com ;;
+        us) host=https://us.cloud.langfuse.com ;;
+        *) echo "Enter eu or us; nothing was changed."; exit 1 ;;
+    esac
+    read -rp "Langfuse public key (pk-lf-...): " public
+    read -rsp "Langfuse secret key (sk-lf-..., input hidden): " secret
+    echo
+    if [[ ! $public =~ ^pk-lf- || ! $public =~ $SAFE || ! $secret =~ ^sk-lf- || ! $secret =~ $SAFE ]]; then
+        echo "Those don't look like Langfuse keys; nothing was changed."
+        exit 1
+    fi
+    set_env LANGFUSE_HOST "$host"
+    set_env LANGFUSE_PUBLIC_KEY "$public"
+    set_env LANGFUSE_SECRET_KEY "$secret"
+    echo "Saved. Restarting the app with tracing on..."
+    "${COMPOSE[@]}" up -d --force-recreate app
+    echo "Upload an invoice; its trace appears in Langfuse (Tracing) within a minute."
+}
+
 start() {
     "${COMPOSE[@]}" up -d --build
     echo -n "Waiting for the app to start"
@@ -101,6 +125,9 @@ case "${1:-}" in
     email)
         configure_email
         ;;
+    langfuse)
+        configure_langfuse
+        ;;
     update)
         git -C "$APP_DIR" pull --ff-only
         install -m 755 "$APP_DIR/deploy/lightsail/setup.sh" /usr/local/bin/invoice-setup
@@ -110,7 +137,7 @@ case "${1:-}" in
         "${COMPOSE[@]}" logs -f --tail 100
         ;;
     *)
-        echo "Usage: sudo invoice-setup [admin|email|update|logs]"
+        echo "Usage: sudo invoice-setup [admin|email|langfuse|update|logs]"
         exit 1
         ;;
 esac

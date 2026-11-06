@@ -90,6 +90,23 @@ New links for people who already have access (*New invite link*, *Password reset
 are not emailed: copy them from the admin page. If an email fails, the admin page says
 why and shows the link to send by hand.
 
+## Tracing (Langfuse)
+
+Optional. Each upload becomes one trace in [Langfuse Cloud](https://cloud.langfuse.com):
+the fast path's LLM call, every agent step and tool call, tokens, latency, cost, the user
+(account id) and the outcome. One-time setup:
+
+1. Sign up at cloud.langfuse.com (free Hobby plan) → create an organisation and a project
+   (pick the EU or US region).
+2. Project → *Settings → API Keys → Create new API keys*.
+3. On the server: `sudo invoice-setup langfuse` → region, public key, secret key (hidden).
+   It restarts the app.
+4. Upload an invoice; it shows up under *Tracing* within a minute.
+
+Traces contain the invoice text and the models' answers, so use demo invoices, or tell a
+client before running their real ones. To turn tracing off, delete the three `LANGFUSE_`
+lines from `/etc/invoice-agent/app.env` and run `sudo invoice-setup update`.
+
 ## Day to day
 
 ```bash
@@ -97,6 +114,7 @@ sudo invoice-setup update   # after pushing to GitHub: pull, rebuild, restart
 sudo invoice-setup logs     # follow the app's logs
 sudo invoice-setup admin    # create the admin, or reset its password
 sudo invoice-setup email    # set or change the email settings (sends a test)
+sudo invoice-setup langfuse # set or change the Langfuse keys
 sudo invoice-setup          # change the domain or the API key
 ```
 

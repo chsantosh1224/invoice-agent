@@ -184,3 +184,4 @@ class ExtractionResult(BaseModel):
     model: str
     prompt_version: str
     run_id: str
+    trace_id: str | None = Field(default=None, description="Langfuse trace, if tracing is on")

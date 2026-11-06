@@ -65,6 +65,13 @@ class Settings(BaseSettings):
     mail_from: str = ""  # e.g. invites@aicruit.in
     mail_from_name: str = "Invoice Agent"
 
+    # Langfuse tracing (one trace per invoice: every LLM call, tool step, tokens, cost).
+    # Off while the keys are empty. Host: https://cloud.langfuse.com (EU) or
+    # https://us.cloud.langfuse.com (US). Traces include the invoice text.
+    langfuse_public_key: str = ""
+    langfuse_secret_key: SecretStr = SecretStr("")
+    langfuse_host: str = "https://cloud.langfuse.com"
+
     @field_validator("provider_order", mode="before")
     @classmethod
     def _split_csv(cls, v: object) -> object:

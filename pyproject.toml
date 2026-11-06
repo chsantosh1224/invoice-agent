@@ -21,6 +21,7 @@ dependencies = [
     "fastapi>=0.162.0",
     "uvicorn>=0.54.0",
     "python-multipart>=0.0.32",
+    "langfuse>=5.0",
 ]
 
 [project.optional-dependencies]

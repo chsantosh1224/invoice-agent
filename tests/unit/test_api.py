@@ -14,7 +14,7 @@ SAMPLE = Path("data/samples/inv-004-minimal-IN.pdf")
 
 
 def fake_process(
-    path: Path, settings: Any, *, mode: str, cache: Any
+    path: Path, settings: Any, *, mode: str, cache: Any, **trace: Any
 ) -> tuple[ExtractionResult, float]:
     """Stand-in for the real pipeline: records its inputs, returns a fixed result."""
     fake_process.calls.append((path.suffix, path.exists(), mode))  # type: ignore[attr-defined]
