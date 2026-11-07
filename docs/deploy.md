@@ -70,6 +70,26 @@ was forgotten (the old password works until the new link is used). Five wrong pa
 for one email block that email for 15 minutes. Forgot your own admin password? Run
 `sudo invoice-setup admin` again with the same email.
 
+## Human review
+
+Invoices the validation gate flags go to a review queue instead of being accepted. Admins
+see **Review (n)** in the app's header (or open `/admin/reviews`):
+
+1. Pick an invoice: the document is shown beside its fields, with the flagged ones
+   highlighted and the gate's reasons (and the agent's notes) above.
+2. Correct what the document shows, then **Approve**. The gate re-checks the corrected
+   invoice against the document; if it still fails, approval needs a note and is recorded
+   as an **override**. **Reject** (with a reason) for duplicates, non-invoices and so on.
+3. Deciding deletes the uploaded file. With tracing on, the decision is added to the run's
+   Langfuse trace as scores: `human_review` (approved / corrected / rejected) and
+   `fields_corrected`.
+
+`invoice-agent export-reviews` turns approved reviews into eval cases (answer keys in the
+format of `data/samples`) and lists the fields reviewers corrected most. To re-run them as
+regression tests, keep the documents: set `REVIEW_KEEP_FILES=true` (only for demo data). On
+the server: `sudo docker compose -f /opt/invoice-agent/deploy/lightsail/compose.yaml exec
+app invoice-agent export-reviews --out /home/user/data/reviewed`.
+
 ## Email
 
 Invites and "new access request" notices go out through [Resend](https://resend.com)

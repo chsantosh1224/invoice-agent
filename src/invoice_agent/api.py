@@ -3,7 +3,8 @@
     GET  /         home page: what the product does, with a login pop-up (public)
     GET  /app      the demo app (upload an invoice, see the result)
     GET  /health   liveness check
-    POST /extract  upload one invoice (PDF/PNG/JPG), get the ExtractionResult as JSON
+    POST /extract  upload one invoice (PDF/PNG/JPG), get the ExtractionResult as JSON;
+                   invoices the gate flags also go to the review queue (/admin/reviews)
 
 Run with `invoice-agent serve` (or `uvicorn invoice_agent.api:app`). Every route except
 /health and the login pages needs a logged-in user (see invoice_agent.auth.routes).
@@ -23,6 +24,8 @@ from invoice_agent.auth.routes import router as auth_router
 from invoice_agent.config import get_settings
 from invoice_agent.extraction.router import process_document
 from invoice_agent.llm_cache import ResponseCache
+from invoice_agent.review.routes import Reviews
+from invoice_agent.review.routes import router as review_router
 
 log = structlog.get_logger()
 
@@ -33,6 +36,7 @@ WEB = Path(__file__).parent / "web"
 app = FastAPI(title="Invoice Agent", version=__version__)
 app.add_middleware(SessionGate)
 app.include_router(auth_router)
+app.include_router(review_router)
 
 
 @app.get("/", include_in_schema=False)
@@ -103,6 +107,7 @@ def _check_upload(filename: str, data: bytes) -> str:
 def extract(
     file: Annotated[UploadFile, File(description="Invoice as PDF, PNG or JPG")],
     user: CurrentUser,
+    reviews: Reviews,
     use_agent: Annotated[bool, Form(description="Let the agent fix gate failures")] = True,
 ) -> dict[str, Any]:
     """Extract one uploaded invoice: fast path, then the agent if the gate fails.
@@ -113,11 +118,13 @@ def extract(
     Args:
         file: The uploaded invoice.
         user: The logged-in user (logged with the run).
+        reviews: The review queue (receives flagged invoices).
         use_agent: True to escalate gate failures to the agent ('router' mode); False to
             stop after the fast path.
 
     Returns:
-        {'result': ExtractionResult as JSON, 'seconds': wall-clock time, 'filename': ...}.
+        {'result': ExtractionResult as JSON, 'seconds': wall-clock time, 'filename': ...,
+        'review_id': the queued review's id if the gate flagged it, else None}.
 
     Raises:
         HTTPException: For an invalid upload (see `_check_upload`).
@@ -141,15 +148,20 @@ def extract(
         finally:
             if cache is not None:
                 cache.close()
+    review_id = None
+    if result.status == "needs_human_review":
+        review_id = reviews.add(result, file.filename or f"upload{suffix}", data, suffix, user.id)
     log.info(
         "api.extract",
         user_id=user.id,
         filename=file.filename,
         status=result.status,
         seconds=round(seconds, 1),
+        review_id=review_id,
     )
     return {
         "filename": file.filename,
         "seconds": round(seconds, 1),
         "result": result.model_dump(mode="json"),
+        "review_id": review_id,
     }

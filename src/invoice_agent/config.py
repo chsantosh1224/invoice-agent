@@ -55,6 +55,13 @@ class Settings(BaseSettings):
     # `invoice-agent create-admin`.
     auth_db: Path = Path(".data/auth.sqlite")
 
+    # Human review queue: invoices the gate flags wait here for an admin to correct and
+    # approve, or reject. Their uploaded files sit next to the database until a decision;
+    # REVIEW_KEEP_FILES=true keeps approved ones so `export-reviews` can turn them into
+    # eval documents (off by default: real invoices shouldn't linger).
+    review_db: Path = Path(".data/reviews.sqlite")
+    review_keep_files: bool = False
+
     # Email (invites, access-request notices). Empty SMTP_HOST = no email: the admin
     # copies invite links by hand. Resend: host smtp.resend.com, port 587, user 'resend',
     # password = a Resend API key; MAIL_FROM must be on a domain verified in Resend.

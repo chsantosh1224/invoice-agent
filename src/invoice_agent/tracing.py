@@ -125,3 +125,46 @@ def trace_run(
         ),
     ):
         yield Trace([handler], span)
+
+
+def score_review(
+    settings: Settings,
+    trace_id: str | None,
+    outcome: str,
+    fields_corrected: int,
+    *,
+    override: bool = False,
+    note: str = "",
+) -> None:
+    """Attach a human reviewer's decision to the run's trace, as Langfuse scores.
+
+    Two scores: 'human_review' ('approved' unchanged, 'corrected' or 'rejected') and
+    'fields_corrected' (how many fields the reviewer changed). In Langfuse they show how
+    often the pipeline needed a human and what it got wrong. Never raises.
+
+    Args:
+        settings: App settings (Langfuse keys and host).
+        trace_id: The run's trace id; None (tracing was off) means nothing to score.
+        outcome: 'approved', 'corrected' or 'rejected'.
+        fields_corrected: Number of fields the reviewer changed.
+        override: True if the reviewer approved despite the gate still failing.
+        note: The reviewer's note, stored as the score's comment.
+    """
+    if not trace_id or not enabled(settings):
+        return
+    try:
+        client = _client(
+            settings.langfuse_public_key,
+            settings.langfuse_secret_key.get_secret_value(),
+            settings.langfuse_host,
+        )
+        client.create_score(
+            trace_id=trace_id, name="human_review", value=outcome, data_type="CATEGORICAL",
+            comment=note or None, metadata={"override": override},
+        )  # fmt: skip
+        client.create_score(
+            trace_id=trace_id, name="fields_corrected", value=float(fields_corrected),
+            data_type="NUMERIC",
+        )  # fmt: skip
+    except Exception as e:
+        log.warning("tracing.score_failed", error=f"{type(e).__name__}: {e}"[:300])

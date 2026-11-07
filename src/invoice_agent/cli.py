@@ -496,6 +496,35 @@ def create_admin(
     typer.echo(f"Admin ready: {admin.email}. Log in, then open /admin.")
 
 
+@app.command("export-reviews")
+def export_reviews(
+    out: Annotated[Path, typer.Option(help="Folder for the eval cases")] = Path("data/reviewed"),
+) -> None:
+    """Turn approved human reviews into eval cases (answer keys, plus documents if kept).
+
+    Usage: `invoice-agent export-reviews`. Prints which fields reviewers corrected most:
+    the pipeline's weak spots. Keep documents with REVIEW_KEEP_FILES=true to re-run them.
+
+    Args:
+        out: Where to write the cases.
+
+    Returns:
+        None. Prints a summary.
+    """
+    from invoice_agent.review.export import export_reviews as export
+    from invoice_agent.review.store import ReviewStore
+
+    settings = get_settings()
+    store = ReviewStore(settings.review_db, keep_approved_files=settings.review_keep_files)
+    try:
+        written, with_docs, corrected = export(store, out)
+    finally:
+        store.close()
+    typer.echo(f"Exported {written} approved review(s) to {out} ({with_docs} with the document).")
+    for field, n in corrected.most_common(10):
+        typer.echo(f"  {n:>3}x corrected  {field}")
+
+
 @app.command()
 def send_test_email(
     to: Annotated[str, typer.Option(prompt="Send a test email to", help="Recipient")],

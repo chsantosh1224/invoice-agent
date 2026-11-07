@@ -1,0 +1,379 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Review queue · Invoice Agent</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/static/auth.css">
+<style>
+  .wide { max-width: 1320px; }
+  .topbar-inner { max-width: 1320px; }
+  .head { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; margin-bottom: 16px; }
+  .head .count { color: var(--muted); font-size: 14px; }
+  .head .right { margin-left: auto; display: flex; gap: 8px; }
+  .layout { display: grid; grid-template-columns: 300px 1fr; gap: 18px; align-items: start; }
+  @media (max-width: 900px) { .layout { grid-template-columns: 1fr; } }
+  .panel { background: #fff; border: 1px solid var(--line); border-radius: 12px; box-shadow: var(--shadow); }
+  .tabs { display: flex; border-bottom: 1px solid var(--line); }
+  .tabs button { flex: 1; background: none; color: var(--muted); border-radius: 0; padding: 10px; font-size: 13px; }
+  .tabs button.on { color: var(--accent); box-shadow: inset 0 -2px 0 var(--accent); }
+  .tabs button:hover:not(:disabled) { background: #f9fafb; }
+  .list { list-style: none; margin: 0; padding: 0; max-height: 75vh; overflow-y: auto; }
+  .list li { padding: 12px 14px; border-bottom: 1px solid var(--line); cursor: pointer; }
+  .list li:last-child { border-bottom: 0; }
+  .list li:hover { background: #f9fafb; }
+  .list li.on { background: var(--accent-soft); }
+  .list .name { font-weight: 600; font-size: 14px; word-break: break-all; }
+  .list .meta { color: var(--muted); font-size: 12px; margin-top: 2px; }
+  .empty { padding: 28px; text-align: center; color: var(--muted); font-size: 14px; }
+  .chip { display: inline-block; font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 999px; border: 1px solid; margin-right: 4px; }
+  .chip.pending { background: var(--warn-soft); color: var(--warn); border-color: var(--warn-line); }
+  .chip.approved { background: var(--ok-soft); color: var(--ok); border-color: var(--ok-line); }
+  .chip.rejected, .chip.override { background: var(--bad-soft); color: var(--bad); border-color: var(--bad-line); }
+  .detail { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 18px; }
+  @media (max-width: 1200px) { .detail { grid-template-columns: 1fr; } }
+  .doc { padding: 0; overflow: hidden; }
+  .doc iframe, .doc img { display: block; width: 100%; height: 78vh; border: 0; object-fit: contain; background: #f2f4f7; }
+  .doc .none { padding: 40px; color: var(--muted); text-align: center; }
+  .form { padding: 18px 20px; }
+  .form h2 { font-size: 16px; margin: 0 0 4px; }
+  .form h3 { font-size: 13px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); margin: 18px 0 6px; }
+  .sub { color: var(--muted); font-size: 13px; margin: 0 0 10px; }
+  .issues { margin: 10px 0 0; padding: 10px 12px 10px 28px; background: var(--warn-soft); border: 1px solid var(--warn-line); border-radius: 10px; font-size: 13px; color: var(--warn); }
+  .issues li + li { margin-top: 3px; }
+  .notes { font-size: 13px; color: var(--muted); margin: 8px 0 0; padding-left: 18px; }
+  .grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 12px; }
+  .grid label { margin: 8px 0 4px; font-size: 12px; }
+  input.flag { border-color: var(--warn); background: var(--warn-soft); }
+  input.changed { border-color: var(--accent); }
+  .items { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .items th { text-align: left; font-size: 11px; color: var(--muted); font-weight: 600; padding: 4px 4px; }
+  .items td { padding: 3px 4px; }
+  .items input { padding: 6px 8px; font-size: 13px; }
+  .items td.num input { text-align: right; }
+  .items .x { background: none; color: var(--bad); padding: 4px 8px; }
+  textarea { min-height: 60px; }
+  .actions { display: flex; gap: 8px; margin-top: 14px; flex-wrap: wrap; }
+  .readonly { font-size: 14px; }
+  .readonly p { margin: 6px 0; }
+</style>
+</head>
+<body>
+<div class="topbar"><div class="topbar-inner">
+  <div class="logo" aria-hidden="true"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M9 13h6M9 17h4"/></svg></div>
+  <div class="brand"><a href="/">Invoice Agent</a></div>
+  <div class="tag">Human review</div>
+</div></div>
+
+<div class="wide">
+  <div class="head">
+    <h1>Review queue</h1>
+    <span class="count" id="count"></span>
+    <div class="right">
+      <button class="small ghost" id="refresh" type="button">Refresh</button>
+      <button class="small ghost" type="button" onclick="location.href='/admin'">Users</button>
+      <button class="small ghost" type="button" onclick="location.href='/app'">Back to the app</button>
+    </div>
+  </div>
+  <div class="msg" id="msg" role="alert"></div>
+
+  <div class="layout" style="margin-top:12px">
+    <div class="panel">
+      <div class="tabs">
+        <button type="button" data-tab="pending" class="on">Waiting</button>
+        <button type="button" data-tab="">History</button>
+      </div>
+      <ul class="list" id="list"></ul>
+    </div>
+    <div id="detail"><div class="panel empty">Pick an invoice from the queue.</div></div>
+  </div>
+</div>
+
+<script>
+const msg = document.getElementById("msg");
+let tab = "pending", current = null, original = null;
+
+// Header fields the reviewer can edit, as [path, label].
+const FIELDS = [
+  ["invoice_number", "Invoice number"], ["po_number", "PO number"],
+  ["invoice_date", "Invoice date (YYYY-MM-DD)"], ["due_date", "Due date (YYYY-MM-DD)"],
+  ["currency", "Currency (ISO, e.g. USD)"], ["payment_terms", "Payment terms"],
+];
+const PARTY = [["name", "Name"], ["tax_id", "Tax ID"], ["address", "Address"]];
+const TOTALS = [["subtotal", "Subtotal"], ["discount", "Discount"], ["tax", "Tax"], ["total", "Total"]];
+const ITEM = [["description", "Description"], ["quantity", "Qty"], ["unit_price", "Unit price"], ["amount", "Amount"]];
+
+function el(tag, className, text) {
+  const node = document.createElement(tag);
+  if (className) node.className = className;
+  if (text !== undefined && text !== null) node.textContent = text;  // never innerHTML: model and user text
+  return node;
+}
+
+function when(iso) {
+  return iso ? new Date(iso).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" }) : "—";
+}
+
+async function call(path, options) {
+  const resp = await fetch(path, options);
+  if (resp.status === 401) { location.href = "/?login"; throw new Error("Logged out"); }
+  const data = await resp.json().catch(() => ({}));
+  if (!resp.ok) {
+    const err = new Error(typeof data.detail === "object" ? data.detail.message : data.detail || `Request failed (${resp.status})`);
+    err.issues = data.detail && data.detail.issues;
+    throw err;
+  }
+  return data;
+}
+
+function say(text, kind) { msg.textContent = text; msg.className = `msg ${kind}`; }
+
+function get(obj, path) { return path.split(".").reduce((o, k) => (o == null ? null : o[k]), obj); }
+
+// ---------- the queue ----------
+
+async function loadList(selectId) {
+  try {
+    const { reviews, pending } = await call(`/api/admin/reviews${tab ? `?status=${tab}` : ""}`);
+    document.getElementById("count").textContent = `${pending} waiting`;
+    const list = document.getElementById("list");
+    list.replaceChildren();
+    if (!reviews.length) {
+      list.append(el("li", "empty", tab ? "Nothing waiting. Invoices the gate flags appear here." : "No reviews yet."));
+      return;
+    }
+    for (const r of reviews) {
+      const li = el("li", current && current.id === r.id ? "on" : "");
+      li.dataset.id = r.id;
+      li.append(el("div", "name", r.filename));
+      const meta = el("div", "meta");
+      meta.append(el("span", `chip ${r.status}`, r.status));
+      if (r.override) meta.append(el("span", "chip override", "override"));
+      meta.append(`${r.uploaded_by} · ${when(r.created_at)}`);
+      li.append(meta);
+      if (r.status === "pending") li.append(el("div", "meta", `${r.issues.length} problem(s) · score ${r.score.toFixed(2)}`));
+      li.addEventListener("click", () => open(r.id));
+      list.append(li);
+    }
+    if (selectId) open(selectId);
+  } catch (err) { say(err.message, "error"); }
+}
+
+document.querySelectorAll(".tabs button").forEach((b) => b.addEventListener("click", () => {
+  document.querySelectorAll(".tabs button").forEach((x) => x.classList.toggle("on", x === b));
+  tab = b.dataset.tab;
+  loadList();
+}));
+document.getElementById("refresh").addEventListener("click", () => loadList());
+
+// ---------- one review ----------
+
+function documentPanel(r) {
+  const panel = el("div", "panel doc");
+  const src = `/api/admin/reviews/${r.id}/file`;
+  if (!r.file_type) panel.append(el("div", "none", "The document is no longer stored (deleted after the decision)."));
+  else if (r.file_type === ".pdf") { const f = el("iframe"); f.src = src; f.title = "Invoice"; panel.append(f); }
+  else { const img = el("img"); img.src = src; img.alt = "Invoice"; panel.append(img); }
+  return panel;
+}
+
+function input(path, label, value, flagged) {
+  const wrap = el("div");
+  const id = `f-${path.replace(/[^\w]/g, "_")}`;
+  const lab = el("label", "", label);
+  lab.htmlFor = id;
+  const box = el("input");
+  box.id = id;
+  box.dataset.path = path;
+  box.value = value ?? "";
+  box.dataset.orig = box.value;
+  if (flagged[path]) { box.classList.add("flag"); box.title = flagged[path]; }
+  box.addEventListener("input", () => box.classList.toggle("changed", box.value !== box.dataset.orig));
+  wrap.append(lab, box);
+  return wrap;
+}
+
+function itemRow(item, index, flagged) {
+  const tr = el("tr");
+  tr.dataset.orig = JSON.stringify(item || {});
+  for (const [key] of ITEM) {
+    const td = el("td", key === "description" ? "" : "num");
+    const box = el("input");
+    box.dataset.key = key;
+    box.value = item ? item[key] ?? "" : "";
+    box.setAttribute("aria-label", key);
+    const flag = index !== null && flagged[`line_items[${index}].${key}`];
+    if (flag) { box.classList.add("flag"); box.title = flag; }
+    td.append(box);
+    tr.append(td);
+  }
+  const del = el("button", "x", "✕");
+  del.type = "button";
+  del.title = "Remove this line";
+  del.addEventListener("click", () => tr.remove());
+  const td = el("td");
+  td.append(del);
+  tr.append(td);
+  return tr;
+}
+
+function blank(v) { return v.trim() === "" ? null : v.trim(); }
+
+// The invoice as corrected: the model's invoice with the edited fields replaced. Fields
+// the form doesn't show (other charges, per-line tax...) are kept as they were.
+function corrected() {
+  const inv = structuredClone(original);
+  document.querySelectorAll("#form input[data-path]").forEach((box) => {
+    const keys = box.dataset.path.split(".");
+    const last = keys.pop();
+    keys.reduce((o, k) => o[k], inv)[last] = blank(box.value);
+  });
+  inv.line_items = [...document.querySelectorAll("#items tr")].map((tr) => {
+    const item = JSON.parse(tr.dataset.orig);
+    tr.querySelectorAll("input").forEach((box) => { item[box.dataset.key] = blank(box.value); });
+    return item;
+  });
+  return inv;
+}
+
+function section(form, title, fields, prefix, flagged) {
+  form.append(el("h3", "", title));
+  const grid = el("div", "grid");
+  for (const [key, label] of fields) {
+    const path = prefix ? `${prefix}.${key}` : key;
+    grid.append(input(path, label, get(original, path), flagged));
+  }
+  form.append(grid);
+}
+
+function issuesList(issues) {
+  const ul = el("ul", "issues");
+  for (const i of issues) ul.append(el("li", "", `${i.field}: ${i.message}`));
+  return ul;
+}
+
+function editForm(r) {
+  const form = el("div", "panel form");
+  form.id = "form";
+  const flagged = {};
+  r.result.issues.forEach((i) => { flagged[i.field] = i.message; });
+  form.append(el("h2", "", r.filename));
+  form.append(el("p", "sub", `Uploaded by ${r.uploaded_by} · ${when(r.created_at)} · handled by ${r.result.route.replace("_", " ")} · score ${r.result.score.toFixed(2)}`));
+  form.append(el("p", "sub", "Why it was flagged (highlighted below). Fix what the document shows, then approve."));
+  form.append(issuesList(r.result.issues));
+  if (r.result.notes.length) {
+    const notes = el("ul", "notes");
+    r.result.notes.forEach((n) => notes.append(el("li", "", `Agent: ${n}`)));
+    form.append(notes);
+  }
+  section(form, "Invoice", FIELDS, "", flagged);
+  section(form, "Vendor", PARTY, "vendor", flagged);
+  section(form, "Buyer", PARTY, "buyer", flagged);
+
+  form.append(el("h3", "", "Line items"));
+  const table = el("table", "items");
+  const head = el("tr");
+  ITEM.forEach(([, label]) => head.append(el("th", "", label)));
+  head.append(el("th"));
+  const thead = el("thead");
+  thead.append(head);
+  const body = el("tbody");
+  body.id = "items";
+  original.line_items.forEach((item, i) => body.append(itemRow(item, i, flagged)));
+  table.append(thead, body);
+  const add = el("button", "small ghost", "+ Add line");
+  add.type = "button";
+  add.style.marginTop = "6px";
+  add.addEventListener("click", () => body.append(itemRow(null, null, flagged)));
+  form.append(table, add);
+
+  section(form, "Totals", TOTALS, "", flagged);
+
+  form.append(el("h3", "", "Note"));
+  const note = el("textarea");
+  note.id = "note";
+  note.placeholder = "Optional when approving. Required to reject, or to approve something validation still disputes.";
+  form.append(note);
+  const recheck = el("div");
+  recheck.id = "recheck";
+  form.append(recheck);
+
+  const actions = el("div", "actions");
+  const ok = el("button", "", "Approve");
+  ok.type = "button";
+  ok.addEventListener("click", () => decide(r.id, "approve", ok));
+  const no = el("button", "danger", "Reject");
+  no.type = "button";
+  no.addEventListener("click", () => decide(r.id, "reject", no));
+  actions.append(ok, no);
+  form.append(actions);
+  return form;
+}
+
+function decidedView(r) {
+  const box = el("div", "panel form readonly");
+  box.append(el("h2", "", r.filename));
+  const status = el("p");
+  status.append(el("span", `chip ${r.status}`, r.status));
+  if (r.override) status.append(el("span", "chip override", "override"));
+  status.append(` ${when(r.decided_at)} · uploaded by ${r.uploaded_by}`);
+  box.append(status);
+  box.append(el("p", "", r.status === "approved"
+    ? (r.changed_fields.length ? `Corrected: ${r.changed_fields.join(", ")}` : "Approved without changes.")
+    : "Rejected."));
+  if (r.note) box.append(el("p", "", `Note: ${r.note}`));
+  box.append(el("h3", "", "Flagged for"));
+  box.append(issuesList(r.result.issues));
+  if (r.final_issues.length) { box.append(el("h3", "", "Still disputed at approval")); box.append(issuesList(r.final_issues)); }
+  return box;
+}
+
+async function open(id) {
+  msg.className = "msg";
+  try {
+    const r = await call(`/api/admin/reviews/${id}`);
+    current = r;
+    original = r.result.invoice;
+    document.querySelectorAll("#list li").forEach((li) => li.classList.toggle("on", Number(li.dataset.id) === id));
+    const detail = document.getElementById("detail");
+    const grid = el("div", "detail");
+    grid.append(documentPanel(r), r.status === "pending" ? editForm(r) : decidedView(r));
+    detail.replaceChildren(grid);
+  } catch (err) { say(err.message, "error"); }
+}
+
+async function decide(id, action, button) {
+  const note = document.getElementById("note").value;
+  const recheck = document.getElementById("recheck");
+  recheck.replaceChildren();
+  if (action === "reject" && note.trim().length < 3) { say("Write why you're rejecting it in the note.", "error"); return; }
+  if (action === "reject" && !confirm("Reject this invoice?")) return;
+  button.disabled = true;
+  try {
+    const body = action === "approve" ? { invoice: corrected(), note } : { note };
+    const data = await call(`/api/admin/reviews/${id}/${action}`, {
+      method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body),
+    });
+    if (action === "approve") {
+      const what = data.changed_fields.length ? `${data.changed_fields.length} field(s) corrected` : "no changes";
+      say(`Approved (${what})${data.override ? ", as an override" : ", and it passes validation"}.`, "ok");
+    } else say("Rejected.", "ok");
+    current = null;
+    document.getElementById("detail").replaceChildren(el("div", "panel empty", "Pick the next invoice from the queue."));
+    await loadList();
+  } catch (err) {
+    say(err.message, "error");
+    if (err.issues && err.issues.length) {
+      recheck.append(el("h3", "", "Validation still finds"), issuesList(err.issues));
+      const flagged = new Set(err.issues.map((i) => i.field));
+      document.querySelectorAll("#form input[data-path]").forEach((box) => box.classList.toggle("flag", flagged.has(box.dataset.path)));
+    }
+  } finally { button.disabled = false; }
+}
+
+const wanted = Number(new URLSearchParams(location.search).get("id")) || null;
+loadList(wanted);
+</script>
+</body>
+</html>

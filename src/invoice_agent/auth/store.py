@@ -7,9 +7,8 @@ approved users with a password can log in.
 """
 
 import sqlite3
-import threading
 from dataclasses import dataclass
-from datetime import UTC, datetime, timedelta
+from datetime import timedelta
 from pathlib import Path
 from typing import Literal
 
@@ -20,6 +19,9 @@ from invoice_agent.auth.passwords import (
     token_hash,
     verify_password,
 )
+from invoice_agent.db import SQLiteStore
+from invoice_agent.db import iso as _iso
+from invoice_agent.db import now as _now
 
 Status = Literal["pending", "approved", "rejected", "disabled"]
 
@@ -68,27 +70,6 @@ class User:
     last_login: str | None
 
 
-def _now() -> datetime:
-    """The current time in UTC.
-
-    Returns:
-        A timezone-aware datetime.
-    """
-    return datetime.now(UTC)
-
-
-def _iso(when: datetime) -> str:
-    """Format a time for the database.
-
-    Args:
-        when: A timezone-aware datetime.
-
-    Returns:
-        ISO 8601 text to the second, e.g. '2026-10-25T09:30:00+00:00'.
-    """
-    return when.isoformat(timespec="seconds")
-
-
 def normalize_email(email: str) -> str:
     """Make emails comparable: 'Ann@X.com ' and 'ann@x.com' are the same account.
 
@@ -126,11 +107,10 @@ def _user(row: sqlite3.Row) -> User:
     )
 
 
-class AuthStore:
+class AuthStore(SQLiteStore):
     """All reads and writes of users and sessions.
 
-    One SQLite connection shared by FastAPI's worker threads, guarded by a lock: the
-    demo has a handful of users, so serializing database calls costs nothing.
+    See `SQLiteStore` for how the connection is shared between threads.
     """
 
     def __init__(self, path: Path) -> None:
@@ -139,47 +119,7 @@ class AuthStore:
         Args:
             path: The SQLite file; its folder is created if missing.
         """
-        path.parent.mkdir(parents=True, exist_ok=True)
-        self._db = sqlite3.connect(path, check_same_thread=False)
-        self._db.row_factory = sqlite3.Row
-        self._db.execute("PRAGMA foreign_keys = ON")
-        self._db.executescript(_SCHEMA)
-        self._lock = threading.Lock()
-
-    def close(self) -> None:
-        """Close the database connection.
-
-        Returns:
-            None.
-        """
-        self._db.close()
-
-    def _write(self, sql: str, params: tuple[object, ...] = ()) -> sqlite3.Cursor:
-        """Run one statement that changes data, and commit it.
-
-        Args:
-            sql: The SQL statement.
-            params: Values for its '?' placeholders.
-
-        Returns:
-            The cursor (for rowcount / lastrowid).
-        """
-        with self._lock, self._db:
-            return self._db.execute(sql, params)
-
-    def _one(self, sql: str, params: tuple[object, ...] = ()) -> sqlite3.Row | None:
-        """Run a query and return its first row.
-
-        Args:
-            sql: The SQL query.
-            params: Values for its '?' placeholders.
-
-        Returns:
-            The first row, or None if there is none.
-        """
-        with self._lock:
-            row: sqlite3.Row | None = self._db.execute(sql, params).fetchone()
-            return row
+        super().__init__(path, _SCHEMA)
 
     # ----- access requests and admin decisions -----
 
@@ -218,10 +158,9 @@ class AuthStore:
         Returns:
             The users.
         """
-        with self._lock:
-            rows = self._db.execute(
-                "SELECT * FROM users ORDER BY status != 'pending', created_at DESC, id DESC"
-            ).fetchall()
+        rows = self._all(
+            "SELECT * FROM users ORDER BY status != 'pending', created_at DESC, id DESC"
+        )
         return [_user(r) for r in rows]
 
     def get(self, user_id: int) -> User | None:

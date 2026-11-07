@@ -44,6 +44,9 @@
   .hero { max-width: 1080px; margin: 0 auto; padding: 28px 24px 0; }
   .hero h1 { font-size: 26px; font-weight: 700; letter-spacing: -.5px; margin: 0 0 6px; }
   .hero p { margin: 0; color: var(--muted); max-width: 640px; }
+  #queued { display: none; margin-top: 14px; padding: 10px 14px; border-radius: 10px; font-size: 14px;
+             background: #fffaeb; color: #b54708; border: 1px solid #fedf89; }
+  #queued a { color: inherit; font-weight: 600; }
   .notice { margin: 12px 0 0; font-size: 13px; color: var(--muted); }
   .notice b { color: var(--text); }
   .steps { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
@@ -156,6 +159,7 @@
     <div class="tag">AI extraction · verified by code</div>
     <div class="user" id="user">
       <span class="who" id="userName"></span>
+      <a href="/admin/reviews" id="reviewLink" hidden>Review</a>
       <a href="/admin" id="adminLink" hidden>Admin</a>
       <button type="button" id="logout">Log out</button>
     </div>
@@ -205,6 +209,7 @@
         <div class="stat"><div class="label">Model</div><div class="value" id="model"></div></div>
         <div class="stat"><div class="label">Time</div><div class="value" id="time"></div></div>
       </div>
+      <div id="queued"></div>
     </section>
 
     <section class="card">
@@ -328,7 +333,31 @@ function field(container, label, value, confidence) {
   container.appendChild(box);
 }
 
-function render({ result, seconds, filename }) {
+let isAdmin = false;
+
+// A flagged invoice waits in the review queue; say so (with a link, for admins).
+function showQueued(reviewId) {
+  const box = $("queued");
+  box.replaceChildren();
+  box.style.display = reviewId ? "block" : "none";
+  if (!reviewId) return;
+  box.append(`Sent for human review (#${reviewId}): nothing is accepted until a person checks it.`);
+  if (isAdmin) {
+    const link = document.createElement("a");
+    link.href = `/admin/reviews?id=${reviewId}`;
+    link.textContent = "Review it now";
+    box.append(" ", link);
+    loadReviewCount();
+  }
+}
+
+function loadReviewCount() {
+  fetch("/api/admin/reviews?status=pending").then((r) => (r.ok ? r.json() : Promise.reject(r)))
+    .then(({ pending }) => { $("reviewLink").textContent = pending ? `Review (${pending})` : "Review"; })
+    .catch(() => {});
+}
+
+function render({ result, seconds, filename, review_id }) {
   const inv = result.invoice, conf = result.field_confidence || {};
   const accepted = result.status === "accepted";
   const badge = $("badge");
@@ -342,6 +371,7 @@ function render({ result, seconds, filename }) {
     : agentTried ? "Fast path (agent unavailable)" : "Fast path";
   $("model").textContent = result.model.split("/").pop().replace(":free", "");
   $("time").textContent = `${seconds}s`;
+  showQueued(review_id);
 
   const issues = $("issues");
   issues.replaceChildren();
@@ -420,7 +450,9 @@ function render({ result, seconds, filename }) {
 
 fetch("/api/me").then((r) => (r.ok ? r.json() : Promise.reject(r))).then((me) => {
   $("userName").textContent = me.name;
-  $("adminLink").hidden = !me.is_admin;
+  isAdmin = me.is_admin;
+  $("adminLink").hidden = $("reviewLink").hidden = !me.is_admin;
+  if (me.is_admin) loadReviewCount();
   $("user").classList.add("show");
 }).catch(() => {});
 $("logout").addEventListener("click", async () => {

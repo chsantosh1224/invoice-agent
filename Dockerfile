@@ -35,6 +35,7 @@ RUN mkdir -p /home/user/data
 ENV ALLOW_PROMPT_LOGGING=true \
     CACHE_DIR=/tmp/invoice-agent-cache \
     AUTH_DB=/home/user/data/auth.sqlite \
+    REVIEW_DB=/home/user/data/reviews.sqlite \
     FORWARDED_ALLOW_IPS=* \
     LOG_LEVEL=INFO
 

@@ -8,6 +8,7 @@ from fastapi.testclient import TestClient
 from invoice_agent import api
 from invoice_agent.auth.routes import COOKIE
 from invoice_agent.auth.store import AuthStore
+from invoice_agent.review.store import ReviewStore
 from invoice_agent.schemas import ExtractionResult, Invoice
 
 SAMPLE = Path("data/samples/inv-004-minimal-IN.pdf")
@@ -39,15 +40,17 @@ def _fake_pipeline(monkeypatch: pytest.MonkeyPatch) -> None:
 
 @pytest.fixture
 def client(tmp_path: Path) -> Iterator[TestClient]:
-    """A client logged in as an approved user, against a throwaway user database."""
+    """A client logged in as an approved user, against throwaway user and review databases."""
     store = AuthStore(tmp_path / "auth.sqlite")
-    api.app.state.auth = store
+    reviews = ReviewStore(tmp_path / "reviews.sqlite")
+    api.app.state.auth, api.app.state.reviews = store, reviews
     user = store.create_admin("tester@example.com", "Tester", "a-long-password")
     with TestClient(api.app) as c:
         c.cookies.set(COOKIE, store.create_session(user.id))
         yield c
-    api.app.state.auth = None
+    api.app.state.auth = api.app.state.reviews = None
     store.close()
+    reviews.close()
 
 
 def test_pages_and_health(client: TestClient) -> None:
@@ -75,6 +78,7 @@ def test_extract_returns_the_result_and_passes_the_agent_switch(client: TestClie
         and body["result"]["invoice"]["invoice_number"] == "INV-1"
     )
     assert body["filename"] == "my invoice.pdf" and body["seconds"] == 1.2
+    assert body["review_id"] is None  # accepted: nothing to review
     assert fake_process.calls == [(".pdf", True, "fast")]  # type: ignore[attr-defined]
 
 

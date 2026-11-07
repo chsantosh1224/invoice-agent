@@ -160,7 +160,7 @@ class SessionGate(BaseHTTPMiddleware):
             if is_page:
                 return RedirectResponse(LOGIN_URL, status_code=303)
             return JSONResponse({"detail": "Please log in"}, status_code=401)
-        if (path == "/admin" or path.startswith("/api/admin/")) and not user.is_admin:
+        if (path == "/admin" or path.startswith(("/admin/", "/api/admin/"))) and not user.is_admin:
             if is_page:
                 return RedirectResponse("/app", status_code=303)
             return JSONResponse({"detail": "Admins only"}, status_code=403)
