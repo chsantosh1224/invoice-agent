@@ -49,6 +49,11 @@ CREATE TABLE IF NOT EXISTS sessions (
     user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     expires TEXT NOT NULL
 );
+CREATE TABLE IF NOT EXISTS extractions (
+    user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    at TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS extractions_user ON extractions (user_id, at);
 """
 
 
@@ -332,3 +337,34 @@ class AuthStore(SQLiteStore):
             None.
         """
         self._write("DELETE FROM sessions WHERE token_hash = ?", (token_hash(token),))
+
+    # ----- usage limits -----
+
+    def extractions_since(self, user_id: int, hours: int = 24) -> int:
+        """How many invoices a user has submitted recently.
+
+        Args:
+            user_id: The user's id.
+            hours: The look-back window.
+
+        Returns:
+            The number of extractions in the last `hours` hours.
+        """
+        since = _iso(_now() - timedelta(hours=hours))
+        row = self._one(
+            "SELECT COUNT(*) AS n FROM extractions WHERE user_id = ? AND at >= ?",
+            (user_id, since),
+        )
+        return int(row["n"]) if row else 0
+
+    def record_extraction(self, user_id: int) -> None:
+        """Count one submitted invoice against the user's limit (and drop old records).
+
+        Args:
+            user_id: The user's id.
+
+        Returns:
+            None.
+        """
+        self._write("DELETE FROM extractions WHERE at < ?", (_iso(_now() - timedelta(days=7)),))
+        self._write("INSERT INTO extractions (user_id, at) VALUES (?, ?)", (user_id, _iso(_now())))

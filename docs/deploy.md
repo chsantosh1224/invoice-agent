@@ -67,7 +67,9 @@ failed: `tail -f /var/log/cloud-init-output.log`.
 Also on the admin page: **Reject** a request; **Disable** someone (logs them out
 everywhere); **New invite link** / **Password reset link** if a link expired or a password
 was forgotten (the old password works until the new link is used). Five wrong passwords
-for one email block that email for 15 minutes. Forgot your own admin password? Run
+for one email block that email for 15 minutes. Each user may submit 30 invoices per 24 hours
+(admins are exempt); change it with an `EXTRACT_DAILY_LIMIT=` line in
+`/etc/invoice-agent/app.env`, then `sudo invoice-setup update`. Forgot your own admin password? Run
 `sudo invoice-setup admin` again with the same email.
 
 ## Human review

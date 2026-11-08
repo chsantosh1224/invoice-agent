@@ -8,6 +8,7 @@ from fastapi.testclient import TestClient
 from invoice_agent import api
 from invoice_agent.auth.routes import COOKIE
 from invoice_agent.auth.store import AuthStore
+from invoice_agent.config import get_settings
 from invoice_agent.review.store import ReviewStore
 from invoice_agent.schemas import ExtractionResult, Invoice
 
@@ -95,3 +96,34 @@ def test_bad_uploads_are_rejected_before_any_llm_call(
     resp = client.post("/extract", files={"file": (name, content, "application/octet-stream")})
     assert resp.status_code == status
     assert fake_process.calls == []  # type: ignore[attr-defined]
+
+
+@pytest.fixture
+def limit_of_two(monkeypatch: pytest.MonkeyPatch) -> Iterator[None]:
+    """EXTRACT_DAILY_LIMIT=2 for this test."""
+    monkeypatch.setenv("EXTRACT_DAILY_LIMIT", "2")
+    get_settings.cache_clear()
+    yield
+    get_settings.cache_clear()
+
+
+def upload_sample(client: TestClient) -> int:
+    """Upload the sample invoice and return the status code."""
+    with SAMPLE.open("rb") as fh:
+        return client.post(
+            "/extract", files={"file": ("inv.pdf", fh, "application/pdf")}
+        ).status_code
+
+
+def test_daily_limit_blocks_users_but_not_admins(client: TestClient, limit_of_two: None) -> None:
+    """After the limit a user gets 429 before any LLM call; the admin is exempt."""
+    store: AuthStore = api.app.state.auth
+    store.request_access("Ann", "ann@example.com", "", "")
+    ann = next(u for u in store.list_users() if u.email == "ann@example.com")
+    token = store.approve(ann.id)
+    assert token is not None and store.accept_invite(token, "ann-password-1") is not None
+
+    assert [upload_sample(client) for _ in range(3)] == [200, 200, 200]  # the admin: no limit
+    client.cookies.set(COOKIE, store.create_session(ann.id))
+    assert [upload_sample(client) for _ in range(3)] == [200, 200, 429]
+    assert len(fake_process.calls) == 5  # type: ignore[attr-defined]  # the 429 never ran

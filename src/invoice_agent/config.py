@@ -62,6 +62,10 @@ class Settings(BaseSettings):
     review_db: Path = Path(".data/reviews.sqlite")
     review_keep_files: bool = False
 
+    # Cost guard: invoices one user may submit per 24 hours (admins are exempt; 0 = no
+    # limit). Each one costs model calls, so a shared demo can't be drained by one account.
+    extract_daily_limit: int = 30
+
     # Email (invites, access-request notices). Empty SMTP_HOST = no email: the admin
     # copies invite links by hand. Resend: host smtp.resend.com, port 587, user 'resend',
     # password = a Resend API key; MAIL_FROM must be on a domain verified in Resend.

@@ -19,7 +19,7 @@ from fastapi import FastAPI, File, Form, HTTPException, UploadFile
 from fastapi.responses import FileResponse
 
 from invoice_agent import __version__
-from invoice_agent.auth.routes import CurrentUser, SessionGate
+from invoice_agent.auth.routes import CurrentUser, SessionGate, Store
 from invoice_agent.auth.routes import router as auth_router
 from invoice_agent.config import get_settings
 from invoice_agent.extraction.router import process_document
@@ -107,6 +107,7 @@ def _check_upload(filename: str, data: bytes) -> str:
 def extract(
     file: Annotated[UploadFile, File(description="Invoice as PDF, PNG or JPG")],
     user: CurrentUser,
+    users: Store,
     reviews: Reviews,
     use_agent: Annotated[bool, Form(description="Let the agent fix gate failures")] = True,
 ) -> dict[str, Any]:
@@ -118,6 +119,7 @@ def extract(
     Args:
         file: The uploaded invoice.
         user: The logged-in user (logged with the run).
+        users: The user database (counts uploads against the daily limit).
         reviews: The review queue (receives flagged invoices).
         use_agent: True to escalate gate failures to the agent ('router' mode); False to
             stop after the fast path.
@@ -127,11 +129,19 @@ def extract(
         'review_id': the queued review's id if the gate flagged it, else None}.
 
     Raises:
-        HTTPException: For an invalid upload (see `_check_upload`).
+        HTTPException: For an invalid upload (see `_check_upload`); 429 once a user has
+            reached EXTRACT_DAILY_LIMIT invoices in 24 hours (admins are exempt).
     """
     data = file.file.read(MAX_UPLOAD_BYTES + 1)
     suffix = _check_upload(file.filename or "", data)
     settings = get_settings()
+    limit = settings.extract_daily_limit
+    if limit and not user.is_admin and users.extractions_since(user.id) >= limit:
+        log.info("api.extract_limited", user_id=user.id, limit=limit)
+        raise HTTPException(
+            429, f"Daily limit reached: {limit} invoices per 24 hours. Please try again later."
+        )
+    users.record_extraction(user.id)
     cache = ResponseCache(settings.cache_dir / "llm.sqlite") if settings.llm_cache_enabled else None
     with tempfile.TemporaryDirectory() as tmp:
         path = Path(tmp) / f"upload{suffix}"  # never trust the client's file name
