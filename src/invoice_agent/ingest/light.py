@@ -4,13 +4,41 @@ No PyTorch: ~100 MB of dependencies and well under 1 GB of RAM, so it fits a sma
 """
 
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 
 import pdfplumber
+from PIL import Image
 
 from invoice_agent.ingest.document import Document, Page, Span
 from invoice_agent.ingest.layout import deskew_quad, estimate_skew, layout_text
 from invoice_agent.ingest.pages import detect_kind, page_images
+
+# Hidden-text check: a word counts as hidden if it is shorter than MIN_VISIBLE_PT, or if
+# its box on the rendered page is (nearly) one flat colour, i.e. no glyph shows.
+VISIBILITY_DPI = 100
+MIN_VISIBLE_PT = 3.0
+MIN_CONTRAST = 40  # grey levels between the darkest and lightest pixel of the word's box
+
+
+def is_visible(word: dict[str, Any], img: Image.Image, page_height: float) -> bool:
+    """Whether a text-layer word actually shows on the rendered page.
+
+    Args:
+        word: A pdfplumber word (x0, top, x1, bottom in points).
+        img: The page rendered at VISIBILITY_DPI, in greyscale.
+        page_height: The page height in points.
+
+    Returns:
+        False for microscopic text and for text drawn in the background colour.
+    """
+    if word["bottom"] - word["top"] < MIN_VISIBLE_PT:
+        return False
+    scale = img.height / page_height
+    box = (int(word["x0"] * scale), int(word["top"] * scale),
+           max(int(word["x1"] * scale), int(word["x0"] * scale) + 1),
+           max(int(word["bottom"] * scale), int(word["top"] * scale) + 1))  # fmt: skip
+    darkest, lightest = cast(tuple[int, int], img.crop(box).getextrema())  # greyscale: 2 ints
+    return lightest - darkest >= MIN_CONTRAST
 
 
 class LightIngestor:
@@ -47,27 +75,30 @@ class LightIngestor:
     def _digital_pages(self, path: Path) -> list[Page]:
         """Extract words and positions from a PDF's text layer.
 
+        Words a reader can't see on the rendered page go to `Page.hidden`, not `spans`:
+        a PDF can carry invisible text (e.g. instructions aimed at an AI) that a person
+        approving the invoice would never notice.
+
         Args:
             path: A PDF with a text layer.
 
         Returns:
-            Pages with one Span per word, coordinates normalized to the page.
+            Pages with one Span per visible word, coordinates normalized to the page.
         """
         pages = []
+        images = page_images(path, dpi=VISIBILITY_DPI)
         with pdfplumber.open(path) as pdf:
-            for number, p in enumerate(pdf.pages, start=1):
+            for number, (p, img) in enumerate(zip(pdf.pages, images, strict=True), start=1):
                 w, h = float(p.width), float(p.height)
-                spans = [
-                    Span(
-                        word["text"],
-                        word["x0"] / w,
-                        word["top"] / h,
-                        word["x1"] / w,
-                        word["bottom"] / h,
-                    )
-                    for word in p.extract_words(keep_blank_chars=False, use_text_flow=False)
-                ]
-                pages.append(Page(number=number, width=w, height=h, spans=spans))
+                grey = img.convert("L")
+                page = Page(number=number, width=w, height=h)
+                for word in p.extract_words(keep_blank_chars=False, use_text_flow=False):
+                    span = Span(
+                        word["text"], word["x0"] / w, word["top"] / h,
+                        word["x1"] / w, word["bottom"] / h,
+                    )  # fmt: skip
+                    (page.spans if is_visible(word, grey, h) else page.hidden).append(span)
+                pages.append(page)
         return pages
 
     def _scanned_pages(self, path: Path) -> list[Page]:

@@ -429,6 +429,38 @@ def gate_eval(
     typer.echo(write_gate_report(run_mutation_test(data, split=split), report))
 
 
+@app.command("injection-eval")
+def injection_eval(
+    build: Annotated[bool, typer.Option(help="(Re)generate the attack invoices first")] = False,
+    live: Annotated[bool, typer.Option(help="Also run the real models (uses API quota)")] = False,
+    channel: Annotated[
+        str | None, typer.Option(help="Browser for --build, e.g. 'msedge' or 'chrome'")
+    ] = None,
+    report: Annotated[Path, typer.Option(help="Report path")] = Path("reports/prompt_injection.md"),
+) -> None:
+    """Test prompt injection: invoices carrying instructions aimed at the AI.
+
+    Without --live: no LLM calls, checks that the gate refuses extractions that obeyed
+    the attacks. With --live: runs the real pipeline and records whether a model obeyed
+    and whether a wrong answer was accepted. The invoices are in data/injection.
+
+    Args:
+        build: Regenerate data/injection from the dev samples (needs a browser).
+        live: Run the real models too.
+        channel: Browser for rendering the PDFs.
+        report: Where to write the Markdown report.
+
+    Returns:
+        None. Prints the report.
+    """
+    from invoice_agent.evals.injection import build_cases, check_gate, run_live, write_report
+
+    if build:
+        build_cases(channel=channel)
+    cases = run_live() if live else check_gate()
+    typer.echo(write_report(cases, report))
+
+
 @app.command("gate-calibrate")
 def gate_calibrate(
     data: Annotated[Path, typer.Option(help="Dataset folder")] = Path("data/samples"),

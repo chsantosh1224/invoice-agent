@@ -4,6 +4,10 @@ invoice -> fast path -> gate passed? -> accepted                  (most invoices
                      -> gate failed  -> agent -> gate passed? -> accepted
                                               -> still failing -> needs_human_review
                      -> no output at all (provider down)      -> needs_human_review
+                     -> security flag (hidden text, injection) -> needs_human_review
+
+A security flag is never sent to the agent: it isn't an extraction error the agent can
+fix, and an agent investigating a hostile document only adds risk.
 """
 
 import time
@@ -116,6 +120,10 @@ def _route(
     )
     result: ExtractionResult = fast["result"]
     if mode == "fast" or result.status == "accepted" or fast.get("raw") is None:
+        return result
+    security = [i.code for i in result.issues if i.code.startswith("security.")]
+    if security:
+        log.warning("router.security_flag", run_id=run_id, issues=security)
         return result
 
     log.info("router.escalate", run_id=run_id, issues=[i.code for i in result.issues])

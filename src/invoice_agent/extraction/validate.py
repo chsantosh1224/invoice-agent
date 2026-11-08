@@ -40,6 +40,37 @@ NORMALIZE_WARNING_CAPS = {
 }
 # Normalization issues about a totals row lower the confidence of the total.
 _SUMMARY_PREFIX = "summary_lines["
+
+# Text addressed to an AI rather than to the person paying the invoice (prompt injection).
+# Specific phrasings only: a real line item like "AI assistant subscription" must not match.
+INJECTION_PATTERNS = [re.compile(p) for p in (
+    r"\b(ignore|disregard|forget)\b.{0,30}\b(previous|prior|above|earlier|your)\b.{0,20}"
+    r"\b(instructions?|prompts?|rules)\b",
+    r"\b(note|message|instructions?)\s+(to|for)\s+(any\s+|all\s+|the\s+)?"
+    r"(ai|automated|llm|language model|assistant)\b",
+    r"\bsystem\s+(override|prompt)\b",
+    r"\b(ai|llm)\s+assistants?\s*[:,]",
+    r"\b(you are|as) an? (ai|language model|llm)\b",
+)]  # fmt: skip
+
+
+def instruction_to_ai(text: str) -> str | None:
+    """Find text in a document that tries to instruct an AI (prompt injection).
+
+    Args:
+        text: The document's text (visible and hidden).
+
+    Returns:
+        The surrounding snippet of the first match, or None if there is none.
+    """
+    flat = re.sub(r"\s+", " ", text).lower()
+    for pattern in INJECTION_PATTERNS:
+        match = pattern.search(flat)
+        if match:
+            return flat[max(match.start() - 20, 0) : match.end() + 60].strip()
+    return None
+
+
 _GSTIN_LIKE = re.compile(r"^\d{2}[0-9A-Z]{13}$")
 
 # Label phrases per field. Order matters: earlier fields win when a phrase matches several
@@ -412,6 +443,21 @@ def validate(
             "document_type",
             "document.not_payable",
             f"document is a {inv.document_type.replace('_', ' ')}, not an invoice to pay",
+        )
+
+    # security: invisible text and instructions aimed at an AI always go to a person
+    if doc.hidden_text:
+        findings.flag(
+            "*",
+            "security.hidden_text",
+            f"the document contains text a reader can't see: '{doc.hidden_text[:100]}'",
+        )
+    injected = instruction_to_ai(f"{text}\n{doc.hidden_text}")
+    if injected:
+        findings.flag(
+            "*",
+            "security.prompt_injection",
+            f"the document contains instructions aimed at an AI: '...{injected}...'",
         )
 
     # required

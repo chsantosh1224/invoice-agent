@@ -59,6 +59,9 @@ class Page:
         height: Page height in the same units.
         spans: Text pieces with normalized positions, used for grounding/validation.
         text: Layout-aware text for the LLM (layout-preserving text or Markdown).
+        hidden: Text-layer words a reader can't see on the rendered page (white on
+            white, microscopic). Kept out of `spans` and `text`, so neither the LLM nor
+            the grounding check uses them; the gate flags their presence.
     """
 
     number: int
@@ -66,6 +69,7 @@ class Page:
     height: float
     spans: list[Span] = field(default_factory=list)
     text: str = ""
+    hidden: list[Span] = field(default_factory=list)
 
 
 @dataclass
@@ -92,6 +96,15 @@ class Document:
             The concatenated text; pages are separated by '--- page N ---' lines.
         """
         return "\n\n".join(f"--- page {p.number} ---\n{p.text}" for p in self.pages)
+
+    @property
+    def hidden_text(self) -> str:
+        """All pages' hidden words (see `Page.hidden`), in reading order.
+
+        Returns:
+            The words joined by spaces; '' if the document has none.
+        """
+        return " ".join(s.text for p in self.pages for s in p.hidden)
 
     @property
     def ocr_confidence(self) -> float:
